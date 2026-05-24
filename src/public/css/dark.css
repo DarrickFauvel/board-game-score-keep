@@ -1,0 +1,80 @@
+/* ─── Dark mode — respects both OS preference and manual toggle ── */
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --color-bg:          #1a1612;
+    --color-bg-raised:   #252118;
+    --color-surface:     #2e2920;
+    --color-text:        #f0e8d8;
+    --color-text-muted:  #9e9080;
+    --color-border:      #4a4035;
+    --color-border-focus: #4d9fff;
+    --color-focus-ring:  0 0 0 3px rgba(77 159 255 / 0.5);
+    --color-gold:        #d4a83c;
+    --color-gold-dk:     #b88c20;
+    --color-parchment:   #2a2318;
+    --color-parchment-dk: #1a1612;
+    --color-ink:         #f0e8d8;
+    --color-stone:       #7a6e62;
+    --color-stone-lt:    #4a4035;
+  }
+}
+
+[data-theme="dark"] {
+  --color-bg:          #1a1612;
+  --color-bg-raised:   #252118;
+  --color-surface:     #2e2920;
+  --color-text:        #f0e8d8;
+  --color-text-muted:  #9e9080;
+  --color-border:      #4a4035;
+  --color-border-focus: #4d9fff;
+  --color-focus-ring:  0 0 0 3px rgba(77 159 255 / 0.5);
+  --color-gold:        #d4a83c;
+  --color-gold-dk:     #b88c20;
+  --color-parchment:   #2a2318;
+  --color-parchment-dk: #1a1612;
+  --color-ink:         #f0e8d8;
+  --color-stone:       #7a6e62;
+  --color-stone-lt:    #4a4035;
+}
+
+/* ─── High contrast mode ────────────────────────── */
+@media (prefers-contrast: more) {
+  :root {
+    --color-border: currentColor;
+    --color-text-muted: var(--color-text);
+  }
+
+  .btn {
+    border-width: 2px;
+    border-style: solid;
+  }
+
+  .form-control {
+    border-width: 3px;
+  }
+
+  .card,
+  .scoreboard,
+  .session-card {
+    border-width: 2px;
+  }
+
+  /* Remove decorative backgrounds that reduce contrast */
+  .keep-layout {
+    background-image: none;
+  }
+}
+
+/* ─── Light mode override ────────────────────────── */
+[data-theme="light"] {
+  --color-bg:          #f5f0e8;
+  --color-bg-raised:   #fff;
+  --color-surface:     #e8e0d0;
+  --color-text:        #2c2416;
+  --color-text-muted:  #8b7d6b;
+  --color-border:      #b5a898;
+  --color-border-focus: #0066cc;
+  --color-gold:        #c9a84c;
+  --color-gold-dk:     #a07c30;
+}

@@ -1,0 +1,44 @@
+<%
+const totals = {};
+for (const p of it.participants) {
+  totals[p.id] = it.scores.filter(s => s.participant_id === p.id).reduce((sum, s) => sum + (s.value || 0), 0);
+}
+const maxTotal = Math.max(...Object.values(totals), 0);
+%>
+
+<table class="scoreboard" aria-label="Final scores">
+  <thead>
+    <tr>
+      <th scope="col">Player</th>
+      <th scope="col">Score</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% it.participants.forEach(function(p) {
+       const total = totals[p.id] || 0;
+       const isWinner = it.session.status === 'completed' && total === maxTotal && maxTotal > 0;
+    %>
+    <tr id="participant-<%= p.id %>" class="<%= isWinner ? 'score-winner' : '' %>">
+      <td>
+        <div style="display:flex;align-items:center;gap:var(--space-2)">
+          <div class="avatar" style="width:2rem;height:2rem;font-size:var(--text-xs);background:<%= p.color || p.preferred_color || 'var(--color-surface)' %>"
+               aria-hidden="true"><%= p.display_name.charAt(0) %></div>
+          <span><%= p.display_name %><%= isWinner ? ' 🏆' : '' %></span>
+        </div>
+      </td>
+      <td>
+        <% if (it.session.status === 'active') { %>
+        <score-input
+          session-id="<%= it.session.id %>"
+          participant-id="<%= p.id %>"
+          value="<%= total %>"
+          aria-label="Score for <%= p.display_name %>">
+        </score-input>
+        <% } else { %>
+        <%= total %>
+        <% } %>
+      </td>
+    </tr>
+    <% }) %>
+  </tbody>
+</table>

@@ -1,0 +1,88 @@
+<% layout('../layouts/base') %>
+
+<div class="page-header">
+  <div>
+    <h1 class="page-header__title"><%= it.game.name %></h1>
+    <div style="font-size:var(--text-xs);color:var(--color-text-muted)">
+      <%= new Date(it.session.started_at).toLocaleDateString('en-US', {weekday:'long', month:'long', day:'numeric', year:'numeric'}) %>
+    </div>
+  </div>
+  <div style="display:flex;gap:var(--space-2);align-items:center;flex-wrap:wrap">
+    <span class="badge badge--<%= it.session.status === 'active' ? 'active' : 'complete' %>"><%= it.session.status %></span>
+    <% if (it.session.status === 'active') { %>
+    <form action="/games/<%= it.game.id %>/sessions/<%= it.session.id %>/complete" method="POST" style="margin:0">
+      <button type="submit" class="btn btn--gold"
+              onclick="return confirm('Mark this session as complete?')">Complete Session</button>
+    </form>
+    <% } %>
+    <a href="/games/<%= it.game.id %>" class="btn btn--secondary">Back</a>
+  </div>
+</div>
+
+<%
+const scoringMode = it.game.scoring_mode;
+const scoreMap = {};
+for (const entry of it.scores) {
+  const key = entry.participant_id + '_' + (entry.category_id || 'total') + '_' + (entry.round ?? 0);
+  scoreMap[key] = entry.value;
+}
+const totals = {};
+for (const p of it.participants) {
+  totals[p.id] = it.scores.filter(s => s.participant_id === p.id).reduce((sum, s) => sum + (s.value || 0), 0);
+}
+const maxTotal = Math.max(...Object.values(totals), 0);
+%>
+
+<div id="scoreboard-section"
+     data-signals='{"sessionId":"<%= it.session.id %>","needsRefresh":false,"sessionStatus":"<%= it.session.status %>"}'
+     data-on-load="@get('/sse/sessions/<%= it.session.id %>/scores')"
+     data-watch-needs-refresh="if($needsRefresh){window.location.reload();$needsRefresh=false}"
+     data-watch-session-status="if($sessionStatus==='completed')window.location.reload()">
+
+  <div id="score-rows"
+       role="region"
+       aria-live="polite"
+       aria-label="Live score updates"
+       aria-atomic="false">
+
+    <% if (scoringMode === 'tally') { %>
+    <%~ include('../partials/scoreboard-tally', it) %>
+    <% } else if (scoringMode === 'categories') { %>
+    <%~ include('../partials/scoreboard-categories', it) %>
+    <% } else { %>
+    <%~ include('../partials/scoreboard-final', it) %>
+    <% } %>
+
+  </div>
+</div>
+
+<section aria-labelledby="note-heading" class="section" style="margin-top:var(--space-6)">
+  <h2 id="note-heading">Session Notes</h2>
+  <div class="card">
+    <div class="card__body">
+      <form action="/games/<%= it.game.id %>/sessions/<%= it.session.id %>/note"
+            method="POST" enctype="multipart/form-data">
+
+        <div class="form-group">
+          <label class="form-label" for="note">
+            How did it go?
+            <voice-input target="#note" aria-label="Use voice to dictate note"></voice-input>
+          </label>
+          <textarea class="form-control" id="note" name="note" rows="4"
+                    placeholder="Memorable moments, house rules, who won dramatically…"><%= it.session.note || '' %></textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Session photo (optional)</label>
+          <% if (it.session.photo_url) { %>
+          <img src="<%= it.session.photo_url %>" alt="Session photo"
+               style="max-height:12rem;border-radius:var(--radius-md);margin-bottom:var(--space-2)" loading="lazy">
+          <% } %>
+          <avatar-picker name="photo" folder="sessions" aria-label="Add a session photo"></avatar-picker>
+        </div>
+
+        <button type="submit" class="btn btn--primary">Save Note</button>
+      </form>
+    </div>
+  </div>
+</section>

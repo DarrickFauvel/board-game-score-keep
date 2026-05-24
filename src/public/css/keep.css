@@ -1,0 +1,111 @@
+/* Medieval heraldic styles — only active on .keep-layout (home/lobby) */
+
+/* Gothic font for headings — loaded lazily via font-face */
+@import url('https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap');
+
+.keep-layout {
+  background-color: var(--color-parchment);
+  background-image:
+    repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 40px,
+      rgba(139 125 107 / 0.06) 40px,
+      rgba(139 125 107 / 0.06) 80px
+    );
+}
+
+.keep-hero {
+  text-align: center;
+  padding: var(--space-8) var(--space-4);
+  position: relative;
+}
+
+.keep-hero::before,
+.keep-hero::after {
+  content: '';
+  display: block;
+  height: 4px;
+  background: linear-gradient(90deg, transparent, var(--color-gold), transparent);
+  margin: var(--space-4) auto;
+  max-width: 32rem;
+}
+
+.keep-title {
+  font-family: 'MedievalSharp', 'Palatino Linotype', Palatino, serif;
+  font-size: var(--text-2xl);
+  color: var(--color-ink);
+  letter-spacing: 0.04em;
+  text-shadow: 2px 2px 0 rgba(201 168 76 / 0.3);
+}
+
+.keep-subtitle {
+  font-size: var(--text-base);
+  color: var(--color-stone);
+  margin-top: var(--space-2);
+}
+
+/* Heraldic banner ribbon */
+.keep-banner {
+  position: relative;
+  background: var(--color-ink);
+  color: var(--color-gold);
+  font-family: 'MedievalSharp', serif;
+  text-align: center;
+  padding: var(--space-2) var(--space-6);
+  margin: var(--space-4) auto;
+  max-width: 28rem;
+  clip-path: polygon(0 0, 100% 0, 95% 50%, 100% 100%, 0 100%, 5% 50%);
+  font-size: var(--text-sm);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* Shield badge for game cards on the Keep */
+.keep-shield {
+  width: 3rem;
+  height: 3.5rem;
+  clip-path: polygon(50% 0%, 100% 20%, 100% 60%, 50% 100%, 0% 60%, 0% 20%);
+  background: var(--color-gold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--text-base);
+  flex-shrink: 0;
+}
+
+/* Decorative divider with diamond */
+.keep-divider {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: var(--space-4) 0;
+  color: var(--color-stone);
+}
+
+.keep-divider::before,
+.keep-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--color-stone-lt));
+}
+
+.keep-divider::after {
+  background: linear-gradient(90deg, var(--color-stone-lt), transparent);
+}
+
+/* Keep game card — slight parchment feel */
+.keep-card {
+  background: #fff;
+  border: 1px solid var(--color-stone-lt);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow var(--transition-base), transform var(--transition-base);
+}
+
+.keep-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}

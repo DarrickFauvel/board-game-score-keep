@@ -1,0 +1,113 @@
+<% layout('../layouts/base') %>
+
+<div style="max-width:48rem; margin:0 auto">
+  <div class="page-header">
+    <h1 class="page-header__title">Add a Game</h1>
+    <a href="/games" class="btn btn--secondary">Cancel</a>
+  </div>
+
+  <% if (it.error) { %>
+  <div class="flash flash--error" role="alert"><%= it.error %></div>
+  <% } %>
+
+  <form action="/games" method="POST" enctype="multipart/form-data" novalidate>
+
+    <div class="form-group">
+      <label class="form-label" for="name">Game name <span class="required" aria-hidden="true">*</span></label>
+      <input class="form-control" type="text" id="name" name="name" required aria-required="true" maxlength="120" autofocus>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Game image</label>
+      <avatar-picker name="image" folder="game" aria-label="Upload or capture a game image"></avatar-picker>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label" for="scoring_mode">Scoring mode <span class="required" aria-hidden="true">*</span></label>
+      <select class="form-control" id="scoring_mode" name="scoring_mode" required aria-required="true"
+              data-signals="{scoringMode:'tally'}"
+              data-bind-scoring-mode="scoringMode">
+        <option value="tally">Running tally (round by round, auto-summed)</option>
+        <option value="final">Single final score (one score per player)</option>
+        <option value="categories">Custom categories (e.g. Catan: Roads, Cities…)</option>
+      </select>
+    </div>
+
+    <div data-show="scoringMode === 'categories'" id="categories-section">
+      <div class="form-group">
+        <label class="form-label">Score categories</label>
+        <div id="category-list" style="display:flex;flex-direction:column;gap:var(--space-2)">
+          <input class="form-control" type="text" name="categories" placeholder="e.g. Roads">
+          <input class="form-control" type="text" name="categories" placeholder="e.g. Cities">
+          <input class="form-control" type="text" name="categories" placeholder="e.g. Monasteries">
+        </div>
+        <button type="button" class="btn btn--secondary btn--sm" style="margin-top:var(--space-2)"
+                onclick="addCategory()">+ Add category</button>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label" for="teams_mode">Team play</label>
+      <select class="form-control" id="teams_mode" name="teams_mode">
+        <option value="none">No teams — individual players only</option>
+        <option value="adhoc">Ad-hoc teams (enter team names during session)</option>
+        <option value="profiles">Profile-linked teams (assemble from player profiles)</option>
+      </select>
+    </div>
+
+    <fieldset style="border:1px solid var(--color-border);border-radius:var(--radius-md);padding:var(--space-3);margin-bottom:var(--space-3)">
+      <legend class="form-label">Color theme</legend>
+      <p class="form-hint" style="margin-bottom:var(--space-2)">Choose colors or pick from the game image automatically.</p>
+      <color-thief-picker target-image="#game-preview-img"
+                          primary-input="#color_primary"
+                          secondary-input="#color_secondary"
+                          accent-input="#color_accent">
+      </color-thief-picker>
+      <div class="form-row form-row--3" style="margin-top:var(--space-2)">
+        <div class="form-group" style="margin-bottom:0">
+          <label class="form-label" for="color_primary">Primary</label>
+          <div class="color-field">
+            <input type="color" id="color_primary" name="color_primary" value="#5a3e2b">
+            <input class="form-control" type="text" value="#5a3e2b" style="flex:1;font-size:var(--text-xs)"
+                   oninput="document.getElementById('color_primary').value=this.value">
+          </div>
+        </div>
+        <div class="form-group" style="margin-bottom:0">
+          <label class="form-label" for="color_secondary">Secondary</label>
+          <div class="color-field">
+            <input type="color" id="color_secondary" name="color_secondary" value="#e8d5a3">
+            <input class="form-control" type="text" value="#e8d5a3" style="flex:1;font-size:var(--text-xs)"
+                   oninput="document.getElementById('color_secondary').value=this.value">
+          </div>
+        </div>
+        <div class="form-group" style="margin-bottom:0">
+          <label class="form-label" for="color_accent">Accent</label>
+          <div class="color-field">
+            <input type="color" id="color_accent" name="color_accent" value="#c9a84c">
+            <input class="form-control" type="text" value="#c9a84c" style="flex:1;font-size:var(--text-xs)"
+                   oninput="document.getElementById('color_accent').value=this.value">
+          </div>
+        </div>
+      </div>
+    </fieldset>
+
+    <div style="display:flex;gap:var(--space-2);justify-content:flex-end;margin-top:var(--space-4)">
+      <a href="/games" class="btn btn--secondary">Cancel</a>
+      <button type="submit" class="btn btn--primary">Save Game</button>
+    </div>
+
+  </form>
+</div>
+
+<script>
+function addCategory() {
+  const list = document.getElementById('category-list');
+  const input = document.createElement('input');
+  input.className = 'form-control';
+  input.type = 'text';
+  input.name = 'categories';
+  input.placeholder = 'Category name';
+  list.appendChild(input);
+  input.focus();
+}
+</script>
