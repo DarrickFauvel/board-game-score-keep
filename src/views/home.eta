@@ -1,0 +1,51 @@
+<% layout('layouts/base') %>
+
+<div class="keep-hero">
+  <h1 class="keep-title">⚔ Board Game Score Keep</h1>
+  <p class="keep-subtitle">Your hall of victories and defeats, faithfully recorded.</p>
+</div>
+
+<div class="keep-banner" aria-hidden="true">Hall of Games</div>
+
+<section aria-labelledby="games-heading" style="max-width:72rem; margin:0 auto; padding:0 var(--space-3) var(--space-8)">
+  <div class="page-header">
+    <h2 id="games-heading" style="flex:1">Your Games</h2>
+    <a href="/games/new" class="btn btn--gold">+ Add a Game</a>
+  </div>
+
+  <% if (it.games.length === 0) { %>
+  <div class="empty-state">
+    <span class="empty-state__icon" aria-hidden="true">🛡</span>
+    <h3 class="empty-state__title">The Keep awaits its first game!</h3>
+    <p style="margin-bottom:var(--space-4)">Add a board game to start tracking scores and session history.</p>
+    <a href="/games/new" class="btn btn--primary">Add Your First Game</a>
+  </div>
+  <% } else { %>
+  <div class="game-grid">
+    <% it.games.forEach(function(game) { %>
+    <article class="keep-card" aria-label="<%= game.name %>">
+      <% if (game.image_url) { %>
+      <img class="card__img"
+           src="<%= game.image_url %>"
+           alt="<%= game.name %> game box"
+           loading="lazy"
+           width="400" height="225">
+      <% } else { %>
+      <div class="card__img" style="background:var(--color-surface);display:flex;align-items:center;justify-content:center;font-size:4rem;" aria-hidden="true">🎲</div>
+      <% } %>
+      <div class="card__body">
+        <h3 class="card__title"><%= game.name %></h3>
+        <p class="card__meta">
+          <%= game.scoring_mode === 'tally' ? 'Running tally' : game.scoring_mode === 'final' ? 'Final score' : 'Custom categories' %>
+          <% if (game.teams_mode !== 'none') { %>&nbsp;&bull; Team play<% } %>
+        </p>
+      </div>
+      <div class="card__actions">
+        <a href="/games/<%= game.id %>" class="btn btn--primary btn--sm" aria-label="Open <%= game.name %>">Open</a>
+        <a href="/games/<%= game.id %>/sessions/new" class="btn btn--secondary btn--sm" aria-label="Start new session of <%= game.name %>">New Session</a>
+      </div>
+    </article>
+    <% }) %>
+  </div>
+  <% } %>
+</section>

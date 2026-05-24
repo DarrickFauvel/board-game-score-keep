@@ -1,0 +1,33 @@
+<% layout('../layouts/base') %>
+
+<div class="page-header">
+  <h1 class="page-header__title">Players</h1>
+</div>
+
+<% if (it.players.length === 0) { %>
+<div class="empty-state">
+  <span class="empty-state__icon" aria-hidden="true">👤</span>
+  <h2 class="empty-state__title">No players yet</h2>
+  <p>Players are created automatically when you register an account.</p>
+</div>
+<% } else { %>
+<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,14rem),1fr));gap:var(--space-3)">
+  <% it.players.forEach(function(player) { %>
+  <a href="/players/<%= player.id %>" class="card session-card" style="text-decoration:none">
+    <% if (player.avatar_url) { %>
+    <img class="avatar" src="<%= player.avatar_url %>" alt="" aria-hidden="true">
+    <% } else { %>
+    <div class="avatar" aria-hidden="true" style="background:<%= player.preferred_color || 'var(--color-surface)' %>">
+      <%= player.display_name.charAt(0).toUpperCase() %>
+    </div>
+    <% } %>
+    <div>
+      <div style="font-weight:600"><%= player.display_name %></div>
+      <% if (player.preferred_token) { %>
+      <div style="font-size:var(--text-xs);color:var(--color-text-muted)"><%= player.preferred_token %></div>
+      <% } %>
+    </div>
+  </a>
+  <% }) %>
+</div>
+<% } %>

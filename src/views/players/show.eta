@@ -1,0 +1,73 @@
+<% layout('../layouts/base') %>
+
+<div class="page-header">
+  <div style="display:flex;align-items:center;gap:var(--space-3)">
+    <% if (it.player.avatar_url) { %>
+    <img class="avatar avatar--lg" src="<%= it.player.avatar_url %>" alt="<%= it.player.display_name %>'s avatar">
+    <% } else { %>
+    <div class="avatar avatar--lg" style="background:<%= it.player.preferred_color || 'var(--color-surface)' %>" aria-hidden="true">
+      <%= it.player.display_name.charAt(0).toUpperCase() %>
+    </div>
+    <% } %>
+    <div>
+      <h1 style="font-size:var(--text-xl)"><%= it.player.display_name %></h1>
+      <% if (it.player.preferred_token) { %>
+      <div style="font-size:var(--text-sm);color:var(--color-text-muted)"><%= it.player.preferred_token %></div>
+      <% } %>
+    </div>
+  </div>
+  <% if (it.player.user_id === it.user.sub) { %>
+  <a href="/players/<%= it.player.id %>/edit" class="btn btn--secondary">Edit Profile</a>
+  <% } %>
+</div>
+
+<div class="stats-grid" style="margin-bottom:var(--space-6)" aria-label="Player statistics">
+  <div class="stat-card">
+    <div class="stat-card__value"><%= it.stats.games_played || 0 %></div>
+    <div class="stat-card__label">Games Played</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-card__value"><%= it.stats.wins || 0 %></div>
+    <div class="stat-card__label">Wins</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-card__value"><%= it.stats.win_rate || 0 %>%</div>
+    <div class="stat-card__label">Win Rate</div>
+  </div>
+</div>
+
+<section aria-labelledby="history-heading">
+  <h2 id="history-heading" style="margin-bottom:var(--space-3)">Game History</h2>
+
+  <% if (it.history.length === 0) { %>
+  <div class="empty-state" style="padding:var(--space-4)">
+    <p>No completed sessions yet.</p>
+  </div>
+  <% } else { %>
+  <div class="session-list" role="list">
+    <% it.history.forEach(function(entry) { %>
+    <a class="session-card" role="listitem"
+       href="/games/<%= entry.game_id %>/sessions/<%= entry.session_id %>"
+       aria-label="<%= entry.game_name %> — <%= new Date(entry.started_at).toLocaleDateString() %>, rank <%= entry.rank %>">
+      <% if (entry.image_url) { %>
+      <img src="<%= entry.image_url %>" alt="" class="avatar" style="border-radius:var(--radius-sm)" aria-hidden="true">
+      <% } else { %>
+      <div class="avatar" aria-hidden="true" style="border-radius:var(--radius-sm)">🎲</div>
+      <% } %>
+      <div style="flex:1">
+        <div style="font-weight:600"><%= entry.game_name %></div>
+        <div style="font-size:var(--text-xs);color:var(--color-text-muted)">
+          <%= new Date(entry.started_at).toLocaleDateString() %>
+          &bull; Score: <%= entry.total_score || 0 %>
+        </div>
+      </div>
+      <% if (entry.rank === 1 && entry.status === 'completed') { %>
+      <span class="badge badge--gold" aria-label="Winner">🏆 Winner</span>
+      <% } else { %>
+      <span style="font-size:var(--text-sm);color:var(--color-text-muted)">Rank #<%= entry.rank %></span>
+      <% } %>
+    </a>
+    <% }) %>
+  </div>
+  <% } %>
+</section>

@@ -1,0 +1,79 @@
+:root {
+  /* ─── Spacing (8px base) ─────────────────────── */
+  --space-1: 0.5rem;
+  --space-2: 1rem;
+  --space-3: 1.5rem;
+  --space-4: 2rem;
+  --space-6: 3rem;
+  --space-8: 4rem;
+
+  /* ─── Typography — fluid, 20px min ───────────── */
+  --text-xs:   clamp(0.875rem, 0.8rem + 0.25vw, 1rem);
+  --text-sm:   clamp(1rem, 0.9rem + 0.5vw, 1.125rem);
+  --text-base: clamp(1.25rem, 1.1rem + 0.75vw, 1.5rem);
+  --text-lg:   clamp(1.5rem, 1.3rem + 1vw, 2rem);
+  --text-xl:   clamp(2rem, 1.6rem + 2vw, 3rem);
+  --text-2xl:  clamp(2.5rem, 2rem + 2.5vw, 4rem);
+
+  /* ─── Touch targets ──────────────────────────── */
+  --tap-min: 3rem; /* 48px — exceeds WCAG 2.1 AA */
+
+  /* ─── Line height ────────────────────────────── */
+  --leading-tight:  1.25;
+  --leading-normal: 1.6;
+  --leading-loose:  1.8;
+
+  /* ─── Radius ─────────────────────────────────── */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 16px;
+  --radius-full: 9999px;
+
+  /* ─── Shadows ────────────────────────────────── */
+  --shadow-sm: 0 1px 3px rgba(0 0 0 / 0.12);
+  --shadow-md: 0 4px 12px rgba(0 0 0 / 0.16);
+  --shadow-lg: 0 8px 32px rgba(0 0 0 / 0.2);
+
+  /* ─── Keep (home/lobby) palette ──────────────── */
+  --color-parchment:    #f5f0e8;
+  --color-parchment-dk: #e8e0d0;
+  --color-ink:          #2c2416;
+  --color-stone:        #8b7d6b;
+  --color-stone-lt:     #b5a898;
+  --color-gold:         #c9a84c;
+  --color-gold-dk:      #a07c30;
+  --color-crimson:      #8b1a1a;
+  --color-forest:       #2d5a27;
+
+  /* ─── Semantic tokens (light mode defaults) ──── */
+  --color-bg:          var(--color-parchment);
+  --color-bg-raised:   #fff;
+  --color-surface:     var(--color-parchment-dk);
+  --color-text:        var(--color-ink);
+  --color-text-muted:  var(--color-stone);
+  --color-border:      var(--color-stone-lt);
+  --color-border-focus: #0066cc;
+  --color-focus-ring:  0 0 0 3px rgba(0 102 204 / 0.5);
+
+  /* ─── Status colors ──────────────────────────── */
+  --color-success:  #1a6b2b;
+  --color-warning:  #8a5e00;
+  --color-danger:   #9b1c1c;
+  --color-info:     #1a4e8a;
+
+  /* ─── Game theme slots ───────────────────────── */
+  --game-primary:   #5a3e2b;
+  --game-secondary: #e8d5a3;
+  --game-accent:    #c9a84c;
+  --game-text:      #2c2416;
+
+  /* ─── Transition ─────────────────────────────── */
+  --transition-fast: 120ms ease;
+  --transition-base: 200ms ease;
+
+  /* ─── Z-layers ───────────────────────────────── */
+  --z-base:    0;
+  --z-overlay: 100;
+  --z-modal:   200;
+  --z-toast:   300;
+}

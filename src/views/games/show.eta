@@ -1,0 +1,59 @@
+<% layout('../layouts/base') %>
+
+<div class="page-header">
+  <h1 class="page-header__title"><%= it.game.name %></h1>
+  <div style="display:flex;gap:var(--space-2);flex-wrap:wrap">
+    <a href="/games/<%= it.game.id %>/sessions/new" class="btn btn--gold">+ New Session</a>
+    <a href="/games/<%= it.game.id %>/edit" class="btn btn--secondary">Edit Game</a>
+  </div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr;gap:var(--space-4)">
+
+  <% if (it.game.image_url) { %>
+  <game-image src="<%= it.game.image_url %>" alt="<%= it.game.name %>" style="max-height:16rem;border-radius:var(--radius-lg);overflow:hidden"></game-image>
+  <% } %>
+
+  <section aria-labelledby="details-heading" class="card">
+    <div class="card__body">
+      <h2 id="details-heading" style="font-size:var(--text-base);margin-bottom:var(--space-2)">Game Details</h2>
+      <dl style="display:grid;grid-template-columns:auto 1fr;gap:var(--space-1) var(--space-3)">
+        <dt style="font-weight:600;color:var(--color-text-muted)">Scoring</dt>
+        <dd><%= it.game.scoring_mode === 'tally' ? 'Running tally' : it.game.scoring_mode === 'final' ? 'Final score' : 'Custom categories' %></dd>
+        <dt style="font-weight:600;color:var(--color-text-muted)">Teams</dt>
+        <dd><%= it.game.teams_mode === 'none' ? 'Individual players' : it.game.teams_mode === 'adhoc' ? 'Ad-hoc teams' : 'Profile-linked teams' %></dd>
+        <% if (it.categories.length > 0) { %>
+        <dt style="font-weight:600;color:var(--color-text-muted)">Categories</dt>
+        <dd><%= it.categories.map(c => c.name).join(', ') %></dd>
+        <% } %>
+      </dl>
+    </div>
+  </section>
+
+  <section aria-labelledby="sessions-heading">
+    <h2 id="sessions-heading" style="margin-bottom:var(--space-3)">Session History</h2>
+
+    <% if (it.sessions.length === 0) { %>
+    <div class="empty-state" style="padding:var(--space-4)">
+      <p>No sessions recorded yet. <a href="/games/<%= it.game.id %>/sessions/new" style="color:var(--color-border-focus)">Start the first session!</a></p>
+    </div>
+    <% } else { %>
+    <div class="session-list" role="list">
+      <% it.sessions.forEach(function(session) { %>
+      <a class="session-card" role="listitem"
+         href="/games/<%= it.game.id %>/sessions/<%= session.id %>"
+         aria-label="Session from <%= new Date(session.started_at).toLocaleDateString() %>, <%= session.status %>">
+        <div style="flex:1">
+          <div style="font-weight:600"><%= new Date(session.started_at).toLocaleDateString('en-US', {weekday:'short', month:'short', day:'numeric', year:'numeric'}) %></div>
+          <div style="font-size:var(--text-xs);color:var(--color-text-muted)"><%= session.participant_count %> player<%= session.participant_count !== 1 ? 's' : '' %></div>
+        </div>
+        <span class="badge badge--<%= session.status === 'active' ? 'active' : 'complete' %>">
+          <%= session.status %>
+        </span>
+      </a>
+      <% }) %>
+    </div>
+    <% } %>
+  </section>
+
+</div>

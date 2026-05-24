@@ -1,0 +1,55 @@
+<%
+const totals = {};
+for (const p of it.participants) totals[p.id] = 0;
+for (const entry of it.scores) {
+  totals[entry.participant_id] = (totals[entry.participant_id] || 0) + (entry.value || 0);
+}
+const maxTotal = Math.max(...Object.values(totals), 0);
+%>
+
+<div style="overflow-x:auto">
+<table class="scoreboard" aria-label="Category scores">
+  <thead>
+    <tr>
+      <th scope="col">Player</th>
+      <% it.categories.forEach(function(cat) { %><th scope="col"><%= cat.name %></th><% }) %>
+      <th scope="col">Total</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% it.participants.forEach(function(p) {
+       const total = totals[p.id] || 0;
+       const isWinner = it.session.status === 'completed' && total === maxTotal && maxTotal > 0;
+    %>
+    <tr id="participant-<%= p.id %>" class="<%= isWinner ? 'score-winner' : '' %>">
+      <td>
+        <div style="display:flex;align-items:center;gap:var(--space-2)">
+          <div class="avatar" style="width:2rem;height:2rem;font-size:var(--text-xs);background:<%= p.color || p.preferred_color || 'var(--color-surface)' %>"
+               aria-hidden="true"><%= p.display_name.charAt(0) %></div>
+          <span><%= p.display_name %><%= isWinner ? ' 🏆' : '' %></span>
+        </div>
+      </td>
+      <% it.categories.forEach(function(cat) {
+         const entry = it.scores.find(s => s.participant_id === p.id && s.category_id === cat.id);
+      %>
+      <td class="score-input-cell">
+        <% if (it.session.status === 'active') { %>
+        <score-input session-id="<%= it.session.id %>" participant-id="<%= p.id %>"
+                     category-id="<%= cat.id %>" value="<%= entry ? entry.value : 0 %>"
+                     aria-label="<%= cat.name %> score for <%= p.display_name %>"></score-input>
+        <% } else { %><%= entry ? entry.value : '—' %><% } %>
+      </td>
+      <% }) %>
+      <td><strong><%= total %></strong></td>
+    </tr>
+    <% }) %>
+  </tbody>
+  <tfoot>
+    <tr>
+      <td>Total</td>
+      <% it.categories.forEach(function() { %><td></td><% }) %>
+      <td><strong><%= Math.max(...Object.values(totals)) || 0 %></strong></td>
+    </tr>
+  </tfoot>
+</table>
+</div>

@@ -1,0 +1,56 @@
+/* Per-game color theme — applied via inline CSS vars on <body> in the game layout */
+
+.game-layout {
+  background-color: var(--game-secondary);
+  color: var(--game-text);
+}
+
+.game-layout .site-header {
+  background: var(--game-primary);
+}
+
+.game-layout .site-header .site-header__logo {
+  color: var(--game-accent);
+}
+
+.game-layout .site-header__nav a,
+.game-layout .site-header__nav button {
+  color: color-mix(in srgb, var(--game-secondary) 90%, white);
+}
+
+.game-layout .btn--primary {
+  background: var(--game-primary);
+  color: var(--game-secondary);
+  border-color: var(--game-primary);
+}
+
+.game-layout .btn--primary:hover {
+  background: color-mix(in srgb, var(--game-primary) 80%, black);
+}
+
+.game-layout .btn--gold {
+  background: var(--game-accent);
+  color: var(--game-primary);
+}
+
+.game-layout .card,
+.game-layout .scoreboard {
+  border-color: color-mix(in srgb, var(--game-primary) 30%, transparent);
+}
+
+.game-layout .scoreboard thead,
+.game-layout .scoreboard tfoot {
+  background: var(--game-primary);
+  color: var(--game-secondary);
+}
+
+.game-layout .badge--active {
+  background: color-mix(in srgb, var(--game-accent) 20%, white);
+  color: color-mix(in srgb, var(--game-primary) 80%, black);
+}
+
+/* Accent stripe — decorative top border on game pages */
+.game-accent-bar {
+  height: 4px;
+  background: linear-gradient(90deg, var(--game-primary), var(--game-accent), var(--game-primary));
+}

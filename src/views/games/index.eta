@@ -1,0 +1,35 @@
+<% layout('../layouts/base') %>
+
+<div class="page-header">
+  <h1 class="page-header__title">My Games</h1>
+  <a href="/games/new" class="btn btn--gold">+ Add a Game</a>
+</div>
+
+<% if (it.games.length === 0) { %>
+<div class="empty-state">
+  <span class="empty-state__icon" aria-hidden="true">🎲</span>
+  <h2 class="empty-state__title">No games yet</h2>
+  <p style="margin-bottom:var(--space-4)">Add your first game to start tracking sessions and scores.</p>
+  <a href="/games/new" class="btn btn--primary">Add a Game</a>
+</div>
+<% } else { %>
+<div class="game-grid">
+  <% it.games.forEach(function(game) { %>
+  <article class="card">
+    <% if (game.image_url) { %>
+    <img class="card__img" src="<%= game.image_url %>" alt="<%= game.name %>" loading="lazy" width="400" height="225">
+    <% } else { %>
+    <div class="card__img" style="background:var(--color-surface);display:flex;align-items:center;justify-content:center;font-size:4rem" aria-hidden="true">🎲</div>
+    <% } %>
+    <div class="card__body">
+      <h2 class="card__title"><%= game.name %></h2>
+      <p class="card__meta"><%= game.scoring_mode %> scoring</p>
+    </div>
+    <div class="card__actions">
+      <a href="/games/<%= game.id %>" class="btn btn--primary btn--sm">Open</a>
+      <a href="/games/<%= game.id %>/sessions/new" class="btn btn--secondary btn--sm">New Session</a>
+    </div>
+  </article>
+  <% }) %>
+</div>
+<% } %>

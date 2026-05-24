@@ -1,0 +1,79 @@
+<%
+const totals = {};
+const rounds = new Set();
+for (const p of it.participants) totals[p.id] = 0;
+for (const entry of it.scores) {
+  if (entry.round != null) rounds.add(entry.round);
+  totals[entry.participant_id] = (totals[entry.participant_id] || 0) + (entry.value || 0);
+}
+const sortedRounds = Array.from(rounds).sort((a,b) => a-b);
+const nextRound = (sortedRounds[sortedRounds.length - 1] ?? 0) + 1;
+const maxTotal = Math.max(...Object.values(totals), 0);
+%>
+
+<div style="display:flex;justify-content:flex-end;margin-bottom:var(--space-2)">
+  <% if (it.session.status === 'active') { %>
+  <button type="button" class="btn btn--secondary btn--sm" onclick="addRound(<%= nextRound %>)">+ Add Round <%= nextRound %></button>
+  <% } %>
+</div>
+
+<div style="overflow-x:auto">
+<table class="scoreboard" aria-label="Running tally scores">
+  <thead>
+    <tr>
+      <th scope="col">Player</th>
+      <% sortedRounds.forEach(function(r) { %><th scope="col">R<%= r %></th><% }) %>
+      <% if (it.session.status === 'active') { %><th scope="col">R<%= nextRound %></th><% } %>
+      <th scope="col">Total</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% it.participants.forEach(function(p) {
+       const total = totals[p.id] || 0;
+       const isWinner = it.session.status === 'completed' && total === maxTotal && maxTotal > 0;
+    %>
+    <tr id="participant-<%= p.id %>" class="<%= isWinner ? 'score-winner' : '' %>">
+      <td>
+        <div style="display:flex;align-items:center;gap:var(--space-2)">
+          <div class="avatar" style="width:2rem;height:2rem;font-size:var(--text-xs);background:<%= p.color || p.preferred_color || 'var(--color-surface)' %>"
+               aria-hidden="true"><%= p.display_name.charAt(0) %></div>
+          <span><%= p.display_name %><%= isWinner ? ' 🏆' : '' %></span>
+        </div>
+      </td>
+      <% sortedRounds.forEach(function(r) {
+         const entry = it.scores.find(s => s.participant_id === p.id && s.round === r);
+      %>
+      <td class="score-input-cell">
+        <% if (it.session.status === 'active') { %>
+        <score-input session-id="<%= it.session.id %>" participant-id="<%= p.id %>"
+                     round="<%= r %>" value="<%= entry ? entry.value : 0 %>"
+                     aria-label="Round <%= r %> score for <%= p.display_name %>"></score-input>
+        <% } else { %><%= entry ? entry.value : '—' %><% } %>
+      </td>
+      <% }) %>
+      <% if (it.session.status === 'active') { %>
+      <td class="score-input-cell">
+        <score-input session-id="<%= it.session.id %>" participant-id="<%= p.id %>"
+                     round="<%= nextRound %>" value="0"
+                     aria-label="Round <%= nextRound %> score for <%= p.display_name %>"></score-input>
+      </td>
+      <% } %>
+      <td><strong><%= total %></strong></td>
+    </tr>
+    <% }) %>
+  </tbody>
+  <tfoot>
+    <tr>
+      <td colspan="<%= sortedRounds.length + (it.session.status === 'active' ? 2 : 1) + 1 %>">
+        <span style="font-size:var(--text-xs);color:var(--color-text-muted)"><%= sortedRounds.length %> round<%= sortedRounds.length !== 1 ? 's' : '' %> played</span>
+      </td>
+    </tr>
+  </tfoot>
+</table>
+</div>
+
+<script>
+function addRound(roundNum) {
+  window.location.reload();
+}
+</script>

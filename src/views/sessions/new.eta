@@ -1,0 +1,135 @@
+<% layout('../layouts/base') %>
+
+<div style="max-width:48rem;margin:0 auto">
+  <div class="page-header">
+    <h1 class="page-header__title">New Session: <%= it.game.name %></h1>
+    <a href="/games/<%= it.game.id %>" class="btn btn--secondary">Cancel</a>
+  </div>
+
+  <form action="/games/<%= it.game.id %>/sessions" method="POST" novalidate>
+
+    <% if (it.game.teams_mode === 'none' || it.game.teams_mode === 'profiles') { %>
+    <section aria-labelledby="players-heading">
+      <h2 id="players-heading" style="margin-bottom:var(--space-3)">Players</h2>
+      <div id="participant-list" style="display:flex;flex-direction:column;gap:var(--space-2)">
+        <% const defaultPlayers = it.players.slice(0, 2); %>
+        <% defaultPlayers.forEach(function(player, i) { %>
+        <div class="card" style="padding:var(--space-2)">
+          <div style="display:flex;align-items:center;gap:var(--space-2);flex-wrap:wrap">
+            <% if (player.avatar_url) { %>
+            <img class="avatar" src="<%= player.avatar_url %>" alt="" aria-hidden="true">
+            <% } else { %>
+            <div class="avatar" aria-hidden="true" style="background:<%= player.preferred_color || 'var(--color-surface)' %>">
+              <%= player.display_name.charAt(0).toUpperCase() %>
+            </div>
+            <% } %>
+            <span style="font-weight:600;flex:1"><%= player.display_name %></span>
+            <input type="hidden" name="player_id" value="<%= player.id %>">
+            <input type="hidden" name="display_name" value="<%= player.display_name %>">
+            <input type="hidden" name="color" value="<%= player.preferred_color || '' %>">
+          </div>
+        </div>
+        <% }) %>
+      </div>
+
+      <div style="margin-top:var(--space-3)">
+        <label class="form-label" for="player-search">Add a player</label>
+        <div style="display:flex;gap:var(--space-2)">
+          <input class="form-control" type="search" id="player-search"
+                 placeholder="Search players…" autocomplete="off"
+                 list="player-suggestions">
+          <datalist id="player-suggestions">
+            <% it.players.forEach(function(p) { %>
+            <option value="<%= p.display_name %>" data-id="<%= p.id %>" data-color="<%= p.preferred_color || '' %>"></option>
+            <% }) %>
+          </datalist>
+          <button type="button" class="btn btn--secondary" onclick="addPlayerFromSearch()">Add</button>
+        </div>
+      </div>
+
+      <div style="margin-top:var(--space-2)">
+        <p style="font-size:var(--text-sm);color:var(--color-text-muted)">Or add a guest player:</p>
+        <div style="display:flex;gap:var(--space-2);margin-top:var(--space-1)">
+          <input class="form-control" type="text" id="guest-name" placeholder="Guest name" maxlength="60">
+          <button type="button" class="btn btn--secondary" onclick="addGuest()">Add Guest</button>
+        </div>
+      </div>
+    </section>
+    <% } %>
+
+    <% if (it.game.teams_mode === 'adhoc') { %>
+    <section aria-labelledby="teams-heading">
+      <h2 id="teams-heading" style="margin-bottom:var(--space-3)">Teams</h2>
+      <div id="team-list" style="display:flex;flex-direction:column;gap:var(--space-2)">
+        <div class="card" style="padding:var(--space-2)">
+          <input class="form-control" type="text" name="display_name" placeholder="Team name (e.g. Red Team)" required>
+          <input type="hidden" name="player_id" value="">
+          <input type="hidden" name="color" value="">
+        </div>
+        <div class="card" style="padding:var(--space-2)">
+          <input class="form-control" type="text" name="display_name" placeholder="Team name (e.g. Blue Team)" required>
+          <input type="hidden" name="player_id" value="">
+          <input type="hidden" name="color" value="">
+        </div>
+      </div>
+      <button type="button" class="btn btn--secondary btn--sm" style="margin-top:var(--space-2)"
+              onclick="addTeam()">+ Add Team</button>
+    </section>
+    <% } %>
+
+    <div style="display:flex;gap:var(--space-2);justify-content:flex-end;margin-top:var(--space-6)">
+      <a href="/games/<%= it.game.id %>" class="btn btn--secondary">Cancel</a>
+      <button type="submit" class="btn btn--primary">Start Session</button>
+    </div>
+
+  </form>
+</div>
+
+<script>
+const playersData = <%~ JSON.stringify(it.players) %>;
+
+function addPlayerFromSearch() {
+  const search = document.getElementById('player-search');
+  const val = search.value.trim();
+  if (!val) return;
+  const player = playersData.find(p => p.display_name === val);
+  addParticipantRow(player ? player.display_name : val, player?.id ?? '', player?.preferred_color ?? '');
+  search.value = '';
+}
+
+function addGuest() {
+  const name = document.getElementById('guest-name').value.trim();
+  if (!name) return;
+  addParticipantRow(name, '', '');
+  document.getElementById('guest-name').value = '';
+}
+
+function addParticipantRow(name, playerId, color) {
+  const list = document.getElementById('participant-list');
+  const div = document.createElement('div');
+  div.className = 'card';
+  div.style.padding = 'var(--space-2)';
+  div.innerHTML = `
+    <div style="display:flex;align-items:center;gap:var(--space-2);flex-wrap:wrap">
+      <div class="avatar" style="background:${color || 'var(--color-surface)'}">${name.charAt(0).toUpperCase()}</div>
+      <span style="font-weight:600;flex:1">${name}</span>
+      <input type="hidden" name="player_id" value="${playerId}">
+      <input type="hidden" name="display_name" value="${name}">
+      <input type="hidden" name="color" value="${color}">
+      <button type="button" onclick="this.closest('.card').remove()" class="btn btn--ghost btn--sm" aria-label="Remove ${name}">✕</button>
+    </div>`;
+  list.appendChild(div);
+}
+
+function addTeam() {
+  const list = document.getElementById('team-list');
+  const div = document.createElement('div');
+  div.className = 'card';
+  div.style.padding = 'var(--space-2)';
+  div.innerHTML = `
+    <input class="form-control" type="text" name="display_name" placeholder="Team name" required>
+    <input type="hidden" name="player_id" value="">
+    <input type="hidden" name="color" value="">`;
+  list.appendChild(div);
+}
+</script>

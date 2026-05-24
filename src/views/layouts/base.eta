@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en" data-theme="">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Board Game Score Keep — track your game nights">
+  <title><%= it.title ? it.title + ' | ' : '' %>Board Game Score Keep</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+  <link rel="stylesheet" href="/css/tokens.css">
+  <link rel="stylesheet" href="/css/reset.css">
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/components.css">
+  <% if (it.keepLayout) { %>
+  <link rel="stylesheet" href="/css/keep.css">
+  <% } %>
+  <link rel="stylesheet" href="/css/game-theme.css">
+  <link rel="stylesheet" href="/css/dark.css">
+
+  <% if (it.game) { %>
+  <style>
+    body {
+      --game-primary:   <%= it.game.color_primary   || '#5a3e2b' %>;
+      --game-secondary: <%= it.game.color_secondary || '#e8d5a3' %>;
+      --game-accent:    <%= it.game.color_accent     || '#c9a84c' %>;
+    }
+  </style>
+  <% } %>
+
+  <script type="module" src="https://cdn.jsdelivr.net/gh/starfederation/datastar@v1.0.1/bundles/datastar.js"></script>
+  <script type="module" src="/js/main.js"></script>
+</head>
+<body class="<%= it.keepLayout ? 'keep-layout' : '' %> <%= it.game ? 'game-layout' : '' %>">
+
+  <a href="#main-content" class="skip-nav">Skip to main content</a>
+
+  <header class="site-header" role="banner">
+    <a href="/" class="site-header__logo" aria-label="Board Game Score Keep — Home">⚔ The Keep</a>
+    <nav class="site-header__nav" aria-label="Main navigation">
+      <% if (it.user) { %>
+      <a href="/games">My Games</a>
+      <a href="/players">Players</a>
+      <theme-toggle aria-label="Toggle dark mode"></theme-toggle>
+      <form action="/auth/logout" method="POST" style="margin:0">
+        <button type="submit" class="btn btn--ghost" style="color:inherit">Sign Out</button>
+      </form>
+      <% } else { %>
+      <a href="/auth/login">Sign In</a>
+      <a href="/auth/register" class="btn btn--gold">Create Account</a>
+      <% } %>
+    </nav>
+  </header>
+
+  <% if (it.game) { %>
+  <div class="game-accent-bar" role="presentation"></div>
+  <% } %>
+
+  <main id="main-content" tabindex="-1">
+    <%~ it.body %>
+  </main>
+
+  <footer class="site-footer" role="contentinfo">
+    <p>Board Game Score Keep &mdash; Keep your victories close.</p>
+  </footer>
+
+  <div id="status-announcer"
+       role="status"
+       aria-live="polite"
+       aria-atomic="true"
+       class="visually-hidden"></div>
+
+</body>
+</html>
