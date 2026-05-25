@@ -3,17 +3,20 @@ class AvatarPicker extends HTMLElement {
   #stream = null;
 
   connectedCallback() {
-    this.attachShadow({ mode: 'open' });
     this.#render();
   }
 
   #render() {
     const name = this.getAttribute('name') ?? 'image';
-    this.shadowRoot.innerHTML = `
+    const ariaLabel = this.getAttribute('aria-label') ?? 'Image picker';
+    this.setAttribute('role', 'group');
+    this.setAttribute('aria-label', ariaLabel);
+
+    this.innerHTML = `
       <style>
-        :host { display: block; }
-        .tabs { display: flex; gap: 4px; margin-bottom: 0.75rem; }
-        .tab {
+        avatar-picker { display: block; }
+        avatar-picker .ap-tabs { display: flex; gap: 4px; margin-bottom: 0.75rem; }
+        avatar-picker .ap-tab {
           padding: 0.375rem 0.75rem;
           border: 2px solid transparent;
           border-radius: 6px;
@@ -26,17 +29,17 @@ class AvatarPicker extends HTMLElement {
           color: var(--color-text-muted, #8b7d6b);
           transition: background 120ms ease, color 120ms ease;
         }
-        .tab[aria-selected="true"] {
+        avatar-picker .ap-tab[aria-selected="true"] {
           background: var(--color-ink, #2c2416);
           color: var(--color-parchment, #f5f0e8);
           border-color: var(--color-ink, #2c2416);
         }
-        .tab:hover:not([aria-selected="true"]) { background: var(--color-surface, #e8e0d0); }
-        .tab:focus-visible { outline: 3px solid #0066cc; outline-offset: 2px; border-radius: 4px; }
-        .panel { display: none; }
-        .panel[data-active] { display: block; }
-        input[type="file"] { font-family: inherit; font-size: 0.875rem; }
-        input[type="text"] {
+        avatar-picker .ap-tab:hover:not([aria-selected="true"]) { background: var(--color-surface, #e8e0d0); }
+        avatar-picker .ap-tab:focus-visible { outline: 3px solid #0066cc; outline-offset: 2px; border-radius: 4px; }
+        avatar-picker .ap-panel { display: none; }
+        avatar-picker .ap-panel[data-active] { display: block; }
+        avatar-picker input[type="file"] { font-family: inherit; font-size: 0.875rem; min-height: 3rem; }
+        avatar-picker input[type="text"] {
           width: 100%;
           padding: 0.5rem 0.75rem;
           border: 2px solid var(--color-border, #b5a898);
@@ -45,9 +48,9 @@ class AvatarPicker extends HTMLElement {
           font-family: inherit;
           min-height: 3rem;
         }
-        input:focus-visible { outline: 3px solid #0066cc; outline-offset: 2px; border-radius: 6px; }
-        video { max-width: 100%; border-radius: 8px; }
-        .btn {
+        avatar-picker input:focus-visible { outline: 3px solid #0066cc; outline-offset: 2px; border-radius: 6px; }
+        avatar-picker video { max-width: 100%; border-radius: 8px; }
+        avatar-picker .ap-btn {
           display: inline-flex; align-items: center; justify-content: center;
           padding: 0.375rem 1rem; font-weight: 600; font-size: 0.875rem;
           border-radius: 8px; border: 2px solid var(--color-border, #b5a898);
@@ -55,110 +58,115 @@ class AvatarPicker extends HTMLElement {
           font-family: inherit; color: var(--color-text, #2c2416);
           transition: background 120ms ease; margin-top: 0.5rem;
         }
-        .btn:hover { background: var(--color-surface, #e8e0d0); }
-        .btn:focus-visible { outline: 3px solid #0066cc; outline-offset: 2px; border-radius: 6px; }
-        canvas { display: none; }
-        .preview { max-width: 160px; border-radius: 8px; margin-top: 0.5rem; }
+        avatar-picker .ap-btn:hover { background: var(--color-surface, #e8e0d0); }
+        avatar-picker .ap-btn:focus-visible { outline: 3px solid #0066cc; outline-offset: 2px; border-radius: 6px; }
+        avatar-picker canvas { display: none; }
+        avatar-picker .ap-preview { max-width: 160px; border-radius: 8px; margin-top: 0.5rem; }
       </style>
 
-      <div class="tabs" role="tablist" aria-label="Image source">
-        <button class="tab" role="tab" aria-selected="true" aria-controls="panel-file" id="tab-file">Upload File</button>
-        <button class="tab" role="tab" aria-selected="false" aria-controls="panel-url" id="tab-url">Enter URL</button>
-        <button class="tab" role="tab" aria-selected="false" aria-controls="panel-camera" id="tab-camera">Camera</button>
+      <div class="ap-tabs" role="tablist" aria-label="Image source">
+        <button class="ap-tab" type="button" role="tab" aria-selected="true" aria-controls="ap-panel-file-${name}" id="ap-tab-file-${name}">Upload File</button>
+        <button class="ap-tab" type="button" role="tab" aria-selected="false" aria-controls="ap-panel-url-${name}" id="ap-tab-url-${name}">Enter URL</button>
+        <button class="ap-tab" type="button" role="tab" aria-selected="false" aria-controls="ap-panel-camera-${name}" id="ap-tab-camera-${name}">Camera</button>
       </div>
 
-      <div id="panel-file" class="panel" role="tabpanel" aria-labelledby="tab-file" data-active>
+      <div id="ap-panel-file-${name}" class="ap-panel" role="tabpanel" aria-labelledby="ap-tab-file-${name}" data-active>
         <input type="file" name="${name}" accept="image/*" aria-label="Choose image file">
-        <img class="preview" style="display:none" alt="Image preview">
+        <img class="ap-preview" style="display:none" alt="Image preview">
       </div>
 
-      <div id="panel-url" class="panel" role="tabpanel" aria-labelledby="tab-url">
+      <div id="ap-panel-url-${name}" class="ap-panel" role="tabpanel" aria-labelledby="ap-tab-url-${name}">
         <input type="text" name="image_url" placeholder="https://example.com/image.jpg" aria-label="Image URL">
       </div>
 
-      <div id="panel-camera" class="panel" role="tabpanel" aria-labelledby="tab-camera">
+      <div id="ap-panel-camera-${name}" class="ap-panel" role="tabpanel" aria-labelledby="ap-tab-camera-${name}">
         <video autoplay muted playsinline aria-label="Camera preview"></video>
         <canvas></canvas>
         <div>
-          <button type="button" class="btn" id="cam-start">Start Camera</button>
-          <button type="button" class="btn" id="cam-capture" style="display:none">Capture Photo</button>
+          <button type="button" class="ap-btn" id="ap-cam-start-${name}">Start Camera</button>
+          <button type="button" class="ap-btn" id="ap-cam-capture-${name}" style="display:none">Capture Photo</button>
         </div>
         <input type="hidden" name="${name}_camera_data">
+        <img class="ap-preview" style="display:none" alt="Captured photo preview">
       </div>`;
 
-    this.shadowRoot.querySelectorAll('.tab').forEach((tab) => {
-      tab.addEventListener('click', () => this.#switchTab(tab.id.replace('tab-', '')));
+    this.querySelectorAll('.ap-tab').forEach((tab) => {
+      tab.addEventListener('click', () => {
+        const tabKey = tab.id.replace(`ap-tab-`, '').replace(`-${name}`, '');
+        this.#switchTab(tabKey, name);
+      });
     });
 
-    const fileInput = this.shadowRoot.querySelector('input[type="file"]');
-    const preview = this.shadowRoot.querySelector('.preview');
+    const fileInput = this.querySelector('input[type="file"]');
+    const preview = this.querySelector('.ap-panel[data-active] .ap-preview');
     fileInput?.addEventListener('change', () => {
       const file = fileInput.files[0];
-      if (file) {
+      if (file && preview) {
         preview.src = URL.createObjectURL(file);
         preview.style.display = 'block';
       }
     });
 
-    this.shadowRoot.getElementById('cam-start')?.addEventListener('click', () => this.#startCamera());
-    this.shadowRoot.getElementById('cam-capture')?.addEventListener('click', () => this.#capture(name));
+    this.querySelector(`#ap-cam-start-${name}`)?.addEventListener('click', () => this.#startCamera(name));
+    this.querySelector(`#ap-cam-capture-${name}`)?.addEventListener('click', () => this.#capture(name));
   }
 
-  #switchTab(tab) {
+  #switchTab(tab, name) {
     this.#tab = tab;
-    this.#stopCamera();
-    this.shadowRoot.querySelectorAll('.tab').forEach((t) => {
-      const active = t.id === `tab-${tab}`;
-      t.setAttribute('aria-selected', active);
+    this.#stopCamera(name);
+    this.querySelectorAll('.ap-tab').forEach((t) => {
+      const active = t.id === `ap-tab-${tab}-${name}`;
+      t.setAttribute('aria-selected', String(active));
     });
-    this.shadowRoot.querySelectorAll('.panel').forEach((p) => {
-      if (p.id === `panel-${tab}`) p.dataset.active = '';
+    this.querySelectorAll('.ap-panel').forEach((p) => {
+      if (p.id === `ap-panel-${tab}-${name}`) p.dataset.active = '';
       else delete p.dataset.active;
     });
   }
 
-  async #startCamera() {
+  async #startCamera(name) {
     try {
       this.#stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-      const video = this.shadowRoot.querySelector('video');
+      const video = this.querySelector('video');
       video.srcObject = this.#stream;
-      this.shadowRoot.getElementById('cam-start').style.display = 'none';
-      this.shadowRoot.getElementById('cam-capture').style.display = '';
+      this.querySelector(`#ap-cam-start-${name}`).style.display = 'none';
+      this.querySelector(`#ap-cam-capture-${name}`).style.display = '';
     } catch {
       alert('Camera access denied or unavailable.');
     }
   }
 
   #capture(name) {
-    const video = this.shadowRoot.querySelector('video');
-    const canvas = this.shadowRoot.querySelector('canvas');
+    const video = this.querySelector('video');
+    const canvas = this.querySelector('canvas');
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
     canvas.getContext('2d').drawImage(video, 0, 0);
     const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
-    const hidden = this.shadowRoot.querySelector(`input[name="${name}_camera_data"]`);
+    const hidden = this.querySelector(`input[name="${name}_camera_data"]`);
     if (hidden) hidden.value = dataUrl;
-    this.#stopCamera();
+    this.#stopCamera(name);
 
-    const img = document.createElement('img');
-    img.src = dataUrl;
-    img.className = 'preview';
-    this.shadowRoot.querySelector('.panel[data-active]').appendChild(img);
+    const preview = this.querySelector(`#ap-panel-camera-${name} .ap-preview`);
+    if (preview) {
+      preview.src = dataUrl;
+      preview.style.display = 'block';
+    }
   }
 
-  #stopCamera() {
+  #stopCamera(name) {
     this.#stream?.getTracks().forEach((t) => t.stop());
     this.#stream = null;
-    const start = this.shadowRoot.getElementById('cam-start');
-    const capture = this.shadowRoot.getElementById('cam-capture');
+    const start = this.querySelector(`#ap-cam-start-${name}`);
+    const capture = this.querySelector(`#ap-cam-capture-${name}`);
     if (start) start.style.display = '';
     if (capture) capture.style.display = 'none';
-    const video = this.shadowRoot.querySelector('video');
+    const video = this.querySelector('video');
     if (video) video.srcObject = null;
   }
 
   disconnectedCallback() {
-    this.#stopCamera();
+    this.#stopCamera(this.getAttribute('name') ?? 'image');
   }
 }
 
