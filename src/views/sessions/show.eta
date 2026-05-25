@@ -43,7 +43,7 @@ const maxTotal = Math.max(...Object.values(totals), 0);
 
 <div id="scoreboard-section"
      data-signals='{"sessionId":"<%= it.session.id %>","needsRefresh":false,"sessionStatus":"<%= it.session.status %>"}'
-     data-on-load="@get('/sse/sessions/<%= it.session.id %>/scores')"
+     data-on:load="@get('/sse/sessions/<%= it.session.id %>/scores')"
      data-watch-needs-refresh="if($needsRefresh){window.location.reload();$needsRefresh=false}"
      data-watch-session-status="if($sessionStatus==='completed')window.location.reload()">
 

@@ -30,7 +30,7 @@
     <div class="form-group">
       <label class="form-label" for="scoring_mode">Scoring mode <span class="required" aria-hidden="true">*</span></label>
       <select class="form-control" id="scoring_mode" name="scoring_mode" required aria-required="true"
-              data-bind-scoring-mode>
+              data-bind:scoring-mode>
         <option value="tally" <%= it.game.scoring_mode === 'tally' ? 'selected' : '' %>>Running tally</option>
         <option value="final" <%= it.game.scoring_mode === 'final' ? 'selected' : '' %>>Single final score</option>
         <option value="categories" <%= it.game.scoring_mode === 'categories' ? 'selected' : '' %>>Custom categories</option>
