@@ -11,7 +11,9 @@ class ColorThiefPicker extends HTMLElement {
       </button>`;
 
     this.querySelector('#ctp-extract').addEventListener('click', () => {
-      const img = document.querySelector(targetSel);
+      // Prefer the avatar-picker's live preview (newly selected file) over the server image
+      const pickerPreview = document.querySelector('avatar-picker .ap-preview[src]');
+      const img = (pickerPreview && pickerPreview.src) ? pickerPreview : document.querySelector(targetSel);
       if (!img || !img.src) { alert('Please add a game image first.'); return; }
       if (!img.complete) {
         img.addEventListener('load', () => this.#extract(img, primarySel, secondarySel, accentSel), { once: true });
@@ -39,7 +41,13 @@ class ColorThiefPicker extends HTMLElement {
       return;
     }
 
-    const data = ctx.getImageData(0, 0, W, H).data;
+    let data;
+    try {
+      data = ctx.getImageData(0, 0, W, H).data;
+    } catch {
+      console.warn('color-thief-picker: canvas tainted by cross-origin image');
+      return;
+    }
     const pixels = [];
     for (let i = 0; i < data.length; i += 16) {
       const r = data[i], g = data[i+1], b = data[i+2], a = data[i+3];

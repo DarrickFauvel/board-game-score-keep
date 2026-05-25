@@ -1,6 +1,6 @@
 <% layout('../layouts/base') %>
 
-<div style="max-width:48rem;margin:0 auto">
+<div style="max-width:48rem;margin:0 auto" data-signals="{scoringMode:'<%= it.game.scoring_mode %>'}">
   <div class="page-header">
     <h1 class="page-header__title">Edit: <%= it.game.name %></h1>
     <a href="/games/<%= it.game.id %>" class="btn btn--secondary">Cancel</a>
@@ -30,15 +30,14 @@
     <div class="form-group">
       <label class="form-label" for="scoring_mode">Scoring mode <span class="required" aria-hidden="true">*</span></label>
       <select class="form-control" id="scoring_mode" name="scoring_mode" required aria-required="true"
-              data-signals="{scoringMode:'<%= it.game.scoring_mode %>'}"
-              data-bind-scoring-mode="scoringMode">
+              data-bind-scoring-mode>
         <option value="tally" <%= it.game.scoring_mode === 'tally' ? 'selected' : '' %>>Running tally</option>
         <option value="final" <%= it.game.scoring_mode === 'final' ? 'selected' : '' %>>Single final score</option>
         <option value="categories" <%= it.game.scoring_mode === 'categories' ? 'selected' : '' %>>Custom categories</option>
       </select>
     </div>
 
-    <div data-show="scoringMode === 'categories'" id="categories-section">
+    <div data-show="$scoringMode === 'categories'" id="categories-section">
       <div class="form-group">
         <label class="form-label">Score categories</label>
         <div id="category-list" style="display:flex;flex-direction:column;gap:var(--space-2)">
@@ -102,12 +101,14 @@
 
     <div style="display:flex;gap:var(--space-2);justify-content:space-between;margin-top:var(--space-4);flex-wrap:wrap">
       <form action="/games/<%= it.game.id %>/delete" method="POST" style="margin:0"
-            onsubmit="return confirm('Delete this game and all its sessions? This cannot be undone.')">
+            data-confirm="Delete this game and all its sessions? This cannot be undone."
+            data-confirm-title="Delete Game"
+            data-confirm-label="Delete">
         <button type="submit" class="btn btn--danger">Delete Game</button>
       </form>
       <div style="display:flex;gap:var(--space-2)">
         <a href="/games/<%= it.game.id %>" class="btn btn--secondary">Cancel</a>
-        <button type="submit" class="btn btn--primary" form="edit-game-form">Save Changes</button>
+        <button type="submit" class="btn btn--primary">Save Changes</button>
       </div>
     </div>
 

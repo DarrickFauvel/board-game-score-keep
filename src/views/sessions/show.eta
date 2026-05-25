@@ -10,11 +10,19 @@
   <div style="display:flex;gap:var(--space-2);align-items:center;flex-wrap:wrap">
     <span class="badge badge--<%= it.session.status === 'active' ? 'active' : 'complete' %>"><%= it.session.status %></span>
     <% if (it.session.status === 'active') { %>
-    <form action="/games/<%= it.game.id %>/sessions/<%= it.session.id %>/complete" method="POST" style="margin:0">
-      <button type="submit" class="btn btn--gold"
-              onclick="return confirm('Mark this session as complete?')">Complete Session</button>
+    <form action="/games/<%= it.game.id %>/sessions/<%= it.session.id %>/complete" method="POST" style="margin:0"
+          data-confirm="Mark this session as complete? Scores will be locked."
+          data-confirm-title="Complete Session"
+          data-confirm-label="Complete">
+      <button type="submit" class="btn btn--gold">Complete Session</button>
     </form>
     <% } %>
+    <form action="/games/<%= it.game.id %>/sessions/<%= it.session.id %>/delete" method="POST" style="margin:0"
+          data-confirm="Delete this session and all its scores? This cannot be undone."
+          data-confirm-title="Delete Session"
+          data-confirm-label="Delete">
+      <button type="submit" class="btn btn--danger">Delete Session</button>
+    </form>
     <a href="/games/<%= it.game.id %>" class="btn btn--secondary">Back</a>
   </div>
 </div>

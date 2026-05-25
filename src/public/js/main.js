@@ -10,3 +10,16 @@ import './components/confirm-dialog.js';
 const dialog = document.createElement('confirm-dialog');
 document.body.appendChild(dialog);
 window.confirmAction = (msg, opts) => dialog.confirm(msg, opts);
+
+/* Global handler: forms with data-confirm show modal before submitting */
+document.addEventListener('submit', async (e) => {
+  const form = e.target;
+  const msg = form.dataset.confirm;
+  if (!msg) return;
+  e.preventDefault();
+  const ok = await window.confirmAction(msg, {
+    title: form.dataset.confirmTitle || 'Are you sure?',
+    confirmLabel: form.dataset.confirmLabel || 'Confirm',
+  });
+  if (ok) form.submit();
+});

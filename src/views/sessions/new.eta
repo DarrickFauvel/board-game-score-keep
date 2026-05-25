@@ -12,32 +12,15 @@
     <section aria-labelledby="players-heading">
       <h2 id="players-heading" style="margin-bottom:var(--space-3)">Players</h2>
       <div id="participant-list" style="display:flex;flex-direction:column;gap:var(--space-2)">
-        <% const defaultPlayers = it.players.slice(0, 2); %>
-        <% defaultPlayers.forEach(function(player, i) { %>
-        <div class="card" style="padding:var(--space-2)">
-          <div style="display:flex;align-items:center;gap:var(--space-2);flex-wrap:wrap">
-            <% if (player.avatar_url) { %>
-            <img class="avatar" src="<%= player.avatar_url %>" alt="" aria-hidden="true">
-            <% } else { %>
-            <div class="avatar" aria-hidden="true" style="background:<%= player.preferred_color || 'var(--color-surface)' %>">
-              <%= player.display_name.charAt(0).toUpperCase() %>
-            </div>
-            <% } %>
-            <span style="font-weight:600;flex:1"><%= player.display_name %></span>
-            <input type="hidden" name="player_id" value="<%= player.id %>">
-            <input type="hidden" name="display_name" value="<%= player.display_name %>">
-            <input type="hidden" name="color" value="<%= player.preferred_color || '' %>">
-          </div>
-        </div>
-        <% }) %>
       </div>
 
       <div style="margin-top:var(--space-3)">
         <label class="form-label" for="player-search">Add a player</label>
         <div style="display:flex;gap:var(--space-2)">
-          <input class="form-control" type="search" id="player-search"
-                 placeholder="Search players…" autocomplete="off"
-                 list="player-suggestions">
+          <input class="form-control" type="text" id="player-search"
+                 placeholder="Search players…"
+                 list="player-suggestions"
+                 onkeydown="if(event.key==='Enter'){event.preventDefault();addPlayerFromSearch();}">
           <datalist id="player-suggestions">
             <% it.players.forEach(function(p) { %>
             <option value="<%= p.display_name %>" data-id="<%= p.id %>" data-color="<%= p.preferred_color || '' %>"></option>

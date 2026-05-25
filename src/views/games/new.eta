@@ -1,6 +1,6 @@
 <% layout('../layouts/base') %>
 
-<div style="max-width:48rem; margin:0 auto">
+<div style="max-width:48rem; margin:0 auto" data-signals="{scoringMode:'tally'}">
   <div class="page-header">
     <h1 class="page-header__title">Add a Game</h1>
     <a href="/games" class="btn btn--secondary">Cancel</a>
@@ -25,15 +25,14 @@
     <div class="form-group">
       <label class="form-label" for="scoring_mode">Scoring mode <span class="required" aria-hidden="true">*</span></label>
       <select class="form-control" id="scoring_mode" name="scoring_mode" required aria-required="true"
-              data-signals="{scoringMode:'tally'}"
-              data-bind-scoring-mode="scoringMode">
+              data-bind-scoring-mode>
         <option value="tally">Running tally (round by round, auto-summed)</option>
         <option value="final">Single final score (one score per player)</option>
         <option value="categories">Custom categories (e.g. Catan: Roads, Cities…)</option>
       </select>
     </div>
 
-    <div data-show="scoringMode === 'categories'" id="categories-section">
+    <div data-show="$scoringMode === 'categories'" id="categories-section">
       <div class="form-group">
         <label class="form-label">Score categories</label>
         <div id="category-list" style="display:flex;flex-direction:column;gap:var(--space-2)">
