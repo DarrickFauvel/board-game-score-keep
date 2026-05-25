@@ -25,7 +25,7 @@
     <div class="form-group">
       <label class="form-label" for="scoring_mode">Scoring mode <span class="required" aria-hidden="true">*</span></label>
       <select class="form-control" id="scoring_mode" name="scoring_mode" required aria-required="true"
-              data-bind-scoring-mode>
+              data-bind:scoring-mode>
         <option value="tally">Running tally (round by round, auto-summed)</option>
         <option value="final">Single final score (one score per player)</option>
         <option value="categories">Custom categories (e.g. Catan: Roads, Cities…)</option>

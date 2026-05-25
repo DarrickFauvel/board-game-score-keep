@@ -123,9 +123,10 @@ textarea.form-control {
 .form-row {
   display: grid;
   gap: var(--space-3);
+  container-type: inline-size;
 }
 
-@media (min-width: 40rem) {
+@container (min-width: 40rem) {
   .form-row--2 { grid-template-columns: 1fr 1fr; }
   .form-row--3 { grid-template-columns: 1fr 1fr 1fr; }
 }
@@ -153,6 +154,7 @@ textarea.form-control {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   overflow: hidden;
+  container-type: inline-size;
 }
 
 .card__img {

@@ -38,8 +38,17 @@
 
   <a href="#main-content" class="skip-nav">Skip to main content</a>
 
-  <header class="site-header" role="banner">
+  <header class="site-header" role="banner" data-signals="{menuOpen:false}">
     <a href="/" class="site-header__logo" aria-label="Board Game Score Keep — Home">⚔ The Keep</a>
+
+    <button class="site-header__menu-btn"
+            aria-label="Toggle navigation menu"
+            data-attr:aria-expanded="$menuOpen"
+            data-class:is-open="$menuOpen"
+            data-on:click="$menuOpen = !$menuOpen">
+      <span class="site-header__menu-icon" aria-hidden="true"></span>
+    </button>
+
     <nav class="site-header__nav" aria-label="Main navigation">
       <% if (it.user) { %>
       <a href="/games">My Games</a>
@@ -53,6 +62,24 @@
       <a href="/auth/register" class="btn btn--gold">Create Account</a>
       <% } %>
     </nav>
+
+    <div class="site-header__mobile-menu"
+         data-show="$menuOpen"
+         aria-label="Navigation menu">
+      <% if (it.user) { %>
+      <a href="/games" class="site-header__mobile-link">My Games</a>
+      <a href="/players" class="site-header__mobile-link">Players</a>
+      <div style="display:flex;align-items:center;gap:var(--space-2);padding:var(--space-1) var(--space-2)">
+        <theme-toggle aria-label="Toggle dark mode"></theme-toggle>
+      </div>
+      <form action="/auth/logout" method="POST" style="margin:0">
+        <button type="submit" class="site-header__mobile-link" style="width:100%;text-align:left;background:none;border:none;cursor:pointer;font:inherit;color:inherit">Sign Out</button>
+      </form>
+      <% } else { %>
+      <a href="/auth/login" class="site-header__mobile-link">Sign In</a>
+      <a href="/auth/register" class="site-header__mobile-link">Create Account</a>
+      <% } %>
+    </div>
   </header>
 
   <% if (it.game) { %>
