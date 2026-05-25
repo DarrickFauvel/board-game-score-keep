@@ -2,20 +2,53 @@ class GameImage extends HTMLElement {
   connectedCallback() {
     const src = this.getAttribute('src') ?? '';
     const alt = this.getAttribute('alt') ?? '';
+    const maxHeight = this.getAttribute('max-height') ?? '16rem';
+
+    Object.assign(this.style, {
+      display: 'block',
+      position: 'relative',
+      overflow: 'hidden',
+      background: 'var(--color-ink)',
+    });
 
     if (src) {
+      // Blurred cover fill behind the main image.
+      // Uses background-image so the browser reuses the same cached response
+      // as the <img> below — no extra network request.
+      const bg = document.createElement('span');
+      bg.setAttribute('aria-hidden', 'true');
+      Object.assign(bg.style, {
+        position: 'absolute',
+        inset: '-10%',
+        width: '120%',
+        height: '120%',
+        backgroundImage: `url('${src.replace(/'/g, "\\'")}')`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        filter: 'blur(28px) brightness(0.4) saturate(1.4)',
+        pointerEvents: 'none',
+      });
+
       const img = document.createElement('img');
       img.src = src;
       img.alt = alt;
       img.loading = 'lazy';
-      img.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block';
-      img.addEventListener('load', () => {
-        this.dispatchEvent(new CustomEvent('image-loaded', { bubbles: true, detail: { img } }));
-        document.dispatchEvent(new CustomEvent('image-loaded', { detail: { img } }));
+      Object.assign(img.style, {
+        position: 'relative',
+        zIndex: '1',
+        display: 'block',
+        width: '100%',
+        height: 'auto',
+        objectFit: 'contain',
+        maxHeight,
       });
+
       img.addEventListener('error', () => {
+        bg.remove();
         img.replaceWith(this.#placeholder());
       });
+
+      this.appendChild(bg);
       this.appendChild(img);
     } else {
       this.appendChild(this.#placeholder());
@@ -25,11 +58,15 @@ class GameImage extends HTMLElement {
   #placeholder() {
     const div = document.createElement('div');
     div.setAttribute('aria-hidden', 'true');
-    div.style.cssText = `
-      width:100%;height:100%;min-height:8rem;
-      background:var(--color-surface,#e8e0d0);
-      display:flex;align-items:center;justify-content:center;
-      font-size:4rem`;
+    Object.assign(div.style, {
+      width: '100%',
+      minHeight: '8rem',
+      background: 'var(--color-surface,#e8e0d0)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      fontSize: '4rem',
+    });
     div.innerHTML = this.#shieldSvg();
     return div;
   }
