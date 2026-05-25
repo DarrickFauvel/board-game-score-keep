@@ -25,9 +25,10 @@ class ConfirmDialog extends HTMLElement {
 
   #pendingResolve = null;
 
-  confirm(message, { title = 'Are you sure?', danger = true } = {}) {
+  confirm(message, { title = 'Are you sure?', confirmLabel = 'Confirm' } = {}) {
     this.querySelector('#confirm-title').textContent = title;
     this.querySelector('#confirm-msg').textContent = message;
+    this.querySelector('#confirm-ok').textContent = confirmLabel;
     this.querySelector('dialog').showModal();
     return new Promise((resolve) => { this.#pendingResolve = resolve; });
   }

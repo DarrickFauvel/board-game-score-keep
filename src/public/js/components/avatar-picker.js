@@ -104,6 +104,9 @@ class AvatarPicker extends HTMLElement {
       if (file && preview) {
         preview.src = URL.createObjectURL(file);
         preview.style.display = 'block';
+        preview.addEventListener('load', () => {
+          document.dispatchEvent(new CustomEvent('image-loaded', { detail: { img: preview } }));
+        }, { once: true });
       }
     });
 
