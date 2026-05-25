@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { body, validationResult } from 'express-validator';
 import { scoreService } from '../services/scoreService.js';
-import { sseRegistry } from '../services/sseRegistry.js';
+import { sseRegistry, type ScoreEntry } from '../services/sseRegistry.js';
 
 const router = Router();
 
@@ -14,8 +14,9 @@ router.post('/:sessionId/scores',
       if (!errors.isEmpty()) {
         return res.status(400).json({ error: 'Invalid score data.' });
       }
-      const entry = await scoreService.upsertEntry(req.params.sessionId, req.body, req.user.sub);
-      await sseRegistry.broadcastScoreUpdate(req.params.sessionId, entry);
+      const { sessionId } = req.params as { sessionId: string };
+      const entry = await scoreService.upsertEntry(sessionId, req.body, req.user.sub);
+      sseRegistry.broadcastScoreUpdate(sessionId, entry as unknown as ScoreEntry);
       if (req.accepts('json')) {
         res.json({ ok: true });
       } else {
@@ -27,8 +28,9 @@ router.post('/:sessionId/scores',
 
 router.post('/:sessionId/scores/:entryId/delete', async (req, res, next) => {
   try {
-    await scoreService.removeEntry(req.params.entryId);
-    await sseRegistry.broadcastFullRefresh(req.params.sessionId);
+    const { sessionId, entryId } = req.params as { sessionId: string; entryId: string };
+    await scoreService.removeEntry(entryId);
+    sseRegistry.broadcastFullRefresh(sessionId);
     if (req.accepts('json')) {
       res.json({ ok: true });
     } else {

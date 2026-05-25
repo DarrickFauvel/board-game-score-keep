@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { type Request, type Response, type NextFunction } from 'express';
 import helmet from 'helmet';
 import compression from 'compression';
 import morgan from 'morgan';
@@ -37,8 +37,8 @@ export function createApp() {
   app.use(express.static(join(__dirname, 'public')));
 
   const eta = new Eta({ views: join(__dirname, 'views'), cache: !config.isDev });
-  app.use((req, res, next) => {
-    res.renderEta = (template, data = {}) => {
+  app.use((_req: Request, res: Response, next: NextFunction) => {
+    res.renderEta = (template: string, data: Record<string, unknown> = {}) => {
       try {
         const html = eta.render(template, { ...data, config });
         res.send(html);

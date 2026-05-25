@@ -17,7 +17,7 @@ router.get('/new', (req, res) => {
 });
 
 router.post('/',
-  (req, res, next) => { req.uploadFolder = 'games'; next(); },
+  (req, _res, next) => { req.uploadFolder = 'games'; next(); },
   upload.single('image'),
   body('name').trim().isLength({ min: 1, max: 120 }),
   body('scoring_mode').isIn(['tally', 'final', 'categories']),
@@ -28,7 +28,7 @@ router.post('/',
       if (!errors.isEmpty()) {
         return res.status(400).renderEta('games/new', { title: 'Add a Game', user: req.user, error: 'Please fill in all required fields.' });
       }
-      const game = await gameService.create(req.user.sub, req.body, req.file);
+      const game = await gameService.create(req.user.sub, req.body as Record<string, unknown>, req.file);
       res.redirect(`/games/${game.id}`);
     } catch (err) { next(err); }
   }
@@ -57,7 +57,7 @@ router.get('/:id/edit', async (req, res, next) => {
 });
 
 router.post('/:id',
-  (req, res, next) => { req.uploadFolder = 'games'; next(); },
+  (req, _res, next) => { req.uploadFolder = 'games'; next(); },
   upload.single('image'),
   body('name').trim().isLength({ min: 1, max: 120 }),
   body('scoring_mode').isIn(['tally', 'final', 'categories']),
@@ -72,7 +72,7 @@ router.post('/:id',
         const categories = await scoreService.listCategories(req.params.id);
         return res.status(400).renderEta('games/edit', { title: `Edit ${game.name}`, game, categories, user: req.user, error: 'Please fill in all required fields.' });
       }
-      await gameService.update(req.params.id, req.body, req.file);
+      await gameService.update(req.params.id, req.body as Record<string, unknown>, req.file);
       res.redirect(`/games/${req.params.id}`);
     } catch (err) { next(err); }
   }
@@ -106,7 +106,7 @@ router.post('/:gameId/sessions', async (req, res, next) => {
     const game = await gameService.findById(req.params.gameId, req.user.sub);
     if (!game) return next(Object.assign(new Error('Not Found'), { status: 404 }));
     const { sessionService } = await import('../services/sessionService.js');
-    const session = await sessionService.create(req.params.gameId, req.user.sub, req.body);
+    const session = await sessionService.create(req.params.gameId, req.user.sub, req.body as Record<string, unknown>);
     res.redirect(`/games/${req.params.gameId}/sessions/${session.id}`);
   } catch (err) { next(err); }
 });
@@ -137,12 +137,16 @@ router.post('/:gameId/sessions/:id/complete', async (req, res, next) => {
 });
 
 router.post('/:gameId/sessions/:id/note',
-  (req, res, next) => { req.uploadFolder = 'sessions'; next(); },
+  (req, _res, next) => { req.uploadFolder = 'sessions'; next(); },
   upload.single('photo'),
   async (req, res, next) => {
     try {
       const { sessionService } = await import('../services/sessionService.js');
-      await sessionService.saveNote(req.params.id, req.body.note, req.file);
+      await sessionService.saveNote(
+        req.params.id,
+        (req.body as Record<string, unknown>).note as string | undefined,
+        req.file,
+      );
       res.redirect(`/games/${req.params.gameId}/sessions/${req.params.id}`);
     } catch (err) { next(err); }
   }

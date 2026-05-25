@@ -1,8 +1,15 @@
 import { db } from '../db/client.js';
 import { processUploadedImage } from './imageService.js';
 
+interface ParticipantInput {
+  display_name: string;
+  player_id: string | null;
+  team_id: string | null;
+  color: string | null;
+}
+
 export const sessionService = {
-  async listByGame(gameId) {
+  async listByGame(gameId: string) {
     const result = await db.execute({
       sql: `SELECT s.*,
               (SELECT COUNT(*) FROM session_participants WHERE session_id = s.id) AS participant_count
@@ -14,7 +21,7 @@ export const sessionService = {
     return result.rows;
   },
 
-  async findById(id) {
+  async findById(id: string) {
     const result = await db.execute({
       sql: 'SELECT * FROM sessions WHERE id = ?',
       args: [id],
@@ -22,7 +29,7 @@ export const sessionService = {
     return result.rows[0] ?? null;
   },
 
-  async create(gameId, userId, body) {
+  async create(gameId: string, userId: string, body: Record<string, unknown>) {
     const result = await db.execute({
       sql: 'INSERT INTO sessions (game_id, created_by) VALUES (?, ?) RETURNING *',
       args: [gameId, userId],
@@ -43,7 +50,7 @@ export const sessionService = {
     return session;
   },
 
-  async listParticipants(sessionId) {
+  async listParticipants(sessionId: string) {
     const result = await db.execute({
       sql: `SELECT sp.*, p.avatar_url, p.preferred_color
             FROM session_participants sp
@@ -55,7 +62,7 @@ export const sessionService = {
     return result.rows;
   },
 
-  async complete(id) {
+  async complete(id: string) {
     await db.execute({
       sql: `UPDATE sessions SET status = 'completed', completed_at = strftime('%Y-%m-%dT%H:%M:%fZ','now'),
               updated_at = strftime('%Y-%m-%dT%H:%M:%fZ','now')
@@ -64,7 +71,7 @@ export const sessionService = {
     });
   },
 
-  async saveNote(id, note, file) {
+  async saveNote(id: string, note: string | undefined, file?: Express.Multer.File) {
     const photoUrl = file ? await processUploadedImage(file.path, 'sessions') : undefined;
     await db.execute({
       sql: `UPDATE sessions SET note = ?,
@@ -75,21 +82,21 @@ export const sessionService = {
     });
   },
 
-  async remove(id) {
+  async remove(id: string) {
     await db.execute({ sql: 'DELETE FROM sessions WHERE id = ?', args: [id] });
   },
 };
 
-function parseParticipants(body) {
+function parseParticipants(body: Record<string, unknown>): ParticipantInput[] {
   const names = Array.isArray(body.display_name) ? body.display_name : (body.display_name ? [body.display_name] : []);
   const playerIds = Array.isArray(body.player_id) ? body.player_id : (body.player_id ? [body.player_id] : []);
   const teamIds = Array.isArray(body.team_id) ? body.team_id : (body.team_id ? [body.team_id] : []);
   const colors = Array.isArray(body.color) ? body.color : (body.color ? [body.color] : []);
 
-  return names.map((name, i) => ({
+  return (names as string[]).map((name, i) => ({
     display_name: name,
-    player_id: playerIds[i] || null,
-    team_id: teamIds[i] || null,
-    color: colors[i] || null,
+    player_id: (playerIds[i] as string) || null,
+    team_id: (teamIds[i] as string) || null,
+    color: (colors[i] as string) || null,
   })).filter(p => p.display_name.trim());
 }

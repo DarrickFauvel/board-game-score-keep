@@ -8,16 +8,16 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const uploadsBase = path.join(__dirname, '../../src/public/uploads');
 
 const storage = multer.diskStorage({
-  destination(req, file, cb) {
+  destination(req, _file, cb) {
     cb(null, path.join(uploadsBase, req.uploadFolder ?? 'misc'));
   },
-  filename(req, file, cb) {
+  filename(_req, file, cb) {
     const ext = path.extname(file.originalname).toLowerCase() || '.bin';
     cb(null, `${uuidv4()}${ext}`);
   },
 });
 
-const fileFilter = (req, file, cb) => {
+const fileFilter: multer.Options['fileFilter'] = (_req, file, cb) => {
   const allowed = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/avif'];
   cb(null, allowed.includes(file.mimetype));
 };

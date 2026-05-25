@@ -12,14 +12,14 @@ router.get('/:gameId', async (req, res, next) => {
 
 router.post('/:gameId', async (req, res, next) => {
   try {
-    const team = await teamService.create(req.params.gameId, req.body);
+    const team = await teamService.create(req.params.gameId, req.body as Record<string, unknown>);
     res.status(201).json(team);
   } catch (err) { next(err); }
 });
 
 router.post('/:gameId/:id', async (req, res, next) => {
   try {
-    await teamService.update(req.params.id, req.body);
+    await teamService.update(req.params.id, req.body as Record<string, unknown>);
     res.json({ ok: true });
   } catch (err) { next(err); }
 });
