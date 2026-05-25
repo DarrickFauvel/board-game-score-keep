@@ -49,7 +49,11 @@ class ThemeToggle extends HTMLElement {
   }
 
   #applyTheme(theme) {
-    document.documentElement.dataset.theme = theme === 'auto' ? '' : theme;
+    if (theme === 'auto') {
+      delete document.documentElement.dataset.theme;
+    } else {
+      document.documentElement.dataset.theme = theme;
+    }
     if (this.#btn) {
       this.#btn.textContent = this.#labels[theme] ?? this.#labels.auto;
       this.#btn.setAttribute('aria-label', `Color theme: ${theme}. Click to change.`);

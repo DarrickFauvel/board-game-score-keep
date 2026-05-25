@@ -34,8 +34,19 @@
 }
 
 .game-layout .card,
-.game-layout .scoreboard {
+.game-layout .scoreboard,
+.game-layout .session-card {
   border-color: color-mix(in srgb, var(--game-primary) 30%, transparent);
+  color: var(--color-text);
+}
+
+.game-layout .btn--secondary {
+  border-color: var(--game-primary);
+  color: var(--game-text);
+}
+.game-layout .btn--secondary:hover {
+  background: color-mix(in srgb, var(--game-primary) 12%, transparent);
+  color: var(--game-text);
 }
 
 .game-layout .scoreboard thead,
