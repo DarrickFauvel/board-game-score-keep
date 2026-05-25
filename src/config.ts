@@ -1,6 +1,6 @@
 import 'dotenv/config';
 
-function required(key) {
+function required(key: string): string {
   const val = process.env[key];
   if (!val) throw new Error(`Missing required environment variable: ${key}`);
   return val;

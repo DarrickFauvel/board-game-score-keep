@@ -1,13 +1,20 @@
 import { ServerSentEventGenerator } from '@starfederation/datastar-sdk';
+import type { IncomingMessage, ServerResponse } from 'node:http';
 
-/** Map<sessionId, Set<ServerSentEventGenerator>> */
-const registry = new Map();
+const registry = new Map<string, Set<ServerSentEventGenerator>>();
+
+export interface ScoreEntry {
+  participant_id: string | number;
+  category_id?: string | number | null;
+  round?: number | null;
+  value: number;
+}
 
 export const sseRegistry = {
-  connect(sessionId, userId, req, res) {
+  connect(sessionId: string, _userId: string, req: IncomingMessage, res: ServerResponse): void {
     ServerSentEventGenerator.stream(req, res, async (sse) => {
       if (!registry.has(sessionId)) registry.set(sessionId, new Set());
-      registry.get(sessionId).add(sse);
+      registry.get(sessionId)!.add(sse);
 
       req.on('close', () => {
         const clients = registry.get(sessionId);
@@ -17,11 +24,11 @@ export const sseRegistry = {
         }
       });
 
-      sse.patchSignals({ sessionId, connected: true });
+      sse.patchSignals(JSON.stringify({ sessionId, connected: true }));
     }, { keepalive: true });
   },
 
-  broadcast(sessionId, fn) {
+  broadcast(sessionId: string, fn: (sse: ServerSentEventGenerator) => void): void {
     const clients = registry.get(sessionId);
     if (!clients) return;
     for (const sse of clients) {
@@ -29,27 +36,27 @@ export const sseRegistry = {
     }
   },
 
-  broadcastScoreUpdate(sessionId, entry) {
+  broadcastScoreUpdate(sessionId: string, entry: ScoreEntry): void {
     this.broadcast(sessionId, (sse) => {
-      sse.patchSignals({
+      sse.patchSignals(JSON.stringify({
         [`score_${entry.participant_id}_${entry.category_id ?? 'total'}_${entry.round ?? 0}`]: entry.value,
-      });
+      }));
     });
   },
 
-  broadcastFullRefresh(sessionId) {
+  broadcastFullRefresh(sessionId: string): void {
     this.broadcast(sessionId, (sse) => {
-      sse.patchSignals({ needsRefresh: true });
+      sse.patchSignals(JSON.stringify({ needsRefresh: true }));
     });
   },
 
-  broadcastSessionComplete(sessionId) {
+  broadcastSessionComplete(sessionId: string): void {
     this.broadcast(sessionId, (sse) => {
-      sse.patchSignals({ sessionStatus: 'completed' });
+      sse.patchSignals(JSON.stringify({ sessionStatus: 'completed' }));
     });
   },
 
-  broadcastHtml(sessionId, selector, html) {
+  broadcastHtml(sessionId: string, selector: string, html: string): void {
     this.broadcast(sessionId, (sse) => {
       sse.patchElements(html, { selector });
     });

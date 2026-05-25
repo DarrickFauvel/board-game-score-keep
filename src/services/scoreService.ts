@@ -1,7 +1,14 @@
 import { db } from '../db/client.js';
 
+interface ScoreBody {
+  participant_id: string;
+  value: string | number;
+  category_id?: string | null;
+  round?: number | null;
+}
+
 export const scoreService = {
-  async listCategories(gameId) {
+  async listCategories(gameId: string) {
     const result = await db.execute({
       sql: 'SELECT * FROM score_categories WHERE game_id = ? ORDER BY sort_order',
       args: [gameId],
@@ -9,7 +16,7 @@ export const scoreService = {
     return result.rows;
   },
 
-  async getSessionScores(sessionId) {
+  async getSessionScores(sessionId: string) {
     const result = await db.execute({
       sql: `SELECT se.*, sc.name AS category_name
             FROM score_entries se
@@ -21,7 +28,7 @@ export const scoreService = {
     return result.rows;
   },
 
-  async upsertEntry(sessionId, body, userId) {
+  async upsertEntry(sessionId: string, body: ScoreBody, userId: string) {
     const { participant_id, value, category_id, round } = body;
 
     const existing = await db.execute({
@@ -35,25 +42,31 @@ export const scoreService = {
 
     if (existing.rows.length > 0) {
       await db.execute({
-        sql: 'UPDATE score_entries SET value = ?, entered_by = ?, entered_at = strftime(\'%Y-%m-%dT%H:%M:%fZ\',\'now\') WHERE id = ?',
-        args: [parseFloat(value), userId, existing.rows[0].id],
+        sql: "UPDATE score_entries SET value = ?, entered_by = ?, entered_at = strftime('%Y-%m-%dT%H:%M:%fZ','now') WHERE id = ?",
+        args: [parseFloat(String(value)), userId, existing.rows[0].id],
       });
-      return { ...existing.rows[0], value: parseFloat(value), participant_id, session_id: sessionId, category_id: category_id ?? null, round: round ?? null };
+      return {
+        ...existing.rows[0],
+        value: parseFloat(String(value)),
+        participant_id,
+        session_id: sessionId,
+        category_id: category_id ?? null,
+        round: round ?? null,
+      };
     }
 
     const result = await db.execute({
-      sql: `INSERT INTO score_entries (session_id, participant_id, category_id, round, value, entered_by)
-            VALUES (?, ?, ?, ?, ?, ?) RETURNING *`,
-      args: [sessionId, participant_id, category_id ?? null, round ?? null, parseFloat(value), userId],
+      sql: 'INSERT INTO score_entries (session_id, participant_id, category_id, round, value, entered_by) VALUES (?, ?, ?, ?, ?, ?) RETURNING *',
+      args: [sessionId, participant_id, category_id ?? null, round ?? null, parseFloat(String(value)), userId],
     });
     return result.rows[0];
   },
 
-  async removeEntry(entryId) {
+  async removeEntry(entryId: string) {
     await db.execute({ sql: 'DELETE FROM score_entries WHERE id = ?', args: [entryId] });
   },
 
-  async getParticipantTotals(sessionId) {
+  async getParticipantTotals(sessionId: string) {
     const result = await db.execute({
       sql: `SELECT participant_id, SUM(value) AS total
             FROM score_entries

@@ -11,7 +11,7 @@ export const db = createClient({
   authToken: config.tursoAuthToken,
 });
 
-export async function runMigrations() {
+export async function runMigrations(): Promise<void> {
   const sql = readFileSync(join(__dirname, 'migrations/001_initial.sql'), 'utf8');
   await db.executeMultiple(sql);
   console.log('Database migrations complete.');

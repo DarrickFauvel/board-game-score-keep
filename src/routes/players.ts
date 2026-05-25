@@ -7,7 +7,7 @@ const router = Router();
 
 router.get('/', async (req, res, next) => {
   try {
-    const q = req.query.q ?? '';
+    const q = (req.query.q as string | undefined) ?? '';
     const players = q
       ? await playerService.search(q)
       : await playerService.listAll();
@@ -31,12 +31,12 @@ router.get('/:id/edit', async (req, res, next) => {
     const player = await playerService.findById(req.params.id);
     if (!player) return next(Object.assign(new Error('Not Found'), { status: 404 }));
     if (player.user_id !== req.user.sub) return next(Object.assign(new Error('Forbidden'), { status: 403 }));
-    res.renderEta('players/edit', { title: `Edit Profile`, player, user: req.user, error: null });
+    res.renderEta('players/edit', { title: 'Edit Profile', player, user: req.user, error: null });
   } catch (err) { next(err); }
 });
 
 router.post('/:id',
-  (req, res, next) => { req.uploadFolder = 'avatars'; next(); },
+  (req, _res, next) => { req.uploadFolder = 'avatars'; next(); },
   upload.single('avatar'),
   body('display_name').trim().isLength({ min: 1, max: 60 }),
   async (req, res, next) => {
@@ -48,7 +48,7 @@ router.post('/:id',
       if (!errors.isEmpty()) {
         return res.status(400).renderEta('players/edit', { title: 'Edit Profile', player, user: req.user, error: 'Display name is required.' });
       }
-      await playerService.update(req.params.id, req.body, req.file);
+      await playerService.update(req.params.id, req.body as Record<string, unknown>, req.file);
       res.redirect(`/players/${req.params.id}`);
     } catch (err) { next(err); }
   }

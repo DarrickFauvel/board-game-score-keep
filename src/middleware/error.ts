@@ -1,8 +1,16 @@
+import type { Request, Response, NextFunction } from 'express';
 import { config } from '../config.js';
 
-export function errorHandler(err, req, res, _next) {
-  const status = err.status ?? err.statusCode ?? 500;
-  const message = err.message ?? 'Internal Server Error';
+interface HttpError {
+  status?: number;
+  statusCode?: number;
+  message?: string;
+}
+
+export function errorHandler(err: unknown, req: Request, res: Response, _next: NextFunction): void {
+  const httpErr = err as HttpError;
+  const status = httpErr.status ?? httpErr.statusCode ?? 500;
+  const message = httpErr.message ?? 'Internal Server Error';
 
   if (config.isDev) console.error(err);
 
@@ -30,8 +38,7 @@ export function errorHandler(err, req, res, _next) {
   }
 }
 
-export function notFound(req, res, next) {
-  const err = new Error(`Not Found: ${req.path}`);
-  err.status = 404;
+export function notFound(req: Request, _res: Response, next: NextFunction): void {
+  const err = Object.assign(new Error(`Not Found: ${req.path}`), { status: 404 });
   next(err);
 }

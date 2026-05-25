@@ -1,7 +1,8 @@
 import { db } from '../db/client.js';
+import type { Row } from '@libsql/client';
 
 export const teamService = {
-  async listByGame(gameId) {
+  async listByGame(gameId: string) {
     const teams = await db.execute({
       sql: 'SELECT * FROM teams WHERE game_id = ? ORDER BY name',
       args: [gameId],
@@ -14,19 +15,20 @@ export const teamService = {
       args: [gameId],
     });
 
-    const memberMap = {};
+    const memberMap: Record<string, Row[]> = {};
     for (const m of members.rows) {
-      if (!memberMap[m.team_id]) memberMap[m.team_id] = [];
-      memberMap[m.team_id].push(m);
+      const teamId = m.team_id as string;
+      if (!memberMap[teamId]) memberMap[teamId] = [];
+      memberMap[teamId].push(m);
     }
 
-    return teams.rows.map(t => ({ ...t, members: memberMap[t.id] ?? [] }));
+    return teams.rows.map(t => ({ ...t, members: memberMap[t.id as string] ?? [] }));
   },
 
-  async create(gameId, body) {
+  async create(gameId: string, body: Record<string, unknown>) {
     const result = await db.execute({
       sql: 'INSERT INTO teams (game_id, name, color) VALUES (?, ?, ?) RETURNING *',
-      args: [gameId, body.name, body.color || null],
+      args: [gameId, body.name as string, (body.color as string) || null],
     });
     const team = result.rows[0];
 
@@ -35,7 +37,7 @@ export const teamService = {
       for (const pid of ids) {
         await db.execute({
           sql: 'INSERT OR IGNORE INTO team_members (team_id, player_id) VALUES (?, ?)',
-          args: [team.id, pid],
+          args: [team.id, pid as string],
         });
       }
     }
@@ -43,10 +45,10 @@ export const teamService = {
     return team;
   },
 
-  async update(id, body) {
+  async update(id: string, body: Record<string, unknown>) {
     await db.execute({
       sql: 'UPDATE teams SET name = ?, color = ? WHERE id = ?',
-      args: [body.name, body.color || null, id],
+      args: [body.name as string, (body.color as string) || null, id],
     });
     if (body.player_ids !== undefined) {
       await db.execute({ sql: 'DELETE FROM team_members WHERE team_id = ?', args: [id] });
@@ -54,13 +56,13 @@ export const teamService = {
       for (const pid of ids) {
         await db.execute({
           sql: 'INSERT OR IGNORE INTO team_members (team_id, player_id) VALUES (?, ?)',
-          args: [id, pid],
+          args: [id, pid as string],
         });
       }
     }
   },
 
-  async remove(id) {
+  async remove(id: string) {
     await db.execute({ sql: 'DELETE FROM teams WHERE id = ?', args: [id] });
   },
 };

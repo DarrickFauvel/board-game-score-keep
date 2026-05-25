@@ -8,14 +8,14 @@ import { v4 as uuidv4 } from 'uuid';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const uploadsBase = path.join(__dirname, '../../src/public/uploads');
 
-const PROFILES = {
-  games:    { width: 800, height: 800, fit: 'cover' },
-  avatars:  { width: 256, height: 256, fit: 'cover' },
+const PROFILES: Record<string, { width: number; height: number; fit: 'cover' | 'inside' }> = {
+  games:    { width: 800,  height: 800, fit: 'cover'  },
+  avatars:  { width: 256,  height: 256, fit: 'cover'  },
   sessions: { width: 1200, height: 900, fit: 'inside' },
-  misc:     { width: 800, height: 800, fit: 'inside' },
+  misc:     { width: 800,  height: 800, fit: 'inside' },
 };
 
-export async function processUploadedImage(inputPath, folder = 'misc') {
+export async function processUploadedImage(inputPath: string, folder = 'misc'): Promise<string> {
   const profile = PROFILES[folder] ?? PROFILES.misc;
   const filename = `${uuidv4()}.webp`;
   const outputPath = path.join(uploadsBase, folder, filename);

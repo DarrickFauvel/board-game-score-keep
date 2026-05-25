@@ -3,40 +3,42 @@ import { processUploadedImage } from './imageService.js';
 
 export const playerService = {
   async listAll() {
-    const result = await db.execute({ sql: 'SELECT * FROM players ORDER BY display_name' });
+    const result = await db.execute('SELECT * FROM players ORDER BY display_name');
     return result.rows;
   },
 
-  async search(q) {
+  async search(q: string) {
     const result = await db.execute({
-      sql: "SELECT * FROM players WHERE display_name LIKE ? ORDER BY display_name LIMIT 20",
+      sql: 'SELECT * FROM players WHERE display_name LIKE ? ORDER BY display_name LIMIT 20',
       args: [`%${q}%`],
     });
     return result.rows;
   },
 
-  async findById(id) {
+  async findById(id: string) {
     const result = await db.execute({ sql: 'SELECT * FROM players WHERE id = ?', args: [id] });
     return result.rows[0] ?? null;
   },
 
-  async findByUserId(userId) {
+  async findByUserId(userId: string) {
     const result = await db.execute({ sql: 'SELECT * FROM players WHERE user_id = ? LIMIT 1', args: [userId] });
     return result.rows[0] ?? null;
   },
 
-  async getStats(playerId) {
+  async getStats(playerId: string) {
     const result = await db.execute({
       sql: 'SELECT * FROM player_stats WHERE player_id = ?',
       args: [playerId],
     });
     if (result.rows.length === 0) return { games_played: 0, wins: 0, win_rate: 0 };
     const row = result.rows[0];
-    const winRate = row.games_played > 0 ? Math.round((row.wins / row.games_played) * 100) : 0;
+    const winRate = (row.games_played as number) > 0
+      ? Math.round(((row.wins as number) / (row.games_played as number)) * 100)
+      : 0;
     return { ...row, win_rate: winRate };
   },
 
-  async getGameHistory(playerId) {
+  async getGameHistory(playerId: string) {
     const result = await db.execute({
       sql: `SELECT
               s.id AS session_id,
@@ -61,8 +63,10 @@ export const playerService = {
     return result.rows;
   },
 
-  async update(id, body, file) {
-    const avatarUrl = file ? await processUploadedImage(file.path, 'avatars') : (body.avatar_url?.trim() || undefined);
+  async update(id: string, body: Record<string, unknown>, file?: Express.Multer.File) {
+    const avatarUrl = file
+      ? await processUploadedImage(file.path, 'avatars')
+      : ((body.avatar_url as string | undefined)?.trim() || undefined);
     await db.execute({
       sql: `UPDATE players SET
               display_name = ?,
@@ -72,8 +76,8 @@ export const playerService = {
               ${avatarUrl !== undefined ? ', avatar_url = ?' : ''}
             WHERE id = ?`,
       args: avatarUrl !== undefined
-        ? [body.display_name, body.preferred_color || null, body.preferred_token || null, avatarUrl, id]
-        : [body.display_name, body.preferred_color || null, body.preferred_token || null, id],
+        ? [body.display_name as string, (body.preferred_color as string) || null, (body.preferred_token as string) || null, avatarUrl, id]
+        : [body.display_name as string, (body.preferred_color as string) || null, (body.preferred_token as string) || null, id],
     });
   },
 };

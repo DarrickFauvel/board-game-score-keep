@@ -1,6 +1,6 @@
 {
   "watch": ["src"],
-  "ext": "js,eta,css,sql",
+  "ext": "ts,eta,css,sql",
   "ignore": ["src/public/uploads"],
-  "exec": "node src/server.js"
+  "exec": "tsx src/server.ts"
 }
