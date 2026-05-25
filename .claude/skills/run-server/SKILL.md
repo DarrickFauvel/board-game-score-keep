@@ -1,4 +1,5 @@
 ---
+name: run-server
 description: Launch the Board Game Score Keep dev server
 ---
 
