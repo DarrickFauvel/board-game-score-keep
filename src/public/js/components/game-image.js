@@ -28,6 +28,17 @@ class GameImage extends HTMLElement {
         backgroundPosition: 'center',
         filter: 'blur(28px) brightness(0.4) saturate(1.4)',
         pointerEvents: 'none',
+        animation: 'cover-drift 20s linear infinite',
+        transition: '--cover-scale 600ms ease, filter 600ms ease',
+      });
+
+      this.addEventListener('mouseenter', () => {
+        bg.style.setProperty('--cover-scale', '1.15');
+        bg.style.filter = 'blur(12px) brightness(0.6) saturate(1.8)';
+      });
+      this.addEventListener('mouseleave', () => {
+        bg.style.setProperty('--cover-scale', '1');
+        bg.style.filter = 'blur(28px) brightness(0.4) saturate(1.4)';
       });
 
       const img = document.createElement('img');
