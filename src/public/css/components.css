@@ -170,13 +170,34 @@ textarea.form-control {
   background: var(--color-ink);
 }
 
+@property --cover-scale {
+  syntax: '<number>';
+  initial-value: 1;
+  inherits: false;
+}
+
+@keyframes cover-drift {
+  from { transform: scale(var(--cover-scale)) rotate(0deg)   translateX(3%) rotate(0deg); }
+  to   { transform: scale(var(--cover-scale)) rotate(360deg) translateX(3%) rotate(-360deg); }
+}
+
 .game-cover::before {
   content: '';
   position: absolute;
   inset: -10%;
   background: var(--cover-bg) center / cover no-repeat;
   filter: blur(28px) brightness(0.4) saturate(1.4);
-  transform: scale(1.1);
+  animation: cover-drift 20s linear infinite;
+  transition: --cover-scale 600ms ease, filter 600ms ease;
+}
+
+:is(.card, .keep-card):hover .game-cover::before {
+  --cover-scale: 1.15;
+  filter: blur(12px) brightness(0.6) saturate(1.8);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .game-cover::before { animation: none; transition: none; }
 }
 
 .game-cover__img {
