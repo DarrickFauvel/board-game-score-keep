@@ -122,7 +122,7 @@ class AvatarPicker extends HTMLElement {
         document.dispatchEvent(new CustomEvent('image-loaded', { detail: { img: urlPreview } }));
       };
       urlPreview.onerror = () => { urlPreview.style.display = 'none'; };
-      urlPreview.src = url;
+      urlPreview.src = `/proxy/image?url=${encodeURIComponent(url)}`;
     });
 
     this.querySelector(`#ap-cam-start-${name}`)?.addEventListener('click', () => this.#startCamera(name));
