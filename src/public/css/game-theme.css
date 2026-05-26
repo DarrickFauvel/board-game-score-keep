@@ -1,26 +1,23 @@
 /* Per-game color theme — applied via inline CSS vars on <body> in the game layout */
 
 .game-layout {
+  /*
+   * Derive accessible text colors from each game surface using relative color syntax.
+   * The ramp (0.55 - l) * 20 is steep enough that any color clearly above or below
+   * the ~0.55 oklch lightness threshold snaps to near-black (0.1) or near-white (0.95).
+   * Chroma and hue are zeroed so the result is always a neutral gray, not a tinted tone.
+   */
+  --game-on-primary:   oklch(from var(--game-primary)   clamp(0.1, calc(0.1 + (0.55 - l) * 20), 0.95) 0 0);
+  --game-on-secondary: oklch(from var(--game-secondary) clamp(0.1, calc(0.1 + (0.55 - l) * 20), 0.95) 0 0);
+  --game-on-accent:    oklch(from var(--game-accent)    clamp(0.1, calc(0.1 + (0.55 - l) * 20), 0.95) 0 0);
+
   background-color: var(--game-secondary);
-  color: var(--game-text);
-}
-
-.game-layout .site-header {
-  background: var(--game-primary);
-}
-
-.game-layout .site-header .site-header__logo {
-  color: var(--game-accent);
-}
-
-.game-layout .site-header__nav a,
-.game-layout .site-header__nav button {
-  color: color-mix(in srgb, var(--game-secondary) 90%, white);
+  color: var(--game-on-secondary);
 }
 
 .game-layout .btn--primary {
   background: var(--game-primary);
-  color: var(--game-secondary);
+  color: var(--game-on-primary);
   border-color: var(--game-primary);
 }
 
@@ -30,7 +27,7 @@
 
 .game-layout .btn--gold {
   background: var(--game-accent);
-  color: var(--game-primary);
+  color: var(--game-on-accent);
 }
 
 .game-layout .card,
@@ -42,17 +39,17 @@
 
 .game-layout .btn--secondary {
   border-color: var(--game-primary);
-  color: var(--game-text);
+  color: var(--game-on-secondary);
 }
 .game-layout .btn--secondary:hover {
   background: color-mix(in srgb, var(--game-primary) 12%, transparent);
-  color: var(--game-text);
+  color: var(--game-on-secondary);
 }
 
 .game-layout .scoreboard thead,
 .game-layout .scoreboard tfoot {
   background: var(--game-primary);
-  color: var(--game-secondary);
+  color: var(--game-on-primary);
 }
 
 .game-layout .badge--active {
