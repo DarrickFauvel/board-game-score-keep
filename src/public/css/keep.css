@@ -49,7 +49,7 @@
 .keep-banner {
   position: relative;
   background: var(--color-ink);
-  color: var(--color-gold);
+  color: oklch(from var(--color-ink) clamp(0.1, calc(0.1 + (0.55 - l) * 20), 0.95) 0 0);
   font-family: 'MedievalSharp', serif;
   text-align: center;
   padding: var(--space-2) var(--space-6);
