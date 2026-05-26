@@ -26,12 +26,12 @@ class AvatarPicker extends HTMLElement {
           font-family: inherit;
           font-weight: 600;
           min-height: 3rem;
-          color: var(--color-text-muted, #8b7d6b);
+          color: var(--color-text, #2c2416);
           transition: background 120ms ease, color 120ms ease;
         }
         avatar-picker .ap-tab[aria-selected="true"] {
           background: var(--color-ink, #2c2416);
-          color: var(--color-parchment, #f5f0e8);
+          color: oklch(from var(--color-ink, #2c2416) clamp(0.1, calc(0.1 + (0.55 - l) * 20), 0.95) 0 0);
           border-color: var(--color-ink, #2c2416);
         }
         avatar-picker .ap-tab:hover:not([aria-selected="true"]) { background: var(--color-surface, #e8e0d0); }
