@@ -1,7 +1,7 @@
 <% layout('layouts/base') %>
 
 <div class="keep-hero">
-  <h1 class="keep-title">⚔ Board Game Score Keep</h1>
+  <h1 class="keep-title">Board Game Score Keep</h1>
   <p class="keep-subtitle">Your hall of victories and defeats, faithfully recorded.</p>
 </div>
 
