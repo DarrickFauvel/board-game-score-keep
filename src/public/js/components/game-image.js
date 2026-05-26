@@ -31,7 +31,10 @@ class GameImage extends HTMLElement {
       });
 
       const img = document.createElement('img');
-      img.src = src;
+      // Proxy external URLs through the server when this image is a color-thief target,
+      // so the canvas won't be tainted by cross-origin content.
+      const isExternal = /^https?:\/\//i.test(src);
+      img.src = (imgId && isExternal) ? `/proxy/image?url=${encodeURIComponent(src)}` : src;
       img.alt = alt;
       img.loading = 'lazy';
       if (imgId) img.id = imgId;
