@@ -3,6 +3,7 @@ class GameImage extends HTMLElement {
     const src = this.getAttribute('src') ?? '';
     const alt = this.getAttribute('alt') ?? '';
     const maxHeight = this.getAttribute('max-height') ?? '16rem';
+    const imgId = this.getAttribute('img-id');
 
     Object.assign(this.style, {
       display: 'block',
@@ -33,6 +34,7 @@ class GameImage extends HTMLElement {
       img.src = src;
       img.alt = alt;
       img.loading = 'lazy';
+      if (imgId) img.id = imgId;
       Object.assign(img.style, {
         position: 'relative',
         zIndex: '1',

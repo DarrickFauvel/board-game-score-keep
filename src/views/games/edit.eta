@@ -21,8 +21,8 @@
     <div class="form-group">
       <label class="form-label">Game image</label>
       <% if (it.game.image_url) { %>
-      <img id="game-preview-img" src="<%= it.game.image_url %>" alt="Current game image"
-           style="max-height:12rem;border-radius:var(--radius-md);margin-bottom:var(--space-2)" loading="lazy">
+      <game-image src="<%= it.game.image_url %>" alt="<%= it.game.name %>" img-id="game-preview-img"
+                  max-height="12rem" style="border-radius:var(--radius-lg);overflow:hidden;margin-bottom:var(--space-2)"></game-image>
       <% } %>
       <avatar-picker name="image" folder="game" aria-label="Replace game image"></avatar-picker>
     </div>

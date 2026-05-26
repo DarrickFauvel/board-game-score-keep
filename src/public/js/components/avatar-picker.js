@@ -77,6 +77,7 @@ class AvatarPicker extends HTMLElement {
 
       <div id="ap-panel-url-${name}" class="ap-panel" role="tabpanel" aria-labelledby="ap-tab-url-${name}">
         <input type="text" name="image_url" placeholder="https://example.com/image.jpg" aria-label="Image URL">
+        <img class="ap-preview" style="display:none" alt="URL image preview">
       </div>
 
       <div id="ap-panel-camera-${name}" class="ap-panel" role="tabpanel" aria-labelledby="ap-tab-camera-${name}">
@@ -108,6 +109,20 @@ class AvatarPicker extends HTMLElement {
           document.dispatchEvent(new CustomEvent('image-loaded', { detail: { img: preview } }));
         }, { once: true });
       }
+    });
+
+    const urlInput = this.querySelector(`#ap-panel-url-${name} input[type="text"]`);
+    const urlPreview = this.querySelector(`#ap-panel-url-${name} .ap-preview`);
+    urlInput?.addEventListener('blur', () => {
+      const url = urlInput.value.trim();
+      if (!url || !urlPreview) return;
+      urlPreview.style.display = 'none';
+      urlPreview.onload = () => {
+        urlPreview.style.display = 'block';
+        document.dispatchEvent(new CustomEvent('image-loaded', { detail: { img: urlPreview } }));
+      };
+      urlPreview.onerror = () => { urlPreview.style.display = 'none'; };
+      urlPreview.src = url;
     });
 
     this.querySelector(`#ap-cam-start-${name}`)?.addEventListener('click', () => this.#startCamera(name));
