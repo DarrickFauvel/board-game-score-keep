@@ -66,34 +66,40 @@
 
     <fieldset style="border:1px solid var(--color-border);border-radius:var(--radius-md);padding:var(--space-3);margin-bottom:var(--space-3)">
       <legend class="form-label">Color theme</legend>
-      <color-thief-picker target-image="#game-preview-img"
-                          primary-input="#color_primary"
-                          secondary-input="#color_secondary"
-                          accent-input="#color_accent">
-      </color-thief-picker>
+      <div style="display:flex;gap:var(--space-2);flex-wrap:wrap;margin-bottom:var(--space-2)">
+        <color-thief-picker target-image="#game-preview-img"
+                            primary-input="#color_primary"
+                            secondary-input="#color_secondary"
+                            accent-input="#color_accent">
+        </color-thief-picker>
+        <button type="button" class="btn btn--secondary btn--sm" onclick="resetTheme()">Reset to defaults</button>
+      </div>
       <div class="form-row form-row--3" style="margin-top:var(--space-2)">
         <div class="form-group" style="margin-bottom:0">
           <label class="form-label" for="color_primary">Primary</label>
           <div class="color-field">
-            <input type="color" id="color_primary" name="color_primary" value="<%= it.game.color_primary || '#5a3e2b' %>">
+            <input type="color" id="color_primary" name="color_primary" value="<%= it.game.color_primary || '#5a3e2b' %>"
+                   oninput="this.nextElementSibling.value=this.value; updateTheme('primary',this.value)">
             <input class="form-control" type="text" value="<%= it.game.color_primary || '#5a3e2b' %>" style="flex:1;font-size:var(--text-xs)"
-                   oninput="document.getElementById('color_primary').value=this.value">
+                   oninput="document.getElementById('color_primary').value=this.value; updateTheme('primary',this.value)">
           </div>
         </div>
         <div class="form-group" style="margin-bottom:0">
           <label class="form-label" for="color_secondary">Secondary</label>
           <div class="color-field">
-            <input type="color" id="color_secondary" name="color_secondary" value="<%= it.game.color_secondary || '#e8d5a3' %>">
+            <input type="color" id="color_secondary" name="color_secondary" value="<%= it.game.color_secondary || '#e8d5a3' %>"
+                   oninput="this.nextElementSibling.value=this.value; updateTheme('secondary',this.value)">
             <input class="form-control" type="text" value="<%= it.game.color_secondary || '#e8d5a3' %>" style="flex:1;font-size:var(--text-xs)"
-                   oninput="document.getElementById('color_secondary').value=this.value">
+                   oninput="document.getElementById('color_secondary').value=this.value; updateTheme('secondary',this.value)">
           </div>
         </div>
         <div class="form-group" style="margin-bottom:0">
           <label class="form-label" for="color_accent">Accent</label>
           <div class="color-field">
-            <input type="color" id="color_accent" name="color_accent" value="<%= it.game.color_accent || '#c9a84c' %>">
+            <input type="color" id="color_accent" name="color_accent" value="<%= it.game.color_accent || '#c9a84c' %>"
+                   oninput="this.nextElementSibling.value=this.value; updateTheme('accent',this.value)">
             <input class="form-control" type="text" value="<%= it.game.color_accent || '#c9a84c' %>" style="flex:1;font-size:var(--text-xs)"
-                   oninput="document.getElementById('color_accent').value=this.value">
+                   oninput="document.getElementById('color_accent').value=this.value; updateTheme('accent',this.value)">
           </div>
         </div>
       </div>
@@ -116,6 +122,20 @@
 </div>
 
 <script>
+function updateTheme(key, value) {
+  document.body.style.setProperty(`--game-${key}`, value);
+}
+
+function resetTheme() {
+  const defaults = { color_primary: '#5a3e2b', color_secondary: '#e8d5a3', color_accent: '#c9a84c' };
+  for (const [id, value] of Object.entries(defaults)) {
+    const picker = document.getElementById(id);
+    if (picker) { picker.value = value; picker.dispatchEvent(new Event('input', { bubbles: true })); }
+    const text = picker?.nextElementSibling;
+    if (text) text.value = value;
+  }
+}
+
 function addCategory() {
   const list = document.getElementById('category-list');
   const input = document.createElement('input');

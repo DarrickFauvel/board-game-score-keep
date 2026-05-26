@@ -11,8 +11,17 @@
   --game-on-secondary: oklch(from var(--game-secondary) clamp(0.1, calc(0.1 + (0.55 - l) * 20), 0.95) 0 0);
   --game-on-accent:    oklch(from var(--game-accent)    clamp(0.1, calc(0.1 + (0.55 - l) * 20), 0.95) 0 0);
 
+  /* Override semantic text tokens so form labels, inputs, and hints
+     stay readable against --game-secondary regardless of dark mode. */
+  --color-text:       var(--game-on-secondary);
+  --color-text-muted: oklch(from var(--game-secondary) clamp(0.25, calc(0.25 + (0.5 - l) * 16), 0.75) 0 0);
+
   background-color: var(--game-secondary);
   color: var(--game-on-secondary);
+}
+
+.game-layout .form-control {
+  color: oklch(from var(--color-bg-raised) clamp(0.1, calc(0.1 + (0.55 - l) * 20), 0.95) 0 0);
 }
 
 .game-layout .btn--primary {
@@ -34,7 +43,6 @@
 .game-layout .scoreboard,
 .game-layout .session-card {
   border-color: color-mix(in srgb, var(--game-primary) 30%, transparent);
-  color: var(--color-text);
 }
 
 .game-layout .btn--secondary {
