@@ -17,8 +17,8 @@
   <% it.games.forEach(function(game) { %>
   <article class="card">
     <% if (game.image_url) { %>
-    <div class="card__img game-cover" style="--cover-bg: url('<%= game.image_url %>')">
-      <img class="game-cover__img" src="<%= game.image_url %>" alt="<%= game.name %>" loading="lazy">
+    <div class="card__img game-cover" style="--cover-bg: url('<%= it.imgUrl(game.image_url) %>')">
+      <img class="game-cover__img" src="<%= it.imgUrl(game.image_url) %>" alt="<%= game.name %>" loading="lazy">
     </div>
     <% } else { %>
     <div class="card__img" style="background:var(--color-surface);display:flex;align-items:center;justify-content:center;font-size:4rem" aria-hidden="true">🎲</div>

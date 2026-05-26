@@ -11,7 +11,7 @@
 <div style="display:grid;grid-template-columns:1fr;gap:var(--space-4)">
 
   <% if (it.game.image_url) { %>
-  <game-image src="<%= it.game.image_url %>" alt="<%= it.game.name %>" max-height="20rem" style="border-radius:var(--radius-lg);overflow:hidden"></game-image>
+  <game-image src="<%= it.imgUrl(it.game.image_url) %>" alt="<%= it.game.name %>" max-height="20rem" style="border-radius:var(--radius-lg);overflow:hidden"></game-image>
   <% } %>
 
   <section aria-labelledby="details-heading" class="card">

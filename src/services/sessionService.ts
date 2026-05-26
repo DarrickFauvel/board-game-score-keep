@@ -71,15 +71,37 @@ export const sessionService = {
     });
   },
 
-  async saveNote(id: string, note: string | undefined, file?: Express.Multer.File) {
-    const photoUrl = file ? await processUploadedImage(file.path, 'sessions') : undefined;
+  async saveNote(id: string, note: string | undefined) {
     await db.execute({
-      sql: `UPDATE sessions SET note = ?,
-              ${photoUrl !== undefined ? 'photo_url = ?,' : ''}
-              updated_at = strftime('%Y-%m-%dT%H:%M:%fZ','now')
-            WHERE id = ?`,
-      args: photoUrl !== undefined ? [note ?? null, photoUrl, id] : [note ?? null, id],
+      sql: `UPDATE sessions SET note = ?, updated_at = strftime('%Y-%m-%dT%H:%M:%fZ','now') WHERE id = ?`,
+      args: [note ?? null, id],
     });
+  },
+
+  async addPhoto(sessionId: string, file?: Express.Multer.File, cameraData?: string): Promise<void> {
+    let photoUrl: string | undefined;
+    if (file) {
+      photoUrl = await processUploadedImage(file.buffer, 'sessions');
+    } else if (cameraData?.startsWith('data:image/')) {
+      photoUrl = await processUploadedImage(cameraData, 'sessions');
+    }
+    if (!photoUrl) return;
+    await db.execute({
+      sql: 'INSERT INTO session_photos (session_id, photo_url) VALUES (?, ?)',
+      args: [sessionId, photoUrl],
+    });
+  },
+
+  async listPhotos(sessionId: string) {
+    const result = await db.execute({
+      sql: 'SELECT * FROM session_photos WHERE session_id = ? ORDER BY created_at',
+      args: [sessionId],
+    });
+    return result.rows;
+  },
+
+  async removePhoto(photoId: string) {
+    await db.execute({ sql: 'DELETE FROM session_photos WHERE id = ?', args: [photoId] });
   },
 
   async remove(id: string) {

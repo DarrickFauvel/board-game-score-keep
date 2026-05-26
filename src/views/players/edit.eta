@@ -15,7 +15,7 @@
     <div class="form-group">
       <label class="form-label">Avatar</label>
       <% if (it.player.avatar_url) { %>
-      <img src="<%= it.player.avatar_url %>" class="avatar avatar--lg" alt="Current avatar"
+      <img src="<%= it.imgUrl(it.player.avatar_url) %>" class="avatar avatar--lg" alt="Current avatar"
            style="margin-bottom:var(--space-2)">
       <% } %>
       <avatar-picker name="avatar" folder="avatars" aria-label="Upload or capture your avatar photo"></avatar-picker>

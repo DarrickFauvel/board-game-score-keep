@@ -9,6 +9,9 @@ class AvatarPicker extends HTMLElement {
   #render() {
     const name = this.getAttribute('name') ?? 'image';
     const ariaLabel = this.getAttribute('aria-label') ?? 'Image picker';
+    const allowed = new Set((this.getAttribute('tabs') ?? 'file,url,camera').split(',').map(t => t.trim()));
+    const firstTab = [...allowed][0];
+    this.#tab = firstTab;
     this.setAttribute('role', 'group');
     this.setAttribute('aria-label', ariaLabel);
 
@@ -64,23 +67,27 @@ class AvatarPicker extends HTMLElement {
         avatar-picker .ap-preview { max-width: 160px; border-radius: 8px; margin-top: 0.5rem; }
       </style>
 
+      ${allowed.size > 1 ? `
       <div class="ap-tabs" role="tablist" aria-label="Image source">
-        <button class="ap-tab" type="button" role="tab" aria-selected="true" aria-controls="ap-panel-file-${name}" id="ap-tab-file-${name}">Upload File</button>
-        <button class="ap-tab" type="button" role="tab" aria-selected="false" aria-controls="ap-panel-url-${name}" id="ap-tab-url-${name}">Enter URL</button>
-        <button class="ap-tab" type="button" role="tab" aria-selected="false" aria-controls="ap-panel-camera-${name}" id="ap-tab-camera-${name}">Camera</button>
-      </div>
+        ${allowed.has('file')   ? `<button class="ap-tab" type="button" role="tab" aria-selected="${firstTab === 'file'}"   aria-controls="ap-panel-file-${name}"   id="ap-tab-file-${name}">Upload File</button>` : ''}
+        ${allowed.has('url')    ? `<button class="ap-tab" type="button" role="tab" aria-selected="${firstTab === 'url'}"    aria-controls="ap-panel-url-${name}"    id="ap-tab-url-${name}">Enter URL</button>` : ''}
+        ${allowed.has('camera') ? `<button class="ap-tab" type="button" role="tab" aria-selected="${firstTab === 'camera'}" aria-controls="ap-panel-camera-${name}" id="ap-tab-camera-${name}">Camera</button>` : ''}
+      </div>` : ''}
 
-      <div id="ap-panel-file-${name}" class="ap-panel" role="tabpanel" aria-labelledby="ap-tab-file-${name}" data-active>
+      ${allowed.has('file') ? `
+      <div id="ap-panel-file-${name}" class="ap-panel" role="tabpanel" aria-labelledby="ap-tab-file-${name}" ${firstTab === 'file' ? 'data-active' : ''}>
         <input type="file" name="${name}" accept="image/*" aria-label="Choose image file">
         <img class="ap-preview" style="display:none" alt="Image preview">
-      </div>
+      </div>` : ''}
 
-      <div id="ap-panel-url-${name}" class="ap-panel" role="tabpanel" aria-labelledby="ap-tab-url-${name}">
+      ${allowed.has('url') ? `
+      <div id="ap-panel-url-${name}" class="ap-panel" role="tabpanel" aria-labelledby="ap-tab-url-${name}" ${firstTab === 'url' ? 'data-active' : ''}>
         <input type="text" name="image_url" placeholder="https://example.com/image.jpg" aria-label="Image URL">
         <img class="ap-preview" style="display:none" alt="URL image preview">
-      </div>
+      </div>` : ''}
 
-      <div id="ap-panel-camera-${name}" class="ap-panel" role="tabpanel" aria-labelledby="ap-tab-camera-${name}">
+      ${allowed.has('camera') ? `
+      <div id="ap-panel-camera-${name}" class="ap-panel" role="tabpanel" aria-labelledby="ap-tab-camera-${name}" ${firstTab === 'camera' ? 'data-active' : ''}>
         <video autoplay muted playsinline aria-label="Camera preview"></video>
         <canvas></canvas>
         <div>
@@ -89,7 +96,8 @@ class AvatarPicker extends HTMLElement {
         </div>
         <input type="hidden" name="${name}_camera_data">
         <img class="ap-preview" style="display:none" alt="Captured photo preview">
-      </div>`;
+      </div>` : ''}
+      `;
 
     this.querySelectorAll('.ap-tab').forEach((tab) => {
       tab.addEventListener('click', () => {

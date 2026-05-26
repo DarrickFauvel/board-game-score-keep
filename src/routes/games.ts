@@ -17,7 +17,6 @@ router.get('/new', (req, res) => {
 });
 
 router.post('/',
-  (req, _res, next) => { req.uploadFolder = 'games'; next(); },
   upload.single('image'),
   body('name').trim().isLength({ min: 1, max: 120 }),
   body('scoring_mode').isIn(['tally', 'final', 'categories']),
@@ -57,7 +56,6 @@ router.get('/:id/edit', async (req, res, next) => {
 });
 
 router.post('/:id',
-  (req, _res, next) => { req.uploadFolder = 'games'; next(); },
   upload.single('image'),
   body('name').trim().isLength({ min: 1, max: 120 }),
   body('scoring_mode').isIn(['tally', 'final', 'categories']),
@@ -123,8 +121,11 @@ router.get('/:gameId/sessions/:id', async (req, res, next) => {
       sessionService.listParticipants(req.params.id),
       scoreService.listCategories(req.params.gameId),
     ]);
-    const scores = await scoreService.getSessionScores(req.params.id);
-    res.renderEta('sessions/show', { title: `${game.name} – Session`, game, session, participants, categories, scores, user: req.user });
+    const [scores, photos] = await Promise.all([
+      scoreService.getSessionScores(req.params.id),
+      sessionService.listPhotos(req.params.id),
+    ]);
+    res.renderEta('sessions/show', { title: `${game.name} – Session`, game, session, participants, categories, scores, photos, user: req.user });
   } catch (err) { next(err); }
 });
 
@@ -137,20 +138,41 @@ router.post('/:gameId/sessions/:id/complete', async (req, res, next) => {
 });
 
 router.post('/:gameId/sessions/:id/note',
-  (req, _res, next) => { req.uploadFolder = 'sessions'; next(); },
-  upload.single('photo'),
   async (req, res, next) => {
     try {
       const { sessionService } = await import('../services/sessionService.js');
       await sessionService.saveNote(
         req.params.id,
         (req.body as Record<string, unknown>).note as string | undefined,
-        req.file,
       );
       res.redirect(`/games/${req.params.gameId}/sessions/${req.params.id}`);
     } catch (err) { next(err); }
   }
 );
+
+router.post('/:gameId/sessions/:id/photos',
+  upload.single('photo'),
+  async (req, res, next) => {
+    try {
+      const { sessionService } = await import('../services/sessionService.js');
+      const body = req.body as Record<string, unknown>;
+      await sessionService.addPhoto(
+        req.params.id,
+        req.file,
+        body.photo_camera_data as string | undefined,
+      );
+      res.redirect(`/games/${req.params.gameId}/sessions/${req.params.id}`);
+    } catch (err) { next(err); }
+  }
+);
+
+router.post('/:gameId/sessions/:id/photos/:photoId/delete', async (req, res, next) => {
+  try {
+    const { sessionService } = await import('../services/sessionService.js');
+    await sessionService.removePhoto(req.params.photoId);
+    res.redirect(`/games/${req.params.gameId}/sessions/${req.params.id}`);
+  } catch (err) { next(err); }
+});
 
 router.post('/:gameId/sessions/:id/delete', async (req, res, next) => {
   try {

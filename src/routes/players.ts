@@ -36,7 +36,6 @@ router.get('/:id/edit', async (req, res, next) => {
 });
 
 router.post('/:id',
-  (req, _res, next) => { req.uploadFolder = 'avatars'; next(); },
   upload.single('avatar'),
   body('display_name').trim().isLength({ min: 1, max: 60 }),
   async (req, res, next) => {
