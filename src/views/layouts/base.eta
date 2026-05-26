@@ -38,7 +38,7 @@
 
   <a href="#main-content" class="skip-nav">Skip to main content</a>
 
-  <header class="site-header" role="banner" data-signals="{menuOpen:false}">
+  <header class="site-header" role="banner" data-signals="{menuOpen:false}" data-on:click__outside="$menuOpen = false">
     <a href="/" class="site-header__logo" aria-label="Board Game Score Keep — Home">⚔ The Keep</a>
 
     <button class="site-header__menu-btn"
