@@ -62,9 +62,7 @@ const maxTotal = Math.max(...Object.values(totals), 0);
   <h2 id="note-heading">Session Notes</h2>
   <div class="card">
     <div class="card__body">
-      <form action="/games/<%= it.game.id %>/sessions/<%= it.session.id %>/note"
-            method="POST" enctype="multipart/form-data">
-
+      <form action="/games/<%= it.game.id %>/sessions/<%= it.session.id %>/note" method="POST">
         <div class="form-group">
           <label class="form-label" for="note">
             How did it go?
@@ -73,17 +71,41 @@ const maxTotal = Math.max(...Object.values(totals), 0);
           <textarea class="form-control" id="note" name="note" rows="4"
                     placeholder="Memorable moments, house rules, who won dramatically…"><%= it.session.note || '' %></textarea>
         </div>
-
-        <div class="form-group">
-          <label class="form-label">Session photo (optional)</label>
-          <% if (it.session.photo_url) { %>
-          <img src="<%= it.session.photo_url %>" alt="Session photo"
-               style="max-height:12rem;border-radius:var(--radius-md);margin-bottom:var(--space-2)" loading="lazy">
-          <% } %>
-          <avatar-picker name="photo" folder="sessions" aria-label="Add a session photo"></avatar-picker>
-        </div>
-
         <button type="submit" class="btn btn--primary">Save Note</button>
+      </form>
+    </div>
+  </div>
+</section>
+
+<section aria-labelledby="photos-heading" class="section" style="margin-top:var(--space-4)">
+  <h2 id="photos-heading">Photos</h2>
+
+  <% if (it.photos && it.photos.length > 0) { %>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(10rem,1fr));gap:var(--space-3);margin-bottom:var(--space-4)">
+    <% for (const photo of it.photos) { %>
+    <div style="position:relative">
+      <img src="<%= it.imgUrl(photo.photo_url) %>" alt="Session photo"
+           style="width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:var(--radius-md);display:block" loading="lazy">
+      <form action="/games/<%= it.game.id %>/sessions/<%= it.session.id %>/photos/<%= photo.id %>/delete" method="POST" style="margin:0;position:absolute;top:var(--space-1);right:var(--space-1)"
+            data-confirm="Remove this photo?"
+            data-confirm-title="Delete Photo"
+            data-confirm-label="Delete">
+        <button type="submit" class="btn btn--danger btn--sm" aria-label="Delete photo" style="padding:0.25rem 0.5rem;min-height:0;line-height:1">✕</button>
+      </form>
+    </div>
+    <% } %>
+  </div>
+  <% } %>
+
+  <div class="card">
+    <div class="card__body">
+      <form action="/games/<%= it.game.id %>/sessions/<%= it.session.id %>/photos"
+            method="POST" enctype="multipart/form-data">
+        <div class="form-group" style="margin-bottom:0">
+          <label class="form-label">Add a photo</label>
+          <avatar-picker name="photo" folder="sessions" tabs="camera" aria-label="Take or upload a session photo"></avatar-picker>
+        </div>
+        <button type="submit" class="btn btn--primary" style="margin-top:var(--space-3)">Add Photo</button>
       </form>
     </div>
   </div>

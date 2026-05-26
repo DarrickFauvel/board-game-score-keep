@@ -3,7 +3,7 @@
 <div class="page-header">
   <div style="display:flex;align-items:center;gap:var(--space-3)">
     <% if (it.player.avatar_url) { %>
-    <img class="avatar avatar--lg" src="<%= it.player.avatar_url %>" alt="<%= it.player.display_name %>'s avatar">
+    <img class="avatar avatar--lg" src="<%= it.imgUrl(it.player.avatar_url) %>" alt="<%= it.player.display_name %>'s avatar">
     <% } else { %>
     <div class="avatar avatar--lg" style="background:<%= it.player.preferred_color || 'var(--color-surface)' %>" aria-hidden="true">
       <%= it.player.display_name.charAt(0).toUpperCase() %>
@@ -50,7 +50,7 @@
        href="/games/<%= entry.game_id %>/sessions/<%= entry.session_id %>"
        aria-label="<%= entry.game_name %> — <%= new Date(entry.started_at).toLocaleDateString() %>, rank <%= entry.rank %>">
       <% if (entry.image_url) { %>
-      <img src="<%= entry.image_url %>" alt="" class="avatar" style="border-radius:var(--radius-sm)" aria-hidden="true">
+      <img src="<%= it.imgUrl(entry.image_url) %>" alt="" class="avatar" style="border-radius:var(--radius-sm)" aria-hidden="true">
       <% } else { %>
       <div class="avatar" aria-hidden="true" style="border-radius:var(--radius-sm)">🎲</div>
       <% } %>

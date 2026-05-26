@@ -93,7 +93,7 @@ async function resolveImageUrl(
   urlFromBody: string | undefined,
   folder: string,
 ): Promise<string | undefined> {
-  if (file) return processUploadedImage(file.path, folder);
+  if (file) return processUploadedImage(file.buffer, folder);
   if (urlFromBody?.trim()) return urlFromBody.trim();
   return undefined;
 }

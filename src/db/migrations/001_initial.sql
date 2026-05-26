@@ -116,3 +116,12 @@ LEFT JOIN (
   ) WHERE rnk = 1
 ) w ON w.session_id = sp.session_id
 GROUP BY p.id;
+
+CREATE TABLE IF NOT EXISTS session_photos (
+  id         TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(16)))),
+  session_id TEXT NOT NULL REFERENCES sessions(id) ON DELETE CASCADE,
+  photo_url  TEXT NOT NULL,
+  created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_session_photos_session ON session_photos(session_id);

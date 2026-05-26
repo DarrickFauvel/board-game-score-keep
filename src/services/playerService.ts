@@ -65,7 +65,7 @@ export const playerService = {
 
   async update(id: string, body: Record<string, unknown>, file?: Express.Multer.File) {
     const avatarUrl = file
-      ? await processUploadedImage(file.path, 'avatars')
+      ? await processUploadedImage(file.buffer, 'avatars')
       : ((body.avatar_url as string | undefined)?.trim() || undefined);
     await db.execute({
       sql: `UPDATE players SET
