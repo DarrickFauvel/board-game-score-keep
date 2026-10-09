@@ -127,7 +127,59 @@ function rank(rows: ParticipantResult[]): { standings: Standing[]; sessionCount:
   return { standings, sessionCount: sessions.length };
 }
 
+/** A session winner's record in that game, as of that session (for the celebration). */
+export interface WinnerFacts {
+  wins: number;            // in this game, counting this session
+  played: number;
+  streak: number;          // consecutive wins in this game ending with this session
+  gameRecord: boolean;     // highest total anyone has scored in this game
+  personalBest: boolean;   // their highest total in this game (not their first game)
+  tookLead: boolean;       // now leads this game's standings alone and didn't before
+}
+
 export const standingsService = {
+  /**
+   * Facts about each winner of a completed session, keyed by participant id,
+   * counting only sessions of that game completed up to and including it — so
+   * celebrating an old session again tells its story as it was then. Empty for
+   * solo or undecided sessions.
+   */
+  async winnerFacts(userId: string, gameId: string, sessionId: string): Promise<Map<string, WinnerFacts>> {
+    const facts = new Map<string, WinnerFacts>();
+    const sessions = bySession(await fetchResults(userId, gameId));
+    const at = sessions.findIndex((participants) => participants[0].session_id === sessionId);
+    if (at < 0) return facts;
+    const before = sessions.slice(0, at);
+    const current = sessions[at];
+    const leaders = (history: ParticipantResult[][]) => new Set(
+      rank(history.flat()).standings.filter((s) => s.rank === 1 && s.wins > 0).map((s) => s.key));
+    const leadersBefore = leaders(before);
+    const leadersAfter = leaders([...before, current]);
+    const recordBefore = Math.max(-Infinity, ...before.flat().map((p) => p.total));
+
+    for (const winner of winnersOf(current)) {
+      const key = personKey(winner);
+      const mine = [...before, current]
+        .map((participants) => {
+          const me = participants.find((p) => personKey(p) === key);
+          return me && { won: winnersOf(participants).includes(me), total: me.total };
+        })
+        .filter((r) => r !== undefined);
+      let streak = 0;
+      while (streak < mine.length && mine[mine.length - 1 - streak].won) streak++;
+      const earlier = mine.slice(0, -1);
+      facts.set(winner.participant_id, {
+        wins: mine.filter((r) => r.won).length,
+        played: mine.length,
+        streak,
+        gameRecord: before.length > 0 && winner.total > recordBefore,
+        personalBest: earlier.length > 0 && winner.total > Math.max(...earlier.map((r) => r.total)),
+        tookLead: before.length > 0 && leadersAfter.size === 1 && leadersAfter.has(key) && !leadersBefore.has(key),
+      });
+    }
+    return facts;
+  },
+
   /** Rankings across the user's completed sessions, optionally for one game. */
   async forUser(userId: string, gameId?: string) {
     return rank(await fetchResults(userId, gameId));

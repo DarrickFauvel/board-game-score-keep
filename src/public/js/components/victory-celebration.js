@@ -95,15 +95,48 @@ function playFanfare() {
   return Math.round((end + 0.1) * 1000);
 }
 
-function announcementText({ gameName, score, winners }) {
+const ordinal = (n) => {
+  const suffix = n % 100 >= 11 && n % 100 <= 13 ? 'th' : ({ 1: 'st', 2: 'nd', 3: 'rd' }[n % 10] ?? 'th');
+  return `${n}${suffix}`;
+};
+const MILESTONES = [5, 10, 25, 50, 100];
+
+/**
+ * What's special about a winner's win in this game, most notable first.
+ * facts: { wins, played, streak, gameRecord, personalBest, tookLead } or null.
+ */
+function winnerFactLines(name, facts, game) {
+  if (!facts) return [];
+  const lines = [];
+  if (facts.gameRecord) lines.push(`${name} set a new ${game} record!`);
+  if (facts.played === 1) lines.push(`A win on ${name}'s very first game of ${game}!`);
+  if (facts.streak >= 3) lines.push(`That's ${facts.streak} ${game} wins in a row for ${name}!`);
+  if (facts.tookLead) lines.push(`${name} takes the lead in the ${game} standings!`);
+  if (facts.wins === 1 && facts.played > 1) lines.push(`${name}'s first ever ${game} win!`);
+  if (MILESTONES.includes(facts.wins)) lines.push(`That's ${name}'s ${ordinal(facts.wins)} ${game} win!`);
+  if (facts.streak === 2) lines.push(`${name} has won ${game} twice in a row!`);
+  if (facts.personalBest) lines.push(`A personal best for ${name}!`);
+  if (!lines.length && facts.wins > 1) lines.push(`That's ${name}'s ${ordinal(facts.wins)} ${game} win!`);
+  return lines;
+}
+
+/** Up to two facts for a lone winner, one each in a tie so it stays short. */
+function factLines({ gameName, winners }) {
+  const perWinner = winners.length === 1 ? 2 : 1;
+  return winners.flatMap((w) => winnerFactLines(w.name, w.facts, gameName).slice(0, perWinner));
+}
+
+function announcementText(data) {
+  const { gameName, score, winners } = data;
   const pts = `${score} point${score === 1 ? '' : 's'}`;
+  const facts = factLines(data).join(' ');
   if (winners.length === 1) {
     const [w] = winners;
-    return `Congratulations, ${w.name}! ${w.name} wins ${gameName} with ${pts}!`;
+    return `Congratulations, ${w.name}! ${w.name} wins ${gameName} with ${pts}! ${facts}`.trim();
   }
   const names = winners.map((w) => w.name);
   const list = `${names.slice(0, -1).join(', ')} and ${names.at(-1)}`;
-  return `It's a tie! ${list} share the win in ${gameName} with ${pts}!`;
+  return `It's a tie! ${list} share the win in ${gameName} with ${pts}! ${facts}`.trim();
 }
 
 function speak(text) {
@@ -230,13 +263,18 @@ function addStyles() {
       animation: victory-rise 600ms 200ms ease-out both;
     }
     .victory__detail { font-size: var(--text-base); opacity: 0.9; animation: victory-rise 600ms 350ms ease-out both; }
+    .victory__facts {
+      list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-1);
+      font-size: var(--text-lg); font-weight: 600; color: var(--color-gold); text-wrap: balance;
+      animation: victory-rise 600ms 425ms ease-out both;
+    }
     .victory__actions { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--space-2); margin-top: var(--space-2); animation: victory-rise 600ms 500ms ease-out both; }
     .victory__actions .btn--secondary { color: var(--color-chrome-text); border-color: color-mix(in oklab, var(--color-chrome-text) 50%, transparent); }
     .victory__actions .btn--secondary:hover { background: var(--color-chrome-hover); }
     @keyframes victory-pop { from { transform: scale(0.2) rotate(-20deg); opacity: 0; } to { transform: none; opacity: 1; } }
     @keyframes victory-rise { from { transform: translateY(1rem); opacity: 0; } to { transform: none; opacity: 1; } }
     @media (prefers-reduced-motion: reduce) {
-      .victory__trophy, .victory__title, .victory__detail, .victory__actions { animation: none; }
+      .victory__trophy, .victory__title, .victory__detail, .victory__facts, .victory__actions { animation: none; }
     }
   `;
   document.head.appendChild(style);
@@ -254,7 +292,8 @@ export function celebrateVictory(data) {
   const dialog = document.createElement('dialog');
   dialog.className = 'victory';
   dialog.setAttribute('aria-labelledby', 'victory-title');
-  dialog.setAttribute('aria-describedby', 'victory-detail');
+  const facts = factLines(data);
+  dialog.setAttribute('aria-describedby', facts.length ? 'victory-detail victory-facts' : 'victory-detail');
   dialog.innerHTML = `
     <canvas class="victory__confetti" aria-hidden="true"></canvas>
     <div class="victory__card">
@@ -262,6 +301,7 @@ export function celebrateVictory(data) {
       <p class="victory__eyebrow">${escapeHtml(data.gameName)}</p>
       <h2 class="victory__title" id="victory-title">${escapeHtml(title)}</h2>
       <p class="victory__detail" id="victory-detail">${data.score} point${data.score === 1 ? '' : 's'}</p>
+      ${facts.length ? `<ul class="victory__facts" id="victory-facts">${facts.map((f) => `<li>${escapeHtml(f)}</li>`).join('')}</ul>` : ''}
       <div class="victory__actions">
         <button type="button" class="btn btn--gold" data-victory-sound>🔊 Play announcement</button>
         <button type="button" class="btn btn--secondary" data-victory-close>Continue</button>

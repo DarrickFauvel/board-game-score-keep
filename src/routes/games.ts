@@ -185,7 +185,7 @@ router.post('/:gameId/sessions/:id/complete', async (req, res, next) => {
     const { sseRegistry } = await import('../services/sseRegistry.js');
     sseRegistry.broadcastSessionComplete(req.params.id);
     if (req.accepts(['html', 'json']) === 'json') {
-      return res.json({ celebration: await sessionService.getCelebration(req.params.id) });
+      return res.json({ celebration: await sessionService.getCelebration(req.params.id, req.user.sub) });
     }
     res.redirect(`/games/${req.params.gameId}/sessions/${req.params.id}`);
   } catch (err) { next(err); }
@@ -195,7 +195,7 @@ router.get('/:gameId/sessions/:id/celebration', async (req, res, next) => {
   try {
     if (!await findOwnedSession(req.params.gameId, req.params.id, req.user.sub)) return next(notFound());
     const { sessionService } = await import('../services/sessionService.js');
-    res.json({ celebration: await sessionService.getCelebration(req.params.id) });
+    res.json({ celebration: await sessionService.getCelebration(req.params.id, req.user.sub) });
   } catch (err) { next(err); }
 });
 
