@@ -31,7 +31,8 @@ export const sessionService = {
 
   async create(gameId: string, userId: string, body: Record<string, unknown>, plannedRounds: number | null = null) {
     const result = await db.execute({
-      sql: 'INSERT INTO sessions (game_id, created_by, planned_rounds) VALUES (?, ?, ?) RETURNING *',
+      // rounds_closed = 0: rounds advance only when someone taps Next Round
+      sql: 'INSERT INTO sessions (game_id, created_by, planned_rounds, rounds_closed) VALUES (?, ?, ?, 0) RETURNING *',
       args: [gameId, userId, plannedRounds],
     });
     const session = result.rows[0];
@@ -69,6 +70,41 @@ export const sessionService = {
             WHERE id = ?`,
       args: [id],
     });
+  },
+
+  /**
+   * Who won, for the victory celebration: everyone tied on the highest
+   * positive total (the scoreboard's trophy rule). No winners when nobody
+   * scored above 0.
+   */
+  async getCelebration(sessionId: string) {
+    const result = await db.execute({
+      sql: `SELECT g.name AS game_name, sp.display_name, sp.color, p.preferred_color,
+                   COALESCE(SUM(se.value), 0) AS total
+            FROM session_participants sp
+            JOIN sessions s ON s.id = sp.session_id
+            JOIN games g ON g.id = s.game_id
+            LEFT JOIN players p ON p.id = sp.player_id
+            LEFT JOIN score_entries se ON se.participant_id = sp.id
+            WHERE sp.session_id = ?
+            GROUP BY sp.id
+            ORDER BY sp.sort_order`,
+      args: [sessionId],
+    });
+    const rows = (result.rows as unknown as {
+      game_name: string; display_name: string; color: string | null; preferred_color: string | null; total: number;
+    }[]).map((r) => ({ ...r, total: Number(r.total) }));
+    const top = Math.max(0, ...rows.map((r) => r.total));
+    return {
+      gameName: rows[0]?.game_name ?? '',
+      score: top,
+      winners: top > 0
+        ? rows.filter((r) => r.total === top).map((r) => ({
+            name: r.display_name,
+            color: r.color ?? r.preferred_color ?? null,
+          }))
+        : [],
+    };
   },
 
   async saveNote(id: string, note: string | undefined) {

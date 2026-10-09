@@ -7,11 +7,15 @@ for (const entry of it.scores) {
   totals[entry.participant_id] = (totals[entry.participant_id] || 0) + (entry.value || 0);
 }
 const sortedRounds = Array.from(rounds).sort((a,b) => a-b);
-// Current round: the latest one while anyone still lacks a score in it, else the
-// one after. Must match scoreService.currentRound (Next Round closes this round).
+// Current round: the one after the last round finished with Next Round. Older
+// sessions (rounds_closed NULL) use the earlier rule: the latest round while
+// anyone still lacks a score in it, else the one after.
+// Must match scoreService.currentRound.
 const latestRound = sortedRounds[sortedRounds.length - 1] ?? 0;
 const latestScored = new Set(it.scores.filter(s => s.round === latestRound).map(s => s.participant_id)).size;
-const nextRound = latestRound > 0 && latestScored < it.participants.length ? latestRound : latestRound + 1;
+const nextRound = it.session.rounds_closed != null
+  ? Number(it.session.rounds_closed) + 1
+  : (latestRound > 0 && latestScored < it.participants.length ? latestRound : latestRound + 1);
 const finishedRounds = sortedRounds.filter(r => r !== nextRound);
 const maxTotal = Math.max(...Object.values(totals), 0);
 const isActive = it.session.status === 'active';
@@ -56,7 +60,8 @@ const roundLabel = (r) => planned && r <= planned ? 'Round ' + r + ' of ' + plan
   <form action="/games/<%= it.game.id %>/sessions/<%= it.session.id %>/complete" method="POST"
         data-confirm="Mark this session as complete? Scores will be locked."
         data-confirm-title="Complete Session"
-        data-confirm-label="Complete">
+        data-confirm-label="Complete"
+        data-celebrate>
     <button type="submit" class="btn btn--gold">Complete Session</button>
   </form>
 </div>

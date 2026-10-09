@@ -63,11 +63,17 @@ export const scoreService = {
   },
 
   /**
-   * The tally round being played: the latest round while some participant is
-   * still missing a score in it, otherwise the one after. Mirrored in
+   * The tally round being played: the one after the last round finished with
+   * Next Round. Sessions from before sessions.rounds_closed existed (NULL)
+   * use the older rule: the latest round while some participant is still
+   * missing a score in it, otherwise the one after. Mirrored in
    * views/partials/scoreboard-tally.eta.
    */
   async currentRound(sessionId: string) {
+    const closed = await db.execute({ sql: 'SELECT rounds_closed FROM sessions WHERE id = ?', args: [sessionId] });
+    const roundsClosed = closed.rows[0]?.rounds_closed;
+    if (roundsClosed !== null && roundsClosed !== undefined) return Number(roundsClosed) + 1;
+
     const result = await db.execute({
       sql: `SELECT r.max_round,
               (SELECT COUNT(DISTINCT participant_id) FROM score_entries
@@ -82,14 +88,14 @@ export const scoreService = {
   },
 
   /**
-   * Finishes a tally round by recording a 0 for every participant without a
-   * score in it, which opens the next round. Ignored unless `round` is the
-   * current one, so a double submit (or two people tapping at once) can't
-   * skip a round.
+   * Finishes a tally round: records a 0 for every participant without a score
+   * in it and marks it closed, which opens the next round. Ignored unless
+   * `round` is the current one, so a double submit (or two people tapping at
+   * once) can't skip a round.
    */
   async closeRound(sessionId: string, round: number, userId: string) {
     if (round !== await this.currentRound(sessionId)) return;
-    await db.execute({
+    await db.batch([{
       sql: `INSERT INTO score_entries (session_id, participant_id, category_id, round, value, entered_by)
             SELECT sp.session_id, sp.id, NULL, ?, 0, ?
             FROM session_participants sp
@@ -99,7 +105,10 @@ export const scoreService = {
                 WHERE se.session_id = sp.session_id AND se.participant_id = sp.id AND se.round = ?
               )`,
       args: [round, userId, sessionId, round],
-    });
+    }, {
+      sql: 'UPDATE sessions SET rounds_closed = ? WHERE id = ?',
+      args: [round, sessionId],
+    }], 'write');
   },
 
   async removeEntry(entryId: string) {

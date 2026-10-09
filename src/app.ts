@@ -31,7 +31,12 @@ export function createApp() {
     },
   }));
 
-  app.use(compression());
+  // Never compress live event streams: gzip buffers output, so session
+  // updates would sit in the buffer instead of reaching other devices.
+  app.use(compression({
+    filter: (req, res) =>
+      !String(res.getHeader('Content-Type') ?? '').includes('text/event-stream') && compression.filter(req, res),
+  }));
   app.use(morgan(config.isDev ? 'dev' : 'combined'));
   app.use(express.urlencoded({ extended: true }));
   app.use(express.json());

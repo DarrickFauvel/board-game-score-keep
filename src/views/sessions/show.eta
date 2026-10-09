@@ -1,4 +1,10 @@
 <% layout('../layouts/base') %>
+<%
+// Same rule as the scoreboard trophy: someone finished on a total above 0
+const sessionTotals = {};
+for (const s of it.scores) sessionTotals[s.participant_id] = (sessionTotals[s.participant_id] || 0) + (s.value || 0);
+const hasWinner = Math.max(0, ...Object.values(sessionTotals)) > 0;
+%>
 
 <div class="page-header">
   <div>
@@ -13,9 +19,12 @@
     <form action="/games/<%= it.game.id %>/sessions/<%= it.session.id %>/complete" method="POST" style="margin:0"
           data-confirm="Mark this session as complete? Scores will be locked."
           data-confirm-title="Complete Session"
-          data-confirm-label="Complete">
+          data-confirm-label="Complete"
+          data-celebrate>
       <button type="submit" class="btn btn--gold">Complete Session</button>
     </form>
+    <% } else if (hasWinner) { %>
+    <button type="button" class="btn btn--gold" data-celebrate-url="/games/<%= it.game.id %>/sessions/<%= it.session.id %>/celebration">🎉 Celebrate again</button>
     <% } %>
     <% if (it.game.rules_url) { %>
     <a href="<%= it.game.rules_url %>" class="btn btn--secondary" target="_blank" rel="noopener noreferrer external">Rules<span aria-hidden="true"> ↗</span><span class="visually-hidden"> (opens in a new tab)</span></a>
@@ -38,17 +47,25 @@ for (const p of it.participants) {
 const maxTotal = Math.max(...Object.values(totals), 0);
 %>
 
+<%/* Live sync while the session is active: the stream patches two signals,
+     scoresVersion (scores changed on some device) and sessionStatus, and
+     live-scores.js refreshes the scoreboard or celebrates in response. */%>
+<% const isLive = it.session.status === 'active'; %>
 <div id="scoreboard-section"
-     data-signals='{"sessionId":"<%= it.session.id %>","needsRefresh":false,"sessionStatus":"<%= it.session.status %>"}'
-     data-on:load="@get('/sse/sessions/<%= it.session.id %>/scores')"
-     data-watch-needs-refresh="if($needsRefresh){window.location.reload();$needsRefresh=false}"
-     data-watch-session-status="if($sessionStatus==='completed')window.location.reload()">
+     data-scoreboard-url="/games/<%= it.game.id %>/sessions/<%= it.session.id %>/scoreboard"
+     data-celebration-url="/games/<%= it.game.id %>/sessions/<%= it.session.id %>/celebration"
+     <% if (isLive) { %>
+     data-signals='{"scoresVersion":0,"sessionStatus":"active"}'
+     data-init="@get('/sse/sessions/<%= it.session.id %>/scores')"
+     <%/* Both signals are read up front: Datastar re-runs an effect only for
+          signals it read, and on the first run live-scores.js may not have
+          loaded yet, which would short-circuit the call and its arguments */%>
+     data-effect="$scoresVersion; $sessionStatus; window.liveScores?.update($scoresVersion, $sessionStatus)"
+     <% } %>>
 
-  <div id="score-rows"
-       role="region"
-       aria-live="polite"
-       aria-label="Live score updates"
-       aria-atomic="false">
+  <%/* Not aria-live: a refresh replaces the whole board; live-scores.js
+       announces a short "Scores updated" instead */%>
+  <div id="score-rows" role="region" aria-label="Scores">
 
     <% if (scoringMode === 'tally') { %>
     <%~ include('../partials/scoreboard-tally', it) %>

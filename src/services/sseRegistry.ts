@@ -2,13 +2,7 @@ import { ServerSentEventGenerator } from '@starfederation/datastar-sdk';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 
 const registry = new Map<string, Set<ServerSentEventGenerator>>();
-
-export interface ScoreEntry {
-  participant_id: string | number;
-  category_id?: string | number | null;
-  round?: number | null;
-  value: number;
-}
+const pendingScoreBroadcasts = new Map<string, NodeJS.Timeout>();
 
 export const sseRegistry = {
   connect(sessionId: string, _userId: string, req: IncomingMessage, res: ServerResponse): void {
@@ -36,18 +30,19 @@ export const sseRegistry = {
     }
   },
 
-  broadcastScoreUpdate(sessionId: string, entry: ScoreEntry): void {
-    this.broadcast(sessionId, (sse) => {
-      sse.patchSignals(JSON.stringify({
-        [`score_${entry.participant_id}_${entry.category_id ?? 'total'}_${entry.round ?? 0}`]: entry.value,
-      }));
-    });
-  },
-
-  broadcastFullRefresh(sessionId: string): void {
-    this.broadcast(sessionId, (sse) => {
-      sse.patchSignals(JSON.stringify({ needsRefresh: true }));
-    });
+  /**
+   * Tells open session pages the scoreboard changed (a score saved or removed,
+   * a round closed). Pages fetch the re-rendered scoreboard themselves, so one
+   * version bump covers every kind of change. Rapid taps are coalesced.
+   */
+  broadcastScoresChanged(sessionId: string): void {
+    clearTimeout(pendingScoreBroadcasts.get(sessionId));
+    pendingScoreBroadcasts.set(sessionId, setTimeout(() => {
+      pendingScoreBroadcasts.delete(sessionId);
+      this.broadcast(sessionId, (sse) => {
+        sse.patchSignals(JSON.stringify({ scoresVersion: Date.now() }));
+      });
+    }, 150));
   },
 
   broadcastSessionComplete(sessionId: string): void {
