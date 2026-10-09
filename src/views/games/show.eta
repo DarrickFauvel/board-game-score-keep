@@ -27,6 +27,13 @@
         <% } %>
         <dt style="font-weight:600;color:var(--color-text-muted)">Teams</dt>
         <dd><%= it.game.teams_mode === 'none' ? 'Individual players' : it.game.teams_mode === 'adhoc' ? 'Ad-hoc teams' : 'Profile-linked teams' %></dd>
+        <% if (it.game.rules_url || it.game.bgg_url) { %>
+        <dt style="font-weight:600;color:var(--color-text-muted)">Rules &amp; info</dt>
+        <dd class="link-list">
+          <% if (it.game.rules_url) { %><a href="<%= it.game.rules_url %>" target="_blank" rel="noopener noreferrer external">Read the rules<span aria-hidden="true"> ↗</span><span class="visually-hidden"> (opens in a new tab)</span></a><% } %>
+          <% if (it.game.bgg_url) { %><a href="<%= it.game.bgg_url %>" target="_blank" rel="noopener noreferrer external">View on BoardGameGeek<span aria-hidden="true"> ↗</span><span class="visually-hidden"> (opens in a new tab)</span></a><% } %>
+        </dd>
+        <% } %>
         <% if (it.categories.length > 0) { %>
         <dt style="font-weight:600;color:var(--color-text-muted)">Categories</dt>
         <dd><%= it.categories.map(c => c.name).join(', ') %></dd>

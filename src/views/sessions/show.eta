@@ -17,6 +17,9 @@
       <button type="submit" class="btn btn--gold">Complete Session</button>
     </form>
     <% } %>
+    <% if (it.game.rules_url) { %>
+    <a href="<%= it.game.rules_url %>" class="btn btn--secondary" target="_blank" rel="noopener noreferrer external">Rules<span aria-hidden="true"> ↗</span><span class="visually-hidden"> (opens in a new tab)</span></a>
+    <% } %>
     <a href="/games/<%= it.game.id %>" class="btn btn--secondary">Back</a>
   </div>
 </div>

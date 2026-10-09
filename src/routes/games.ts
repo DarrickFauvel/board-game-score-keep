@@ -2,6 +2,16 @@ import { Router } from 'express';
 import { body, validationResult } from 'express-validator';
 import { gameService } from '../services/gameService.js';
 import { upload } from '../middleware/upload.js';
+import { normalizeBggUrl, normalizeRulesUrl, BGG_URL_ERROR, RULES_URL_ERROR } from '../services/links.js';
+
+/** The game's two optional links, normalized, or the message for the first bad one. */
+function parseGameLinks(body: Record<string, unknown>) {
+  const bggUrl = normalizeBggUrl(body.bgg_url);
+  if (bggUrl === false) return { error: BGG_URL_ERROR } as const;
+  const rulesUrl = normalizeRulesUrl(body.rules_url);
+  if (rulesUrl === false) return { error: RULES_URL_ERROR } as const;
+  return { links: { bgg_url: bggUrl, rules_url: rulesUrl } } as const;
+}
 
 const router = Router();
 
@@ -27,7 +37,11 @@ router.post('/',
       if (!errors.isEmpty()) {
         return res.status(400).renderEta('games/new', { title: 'Add a Game', user: req.user, error: 'Please fill in all required fields.' });
       }
-      const game = await gameService.create(req.user.sub, req.body as Record<string, unknown>, req.file);
+      const parsed = parseGameLinks(req.body);
+      if ('error' in parsed) {
+        return res.status(400).renderEta('games/new', { title: 'Add a Game', user: req.user, error: parsed.error });
+      }
+      const game = await gameService.create(req.user.sub, { ...req.body, ...parsed.links } as Record<string, unknown>, req.file);
       res.redirect(`/games/${game.id}`);
     } catch (err) { next(err); }
   }
@@ -70,7 +84,15 @@ router.post('/:id',
         const categories = await scoreService.listCategories(req.params.id);
         return res.status(400).renderEta('games/edit', { title: `Edit ${game.name}`, game, categories, user: req.user, error: 'Please fill in all required fields.' });
       }
-      await gameService.update(req.params.id, req.body as Record<string, unknown>, req.file);
+      const parsed = parseGameLinks(req.body);
+      if ('error' in parsed) {
+        const { scoreService } = await import('../services/scoreService.js');
+        const categories = await scoreService.listCategories(req.params.id);
+        // Keep what was typed so it can be corrected
+        const typed = { ...game, bgg_url: req.body.bgg_url, rules_url: req.body.rules_url };
+        return res.status(400).renderEta('games/edit', { title: `Edit ${game.name}`, game: typed, categories, user: req.user, error: parsed.error });
+      }
+      await gameService.update(req.params.id, { ...req.body, ...parsed.links } as Record<string, unknown>, req.file);
       res.redirect(`/games/${req.params.id}`);
     } catch (err) { next(err); }
   }
