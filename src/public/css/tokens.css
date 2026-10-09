@@ -15,6 +15,9 @@
   --text-xl:   clamp(2rem, 1.6rem + 2vw, 3rem);
   --text-2xl:  clamp(2.5rem, 2rem + 2.5vw, 4rem);
 
+  /* ─── Display face: the wordmark, Keep title, banners and podium ── */
+  --font-display: 'Cinzel', 'Trajan Pro', Georgia, serif;
+
   /* ─── Touch targets ──────────────────────────── */
   --tap-min: 3rem; /* 48px — exceeds WCAG 2.1 AA */
 
