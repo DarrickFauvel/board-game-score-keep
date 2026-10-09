@@ -6,6 +6,7 @@ import './components/color-thief-picker.js';
 import './components/game-image.js';
 import './components/confirm-dialog.js';
 import './components/qr-share.js';
+import './components/photo-gallery.js';
 
 /* Mount a shared confirm-dialog for programmatic use */
 const dialog = document.createElement('confirm-dialog');

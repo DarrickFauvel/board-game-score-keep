@@ -168,27 +168,69 @@ router.post('/:gameId/sessions/:id/note',
   }
 );
 
+/** The session, if it belongs to this game and the game belongs to the user. */
+async function findOwnedSession(gameId: string, sessionId: string, userId: string) {
+  const game = await gameService.findById(gameId, userId);
+  if (!game) return null;
+  const { sessionService } = await import('../services/sessionService.js');
+  const session = await sessionService.findById(sessionId);
+  return session && session.game_id === gameId ? session : null;
+}
+
+const notFound = () => Object.assign(new Error('Not Found'), { status: 404 });
+
+// Accepts several photos per request (the uploader sends one at a time so each
+// shows up as soon as it lands); answers JSON to fetch, redirects a plain form.
 router.post('/:gameId/sessions/:id/photos',
-  upload.single('photo'),
+  upload.fields([{ name: 'photos', maxCount: 20 }, { name: 'photo', maxCount: 1 }]),
   async (req, res, next) => {
     try {
+      if (!await findOwnedSession(req.params.gameId, req.params.id, req.user.sub)) return next(notFound());
       const { sessionService } = await import('../services/sessionService.js');
+      const { resolveImageUrl } = await import('../services/imageService.js');
+      const files = req.files as Record<string, Express.Multer.File[]> | undefined;
       const body = req.body as Record<string, unknown>;
-      await sessionService.addPhoto(
-        req.params.id,
-        req.file,
-        body.photo_camera_data as string | undefined,
-      );
-      res.redirect(`/games/${req.params.gameId}/sessions/${req.params.id}`);
+      const added = [];
+      for (const file of [...(files?.photos ?? []), ...(files?.photo ?? [])]) {
+        const photo = await sessionService.addPhoto(req.params.id, file);
+        if (photo) added.push(photo);
+      }
+      const camera = await sessionService.addPhoto(req.params.id, undefined, body.photo_camera_data as string | undefined);
+      if (camera) added.push(camera);
+
+      if (req.accepts(['html', 'json']) === 'json') {
+        return res.json({
+          photos: added.map((p) => ({ id: p.id, url: resolveImageUrl(p.photo_url as string) })),
+        });
+      }
+      res.redirect(`/games/${req.params.gameId}/sessions/${req.params.id}#photos-heading`);
+    } catch (err) { next(err); }
+  }
+);
+
+router.post('/:gameId/sessions/:id/photos/:photoId',
+  body('caption').optional().isString().isLength({ max: 500 }),
+  async (req, res, next) => {
+    try {
+      const { gameId, id, photoId } = req.params as { gameId: string; id: string; photoId: string };
+      if (!await findOwnedSession(gameId, id, req.user.sub)) return next(notFound());
+      if (!validationResult(req).isEmpty()) return next(Object.assign(new Error('Caption is too long.'), { status: 400 }));
+      const { sessionService } = await import('../services/sessionService.js');
+      const raw = (req.body as Record<string, unknown>).participant_ids;
+      const participantIds = (Array.isArray(raw) ? raw : raw ? [raw] : []).map(String);
+      const updated = await sessionService.updatePhoto(id, photoId, req.body.caption, participantIds);
+      if (!updated) return next(notFound());
+      res.redirect(`/games/${gameId}/sessions/${id}#photo-${photoId}`);
     } catch (err) { next(err); }
   }
 );
 
 router.post('/:gameId/sessions/:id/photos/:photoId/delete', async (req, res, next) => {
   try {
+    if (!await findOwnedSession(req.params.gameId, req.params.id, req.user.sub)) return next(notFound());
     const { sessionService } = await import('../services/sessionService.js');
-    await sessionService.removePhoto(req.params.photoId);
-    res.redirect(`/games/${req.params.gameId}/sessions/${req.params.id}`);
+    await sessionService.removePhoto(req.params.id, req.params.photoId);
+    res.redirect(`/games/${req.params.gameId}/sessions/${req.params.id}#photos-heading`);
   } catch (err) { next(err); }
 });
 
