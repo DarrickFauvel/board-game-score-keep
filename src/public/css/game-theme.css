@@ -73,8 +73,15 @@
 
 .game-layout .card,
 .game-layout .scoreboard-wrap,
+.game-layout .standings,
+.game-layout .round-card,
 .game-layout .session-card {
   border-color: color-mix(in srgb, var(--game-primary-ui) 30%, transparent);
+}
+
+.game-layout .round-card--current,
+.game-layout .round-card.is-editing {
+  border-color: var(--game-primary-ui);
 }
 
 .game-layout .btn--secondary {

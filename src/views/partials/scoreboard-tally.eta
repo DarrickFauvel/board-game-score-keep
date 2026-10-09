@@ -7,73 +7,93 @@ for (const entry of it.scores) {
   totals[entry.participant_id] = (totals[entry.participant_id] || 0) + (entry.value || 0);
 }
 const sortedRounds = Array.from(rounds).sort((a,b) => a-b);
-const nextRound = (sortedRounds[sortedRounds.length - 1] ?? 0) + 1;
+// Current round: the latest one while anyone still lacks a score in it, else the
+// one after. Must match scoreService.currentRound (Next Round closes this round).
+const latestRound = sortedRounds[sortedRounds.length - 1] ?? 0;
+const latestScored = new Set(it.scores.filter(s => s.round === latestRound).map(s => s.participant_id)).size;
+const nextRound = latestRound > 0 && latestScored < it.participants.length ? latestRound : latestRound + 1;
+const finishedRounds = sortedRounds.filter(r => r !== nextRound);
 const maxTotal = Math.max(...Object.values(totals), 0);
+const isActive = it.session.status === 'active';
+// Vertical layout: while playing, the round being entered sits at the top so
+// nobody scrolls to score; a finished game reads in order like a score sheet.
+const displayRounds = isActive ? [nextRound, ...finishedRounds.slice().reverse()] : sortedRounds;
+const standings = it.participants.slice().sort((a, b) => (totals[b.id] || 0) - (totals[a.id] || 0));
 %>
 
-<div style="display:flex;justify-content:flex-end;margin-bottom:var(--space-2)">
-  <% if (it.session.status === 'active') { %>
-  <button type="button" class="btn btn--secondary btn--sm" onclick="addRound(<%= nextRound %>)">+ Add Round <%= nextRound %></button>
-  <% } %>
-</div>
-
-<div class="scoreboard-wrap">
-<table class="scoreboard" aria-label="Running tally scores">
-  <thead>
-    <tr>
-      <th scope="col">Player</th>
-      <% sortedRounds.forEach(function(r) { %><th scope="col">R<%= r %></th><% }) %>
-      <% if (it.session.status === 'active') { %><th scope="col">R<%= nextRound %></th><% } %>
-      <th scope="col">Total</th>
-    </tr>
-  </thead>
-  <tbody>
-    <% it.participants.forEach(function(p) {
+<section class="standings" aria-labelledby="standings-heading">
+  <h2 id="standings-heading" class="standings__title">
+    Standings
+    <span class="standings__meta"><% const played = isActive ? finishedRounds.length : sortedRounds.length; %><%= played %> round<%= played !== 1 ? 's' : '' %> played</span>
+  </h2>
+  <ol class="standings__list" role="list">
+    <% standings.forEach(function(p, i) {
        const total = totals[p.id] || 0;
        const isWinner = it.session.status === 'completed' && total === maxTotal && maxTotal > 0;
     %>
-    <tr id="participant-<%= p.id %>" class="<%= isWinner ? 'score-winner' : '' %>">
-      <td>
-        <div style="display:flex;align-items:center;gap:var(--space-2)">
-          <div class="avatar" style="width:2rem;height:2rem;font-size:var(--text-xs);background:<%= p.color || p.preferred_color || 'var(--color-surface)' %>"
-               aria-hidden="true"><%= p.display_name.charAt(0) %></div>
-          <span><%= p.display_name %><%= isWinner ? ' 🏆' : '' %></span>
-        </div>
-      </td>
-      <% sortedRounds.forEach(function(r) {
+    <li id="participant-<%= p.id %>" class="standings__row <%= isWinner ? 'score-winner' : '' %>">
+      <span class="standings__rank"><%= i + 1 %></span>
+      <div class="avatar avatar--sm" style="background:<%= p.color || p.preferred_color || 'var(--color-surface)' %>"
+           aria-hidden="true"><%= p.display_name.charAt(0) %></div>
+      <span class="standings__name"><%= p.display_name %><%= isWinner ? ' 🏆' : '' %></span>
+      <strong class="standings__total"><%= total %></strong>
+    </li>
+    <% }) %>
+  </ol>
+</section>
+
+<div class="round-list">
+  <% displayRounds.forEach(function(r) {
+     const isCurrent = isActive && r === nextRound;
+     // Finished rounds show plain numbers; Edit reveals the inputs for corrections
+     const isCorrectable = isActive && !isCurrent;
+  %>
+  <section class="round-card<%= isCurrent ? ' round-card--current' : '' %>" aria-labelledby="round-<%= r %>-heading">
+    <div class="round-card__header">
+      <h3 id="round-<%= r %>-heading" class="round-card__title">
+        Round <%= r %>
+        <% if (isCurrent) { %><span class="badge badge--active">Current</span><% } %>
+      </h3>
+      <% if (isCorrectable) { %>
+      <button type="button" class="btn btn--ghost btn--sm" aria-pressed="false"
+              aria-label="Edit round <%= r %> scores" onclick="toggleRoundEdit(this)">Edit</button>
+      <% } %>
+    </div>
+    <ul class="round-card__rows" role="list">
+      <% it.participants.forEach(function(p) {
          const entry = it.scores.find(s => s.participant_id === p.id && s.round === r);
       %>
-      <td class="score-input-cell">
-        <% if (it.session.status === 'active') { %>
+      <li class="round-row">
+        <span class="round-row__dot" style="background:<%= p.color || p.preferred_color || 'var(--color-border)' %>" aria-hidden="true"></span>
+        <span class="round-row__name"><%= p.display_name %></span>
+        <% if (!isCurrent) { %>
+        <span class="round-row__value"><%= entry ? entry.value : '—' %></span>
+        <% } %>
+        <% if (isActive) { %>
         <score-input session-id="<%= it.session.id %>" participant-id="<%= p.id %>"
                      round="<%= r %>" value="<%= entry ? entry.value : 0 %>"
                      aria-label="Round <%= r %> score for <%= p.display_name %>"></score-input>
-        <% } else { %><%= entry ? entry.value : '—' %><% } %>
-      </td>
+        <% } %>
+      </li>
       <% }) %>
-      <% if (it.session.status === 'active') { %>
-      <td class="score-input-cell">
-        <score-input session-id="<%= it.session.id %>" participant-id="<%= p.id %>"
-                     round="<%= nextRound %>" value="0"
-                     aria-label="Round <%= nextRound %> score for <%= p.display_name %>"></score-input>
-      </td>
-      <% } %>
-      <td><strong><%= total %></strong></td>
-    </tr>
-    <% }) %>
-  </tbody>
-  <tfoot>
-    <tr>
-      <td colspan="<%= sortedRounds.length + (it.session.status === 'active' ? 2 : 1) + 1 %>">
-        <span style="font-size:var(--text-xs);color:var(--color-text-muted)"><%= sortedRounds.length %> round<%= sortedRounds.length !== 1 ? 's' : '' %> played</span>
-      </td>
-    </tr>
-  </tfoot>
-</table>
+    </ul>
+    <% if (isCurrent) { %>
+    <form class="round-card__next" method="POST"
+          action="/games/<%= it.game.id %>/sessions/<%= it.session.id %>/rounds">
+      <input type="hidden" name="round" value="<%= r %>">
+      <button type="submit" class="btn btn--secondary">Next Round →</button>
+    </form>
+    <% } %>
+  </section>
+  <% }) %>
 </div>
 
 <script>
-function addRound(roundNum) {
-  window.location.reload();
+// Scores save as they change; leaving edit mode reloads so standings recompute
+function toggleRoundEdit(btn) {
+  if (btn.getAttribute('aria-pressed') === 'true') return window.location.reload();
+  btn.closest('.round-card').classList.add('is-editing');
+  btn.setAttribute('aria-pressed', 'true');
+  btn.textContent = 'Done';
 }
 </script>

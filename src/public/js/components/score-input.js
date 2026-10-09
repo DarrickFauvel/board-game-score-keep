@@ -38,8 +38,8 @@ class ScoreInput extends HTMLElement {
           border: none;
           cursor: pointer;
           padding: 0;
-          min-width: 3rem;
-          min-height: 3rem;
+          min-width: 2.5rem; /* 50px at the app's 20px root — still a full tap target */
+          min-height: 2.5rem;
           font-size: 1.25rem;
           font-weight: 700;
           color: var(--color-text, #2c2416);
@@ -61,8 +61,8 @@ class ScoreInput extends HTMLElement {
         }
         button:disabled { opacity: 0.4; cursor: default; }
         input[type="number"] {
-          width: 3.5rem;
-          min-height: 3rem;
+          width: 3rem;
+          min-height: 2.5rem;
           border: none;
           text-align: center;
           font-size: 1.125rem;
@@ -106,12 +106,10 @@ class ScoreInput extends HTMLElement {
       this.#save(sessionId, participantId, categoryId, round, newVal);
     });
 
-    let debounce;
+    // 'change' already fires only on commit (blur/Enter), so save straight away:
+    // a delayed save would be dropped if the commit came from tapping Next Round.
     input.addEventListener('change', () => {
-      clearTimeout(debounce);
-      debounce = setTimeout(() => {
-        this.#save(sessionId, participantId, categoryId, round, parseFloat(input.value));
-      }, 400);
+      this.#save(sessionId, participantId, categoryId, round, parseFloat(input.value));
     });
   }
 
@@ -129,6 +127,7 @@ class ScoreInput extends HTMLElement {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded', Accept: 'application/json' },
         body: body.toString(),
+        keepalive: true, // finish even if a form submit navigates away mid-request
       });
       const announcer = document.getElementById('status-announcer');
       if (announcer) {

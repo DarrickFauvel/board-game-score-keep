@@ -62,6 +62,46 @@ export const scoreService = {
     return result.rows[0];
   },
 
+  /**
+   * The tally round being played: the latest round while some participant is
+   * still missing a score in it, otherwise the one after. Mirrored in
+   * views/partials/scoreboard-tally.eta.
+   */
+  async currentRound(sessionId: string) {
+    const result = await db.execute({
+      sql: `SELECT r.max_round,
+              (SELECT COUNT(DISTINCT participant_id) FROM score_entries
+                WHERE session_id = ? AND round = r.max_round) AS scored,
+              (SELECT COUNT(*) FROM session_participants WHERE session_id = ?) AS participants
+            FROM (SELECT COALESCE(MAX(round), 0) AS max_round FROM score_entries WHERE session_id = ?) r`,
+      args: [sessionId, sessionId, sessionId],
+    });
+    const { max_round, scored, participants } = result.rows[0];
+    const max = Number(max_round);
+    return max > 0 && Number(scored) < Number(participants) ? max : max + 1;
+  },
+
+  /**
+   * Finishes a tally round by recording a 0 for every participant without a
+   * score in it, which opens the next round. Ignored unless `round` is the
+   * current one, so a double submit (or two people tapping at once) can't
+   * skip a round.
+   */
+  async closeRound(sessionId: string, round: number, userId: string) {
+    if (round !== await this.currentRound(sessionId)) return;
+    await db.execute({
+      sql: `INSERT INTO score_entries (session_id, participant_id, category_id, round, value, entered_by)
+            SELECT sp.session_id, sp.id, NULL, ?, 0, ?
+            FROM session_participants sp
+            WHERE sp.session_id = ?
+              AND NOT EXISTS (
+                SELECT 1 FROM score_entries se
+                WHERE se.session_id = sp.session_id AND se.participant_id = sp.id AND se.round = ?
+              )`,
+      args: [round, userId, sessionId, round],
+    });
+  },
+
   async removeEntry(entryId: string) {
     await db.execute({ sql: 'DELETE FROM score_entries WHERE id = ?', args: [entryId] });
   },
