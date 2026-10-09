@@ -154,11 +154,48 @@ router.get('/:gameId/sessions/:id', async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
+// Just the scoreboard, re-rendered: open session pages fetch it when the
+// live stream says scores changed on another device.
+router.get('/:gameId/sessions/:id/scoreboard', async (req, res, next) => {
+  try {
+    const game = await gameService.findById(req.params.gameId, req.user.sub);
+    if (!game) return next(notFound());
+    const { sessionService } = await import('../services/sessionService.js');
+    const session = await sessionService.findById(req.params.id);
+    if (!session || session.game_id !== game.id) return next(notFound());
+    const { scoreService } = await import('../services/scoreService.js');
+    const [participants, categories, scores] = await Promise.all([
+      sessionService.listParticipants(req.params.id),
+      scoreService.listCategories(req.params.gameId),
+      scoreService.getSessionScores(req.params.id),
+    ]);
+    const partial = game.scoring_mode === 'tally' ? 'tally' : game.scoring_mode === 'categories' ? 'categories' : 'final';
+    res.set('Cache-Control', 'no-store');
+    res.renderEta(`partials/scoreboard-${partial}`, { game, session, participants, categories, scores });
+  } catch (err) { next(err); }
+});
+
+// fetch() asks for JSON so the page can celebrate in place (keeping the tap's
+// permission to play sound); a plain form post still redirects.
 router.post('/:gameId/sessions/:id/complete', async (req, res, next) => {
   try {
+    if (!await findOwnedSession(req.params.gameId, req.params.id, req.user.sub)) return next(notFound());
     const { sessionService } = await import('../services/sessionService.js');
     await sessionService.complete(req.params.id);
+    const { sseRegistry } = await import('../services/sseRegistry.js');
+    sseRegistry.broadcastSessionComplete(req.params.id);
+    if (req.accepts(['html', 'json']) === 'json') {
+      return res.json({ celebration: await sessionService.getCelebration(req.params.id) });
+    }
     res.redirect(`/games/${req.params.gameId}/sessions/${req.params.id}`);
+  } catch (err) { next(err); }
+});
+
+router.get('/:gameId/sessions/:id/celebration', async (req, res, next) => {
+  try {
+    if (!await findOwnedSession(req.params.gameId, req.params.id, req.user.sub)) return next(notFound());
+    const { sessionService } = await import('../services/sessionService.js');
+    res.json({ celebration: await sessionService.getCelebration(req.params.id) });
   } catch (err) { next(err); }
 });
 
@@ -174,7 +211,7 @@ router.post('/:gameId/sessions/:id/rounds', async (req, res, next) => {
       const { scoreService } = await import('../services/scoreService.js');
       const { sseRegistry } = await import('../services/sseRegistry.js');
       await scoreService.closeRound(req.params.id, round, req.user.sub);
-      sseRegistry.broadcastFullRefresh(req.params.id);
+      sseRegistry.broadcastScoresChanged(req.params.id);
     }
     res.redirect(`/games/${req.params.gameId}/sessions/${req.params.id}`);
   } catch (err) { next(err); }
