@@ -1,5 +1,11 @@
 node_modules/
+dist/
 .env
 src/public/uploads/
 *.log
 .DS_Store
+
+# Local SQLite database
+*.db
+*.db-shm
+*.db-wal
