@@ -78,30 +78,76 @@ export const sessionService = {
     });
   },
 
-  async addPhoto(sessionId: string, file?: Express.Multer.File, cameraData?: string): Promise<void> {
+  /** Uploads one photo; returns the new row, or null if there was nothing to upload. */
+  async addPhoto(sessionId: string, file?: Express.Multer.File, cameraData?: string) {
     let photoUrl: string | undefined;
     if (file) {
       photoUrl = await processUploadedImage(file.buffer, 'sessions');
     } else if (cameraData?.startsWith('data:image/')) {
       photoUrl = await processUploadedImage(cameraData, 'sessions');
     }
-    if (!photoUrl) return;
-    await db.execute({
-      sql: 'INSERT INTO session_photos (session_id, photo_url) VALUES (?, ?)',
+    if (!photoUrl) return null;
+    const result = await db.execute({
+      sql: 'INSERT INTO session_photos (session_id, photo_url) VALUES (?, ?) RETURNING *',
       args: [sessionId, photoUrl],
     });
+    return result.rows[0];
   },
 
+  /** Photos with their caption and the ids of the participants tagged in each. */
   async listPhotos(sessionId: string) {
-    const result = await db.execute({
-      sql: 'SELECT * FROM session_photos WHERE session_id = ? ORDER BY created_at',
-      args: [sessionId],
-    });
-    return result.rows;
+    const [photos, tags] = await Promise.all([
+      db.execute({
+        sql: 'SELECT * FROM session_photos WHERE session_id = ? ORDER BY created_at',
+        args: [sessionId],
+      }),
+      db.execute({
+        sql: `SELECT spp.photo_id, spp.participant_id
+              FROM session_photo_participants spp
+              JOIN session_photos ph ON ph.id = spp.photo_id
+              WHERE ph.session_id = ?`,
+        args: [sessionId],
+      }),
+    ]);
+    return photos.rows.map((photo) => ({
+      ...photo,
+      participant_ids: tags.rows
+        .filter((t) => t.photo_id === photo.id)
+        .map((t) => String(t.participant_id)),
+    }));
   },
 
-  async removePhoto(photoId: string) {
-    await db.execute({ sql: 'DELETE FROM session_photos WHERE id = ?', args: [photoId] });
+  /** Sets a photo's caption and who was playing; participants outside the session are ignored. */
+  async updatePhoto(sessionId: string, photoId: string, caption: string | undefined, participantIds: string[]) {
+    const owned = await db.execute({
+      sql: 'SELECT id FROM session_photos WHERE id = ? AND session_id = ?',
+      args: [photoId, sessionId],
+    });
+    if (owned.rows.length === 0) return false;
+    await db.batch([
+      {
+        sql: 'UPDATE session_photos SET caption = ? WHERE id = ?',
+        args: [caption?.trim() || null, photoId],
+      },
+      { sql: 'DELETE FROM session_photo_participants WHERE photo_id = ?', args: [photoId] },
+      ...participantIds.map((participantId) => ({
+        sql: `INSERT OR IGNORE INTO session_photo_participants (photo_id, participant_id)
+              SELECT ?, id FROM session_participants WHERE id = ? AND session_id = ?`,
+        args: [photoId, participantId, sessionId],
+      })),
+    ], 'write');
+    return true;
+  },
+
+  async removePhoto(sessionId: string, photoId: string) {
+    await db.batch([
+      {
+        sql: `DELETE FROM session_photo_participants
+              WHERE photo_id IN (SELECT id FROM session_photos WHERE id = ? AND session_id = ?)`,
+        args: [photoId, sessionId],
+      },
+      { sql: 'DELETE FROM session_photos WHERE id = ? AND session_id = ?', args: [photoId, sessionId] },
+    ], 'write');
   },
 
   async remove(id: string) {

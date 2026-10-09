@@ -80,35 +80,76 @@ const maxTotal = Math.max(...Object.values(totals), 0);
 <section aria-labelledby="photos-heading" class="section" style="margin-top:var(--space-4)">
   <h2 id="photos-heading">Photos</h2>
 
-  <% if (it.photos && it.photos.length > 0) { %>
-  <div class="photo-grid">
-    <% for (const photo of it.photos) { %>
-    <div style="position:relative">
-      <img src="<%= it.imgUrl(photo.photo_url) %>" alt="Session photo"
-           style="width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:var(--radius-md);display:block" loading="lazy">
-      <form action="/games/<%= it.game.id %>/sessions/<%= it.session.id %>/photos/<%= photo.id %>/delete" method="POST" style="margin:0;position:absolute;top:var(--space-1);right:var(--space-1)"
+  <%/* Uploads go one at a time in the background, so photos can be taken back to back.
+       The inner form is the no-JS fallback; photo-gallery replaces its controls. */%>
+  <photo-gallery action="/games/<%= it.game.id %>/sessions/<%= it.session.id %>/photos">
+    <form class="photo-gallery__fallback" action="/games/<%= it.game.id %>/sessions/<%= it.session.id %>/photos" method="POST" enctype="multipart/form-data">
+      <label class="form-label" for="photos-input">Add photos</label>
+      <input id="photos-input" type="file" name="photos" accept="image/*" multiple>
+      <button type="submit" class="btn btn--primary" style="margin-top:var(--space-2)">Upload</button>
+    </form>
+
+    <ul class="photo-grid" role="list" data-photo-grid>
+      <% for (const photo of it.photos) {
+         const tagged = it.participants.filter(p => photo.participant_ids.includes(p.id));
+      %>
+      <li class="photo-tile" id="photo-<%= photo.id %>"
+          data-photo-id="<%= photo.id %>"
+          data-caption="<%= photo.caption || '' %>"
+          data-participants="<%= photo.participant_ids.join(',') %>">
+        <button type="button" class="photo-tile__open" data-photo-edit
+                aria-label="Edit photo<%= photo.caption ? ': ' + photo.caption : '' %>">
+          <img src="<%= it.imgUrl(photo.photo_url) %>" alt="<%= photo.caption || 'Session photo' %>" loading="lazy">
+        </button>
+        <% if (photo.caption || tagged.length) { %>
+        <div class="photo-tile__details">
+          <% if (photo.caption) { %><p class="photo-tile__caption"><%= photo.caption %></p><% } %>
+          <% if (tagged.length) { %>
+          <p class="photo-tile__people"><span class="visually-hidden">Playing: </span><%= tagged.map(p => p.display_name).join(', ') %></p>
+          <% } %>
+        </div>
+        <% } %>
+      </li>
+      <% } %>
+    </ul>
+
+    <% if (it.photos.length === 0) { %>
+    <p class="form-hint" data-photo-empty>No photos yet. Snap a few as you play.</p>
+    <% } %>
+
+    <dialog class="photo-dialog" aria-labelledby="photo-dialog-title">
+      <form method="POST" class="photo-dialog__form" data-photo-form>
+        <h3 id="photo-dialog-title" class="photo-dialog__title">Edit photo</h3>
+        <img class="photo-dialog__img" alt="">
+        <div class="form-group">
+          <label class="form-label" for="photo-caption">Caption</label>
+          <textarea class="form-control" id="photo-caption" name="caption" rows="2" maxlength="500"
+                    placeholder="What was happening?"></textarea>
+        </div>
+        <fieldset class="form-group photo-dialog__people">
+          <legend class="form-label">Who was playing?</legend>
+          <div class="chip-options">
+            <% it.participants.forEach(function(p) { %>
+            <label class="chip-option">
+              <input type="checkbox" name="participant_ids" value="<%= p.id %>">
+              <span><%= p.display_name %></span>
+            </label>
+            <% }) %>
+          </div>
+        </fieldset>
+        <div class="form-actions">
+          <button type="button" class="btn btn--secondary" data-photo-cancel>Cancel</button>
+          <button type="submit" class="btn btn--primary">Save</button>
+        </div>
+      </form>
+      <form method="POST" class="photo-dialog__delete" data-photo-delete
             data-confirm="Remove this photo?"
             data-confirm-title="Delete Photo"
             data-confirm-label="Delete">
-        <button type="submit" class="btn btn--danger btn--sm" aria-label="Delete photo" style="line-height:1">✕</button>
+        <button type="submit" class="btn btn--ghost">Delete photo</button>
       </form>
-    </div>
-    <% } %>
-  </div>
-  <% } %>
-
-  <div class="card">
-    <div class="card__body">
-      <form action="/games/<%= it.game.id %>/sessions/<%= it.session.id %>/photos"
-            method="POST" enctype="multipart/form-data">
-        <div class="form-group" style="margin-bottom:0">
-          <label class="form-label">Add a photo</label>
-          <avatar-picker name="photo" folder="sessions" tabs="camera" aria-label="Take or upload a session photo"></avatar-picker>
-        </div>
-        <button type="submit" class="btn btn--primary" style="margin-top:var(--space-3)">Add Photo</button>
-      </form>
-    </div>
-  </div>
+    </dialog>
+  </photo-gallery>
 </section>
 
 <fieldset style="border:1px solid var(--color-danger);border-radius:var(--radius-md);padding:var(--space-3);margin-top:var(--space-4)">
