@@ -60,6 +60,17 @@
     </section>
     <% } %>
 
+    <% if (it.game.scoring_mode === 'tally') { %>
+    <div class="form-group" style="margin-top:var(--space-4)">
+      <label class="form-label" for="planned_rounds">Number of rounds</label>
+      <input class="form-control form-control--narrow" type="number" inputmode="numeric" id="planned_rounds" name="planned_rounds"
+             min="1" max="99" step="1" value="<%= it.game.suggested_rounds || '' %>" aria-describedby="planned_rounds-hint">
+      <span class="form-hint" id="planned_rounds-hint">
+        <% if (it.game.suggested_rounds) { %>The rules say <%= it.game.suggested_rounds %>. Change it for a shorter game, or clear it to play without a set end.<% } else { %>Optional. Leave blank to play without a set end.<% } %>
+      </span>
+    </div>
+    <% } %>
+
     <div class="form-actions" style="margin-top:var(--space-6)">
       <a href="/games/<%= it.game.id %>" class="btn btn--secondary">Cancel</a>
       <button type="submit" class="btn btn--primary">Start Session</button>

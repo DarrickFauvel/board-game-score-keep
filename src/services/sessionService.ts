@@ -29,10 +29,10 @@ export const sessionService = {
     return result.rows[0] ?? null;
   },
 
-  async create(gameId: string, userId: string, body: Record<string, unknown>) {
+  async create(gameId: string, userId: string, body: Record<string, unknown>, plannedRounds: number | null = null) {
     const result = await db.execute({
-      sql: 'INSERT INTO sessions (game_id, created_by) VALUES (?, ?) RETURNING *',
-      args: [gameId, userId],
+      sql: 'INSERT INTO sessions (game_id, created_by, planned_rounds) VALUES (?, ?, ?) RETURNING *',
+      args: [gameId, userId, plannedRounds],
     });
     const session = result.rows[0];
 

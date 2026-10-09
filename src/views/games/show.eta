@@ -21,6 +21,10 @@
       <dl style="display:grid;grid-template-columns:auto 1fr;gap:var(--space-1) var(--space-3)">
         <dt style="font-weight:600;color:var(--color-text-muted)">Scoring</dt>
         <dd><%= it.game.scoring_mode === 'tally' ? 'Running tally' : it.game.scoring_mode === 'final' ? 'Final score' : 'Custom categories' %></dd>
+        <% if (it.game.scoring_mode === 'tally' && it.game.suggested_rounds) { %>
+        <dt style="font-weight:600;color:var(--color-text-muted)">Rounds</dt>
+        <dd><%= it.game.suggested_rounds %> per game</dd>
+        <% } %>
         <dt style="font-weight:600;color:var(--color-text-muted)">Teams</dt>
         <dd><%= it.game.teams_mode === 'none' ? 'Individual players' : it.game.teams_mode === 'adhoc' ? 'Ad-hoc teams' : 'Profile-linked teams' %></dd>
         <% if (it.categories.length > 0) { %>
