@@ -563,8 +563,9 @@ textarea.form-control {
   padding-block: var(--space-1);
 }
 
-/* Past rounds: numbers by default, inputs only while correcting */
-.round-card:not(.round-card--current):not(.is-editing) .round-row score-input,
+/* Past tally rounds: numbers by default, inputs only while correcting.
+   Scoped to .round-list so the final-score card keeps its steppers. */
+.round-list > .round-card:not(.round-card--current):not(.is-editing) .round-row score-input,
 .round-card.is-editing .round-row__value { display: none; }
 
 .round-card.is-editing { border-color: var(--color-border-input); }

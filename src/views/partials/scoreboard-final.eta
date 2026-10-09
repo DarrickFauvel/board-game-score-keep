@@ -4,43 +4,35 @@ for (const p of it.participants) {
   totals[p.id] = it.scores.filter(s => s.participant_id === p.id).reduce((sum, s) => sum + (s.value || 0), 0);
 }
 const maxTotal = Math.max(...Object.values(totals), 0);
+const isActive = it.session.status === 'active';
 %>
 
-<div class="scoreboard-wrap">
-<table class="scoreboard" aria-label="Final scores">
-  <thead>
-    <tr>
-      <th scope="col">Player</th>
-      <th scope="col">Score</th>
-    </tr>
-  </thead>
-  <tbody>
+<%/* One score per player, so a list rather than a table: on phones the stepper
+     drops below a long name instead of forcing a sideways scroll. */%>
+<section class="round-card" aria-labelledby="final-scores-heading">
+  <div class="round-card__header">
+    <h3 id="final-scores-heading" class="round-card__title">Final scores</h3>
+  </div>
+  <ul class="round-card__rows" role="list">
     <% it.participants.forEach(function(p) {
        const total = totals[p.id] || 0;
        const isWinner = it.session.status === 'completed' && total === maxTotal && maxTotal > 0;
     %>
-    <tr id="participant-<%= p.id %>" class="<%= isWinner ? 'score-winner' : '' %>">
-      <td>
-        <div style="display:flex;align-items:center;gap:var(--space-2)">
-          <div class="avatar" style="width:2rem;height:2rem;font-size:var(--text-xs);background:<%= p.color || p.preferred_color || 'var(--color-surface)' %>"
-               aria-hidden="true"><%= p.display_name.charAt(0) %></div>
-          <span><%= p.display_name %><%= isWinner ? ' 🏆' : '' %></span>
-        </div>
-      </td>
-      <td>
-        <% if (it.session.status === 'active') { %>
-        <score-input
-          session-id="<%= it.session.id %>"
-          participant-id="<%= p.id %>"
-          value="<%= total %>"
-          aria-label="Score for <%= p.display_name %>">
-        </score-input>
-        <% } else { %>
-        <%= total %>
-        <% } %>
-      </td>
-    </tr>
+    <li id="participant-<%= p.id %>" class="round-row<%= isWinner ? ' score-winner' : '' %>">
+      <div class="avatar avatar--sm" style="background:<%= p.color || p.preferred_color || 'var(--color-surface)' %>"
+           aria-hidden="true"><%= p.display_name.charAt(0) %></div>
+      <span class="round-row__name"><%= p.display_name %><%= isWinner ? ' 🏆' : '' %></span>
+      <% if (isActive) { %>
+      <score-input
+        session-id="<%= it.session.id %>"
+        participant-id="<%= p.id %>"
+        value="<%= total %>"
+        aria-label="Score for <%= p.display_name %>">
+      </score-input>
+      <% } else { %>
+      <span class="round-row__value"><%= total %></span>
+      <% } %>
+    </li>
     <% }) %>
-  </tbody>
-</table>
-</div>
+  </ul>
+</section>
