@@ -26,10 +26,10 @@
 }
 
 .btn--primary {
-  background: var(--color-ink);
-  color: var(--color-parchment);
+  background: var(--color-primary);
+  color: var(--color-on-primary);
 }
-.btn--primary:hover { background: var(--color-stone); }
+.btn--primary:hover { background: var(--color-primary-hover); }
 
 .btn--secondary {
   background: transparent;
@@ -40,15 +40,15 @@
 
 .btn--gold {
   background: var(--color-gold);
-  color: var(--color-ink);
+  color: var(--color-on-gold);
 }
-.btn--gold:hover { background: var(--color-gold-dk); }
+.btn--gold:hover { background: var(--color-gold-hover); }
 
 .btn--danger {
   background: var(--color-danger);
-  color: #fff;
+  color: var(--color-on-danger);
 }
-.btn--danger:hover { background: #7f1d1d; }
+.btn--danger:hover { background: var(--color-danger-hover); }
 
 .btn--ghost {
   background: transparent;
@@ -86,7 +86,7 @@
   width: 100%;
   padding: var(--space-1) var(--space-2);
   font-size: var(--text-sm);
-  border: 2px solid var(--color-border);
+  border: 2px solid var(--color-border-input);
   border-radius: var(--radius-md);
   background: var(--color-bg-raised);
   color: var(--color-text);
@@ -167,7 +167,7 @@ textarea.form-control {
 .game-cover {
   position: relative;
   overflow: hidden;
-  background: var(--color-ink);
+  background: var(--color-chrome);
 }
 
 @property --cover-scale {
@@ -282,7 +282,7 @@ textarea.form-control {
   min-width: 2rem;
 }
 
-.score-winner { color: var(--color-gold-dk); font-weight: 800; }
+.score-winner { color: var(--color-gold-text); font-weight: 800; }
 .score-input-cell { min-width: 6rem; }
 
 /* ─── Badge ───────────────────────────────────────── */
@@ -297,9 +297,9 @@ textarea.form-control {
   letter-spacing: 0.04em;
 }
 
-.badge--active   { background: #dcfce7; color: var(--color-success); }
-.badge--complete { background: #e0e7ff; color: #3730a3; }
-.badge--gold     { background: #fef9c3; color: var(--color-gold-dk); }
+.badge--active   { background: var(--color-success-bg); color: var(--color-success); }
+.badge--complete { background: var(--color-complete-bg); color: var(--color-complete); }
+.badge--gold     { background: var(--color-gold-bg); color: var(--color-gold-text); }
 
 /* ─── Avatar ──────────────────────────────────────── */
 .avatar {
@@ -373,7 +373,7 @@ textarea.form-control {
 .stat-card__value {
   font-size: var(--text-xl);
   font-weight: 800;
-  color: var(--color-ink);
+  color: var(--color-text);
 }
 
 .stat-card__label {

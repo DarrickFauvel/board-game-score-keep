@@ -46,20 +46,47 @@
   --color-forest:       #2d5a27;
 
   /* ─── Semantic tokens (light mode defaults) ──── */
+  /* Components use these, never the raw palette above, so dark.css can
+     swap them without flipping surfaces that should stay dark (header). */
+  color-scheme: light;
   --color-bg:          var(--color-parchment);
   --color-bg-raised:   #fff;
   --color-surface:     var(--color-parchment-dk);
   --color-text:        var(--color-ink);
-  --color-text-muted:  var(--color-stone);
+  --color-text-muted:  #6b5e4e;
   --color-border:      var(--color-stone-lt);
+  --color-border-input: var(--color-stone);
   --color-border-focus: #0066cc;
   --color-focus-ring:  0 0 0 3px rgba(0 102 204 / 0.5);
+  --color-on-focus:    #fff;
+
+  /* Header / mobile menu / banners — dark in both themes */
+  --color-chrome:       var(--color-ink);
+  --color-chrome-text:  var(--color-parchment);
+  --color-chrome-hover: rgba(255 255 255 / 0.1);
+  --color-chrome-line:  rgba(255 255 255 / 0.12);
+
+  /* Buttons */
+  --color-primary:       var(--color-ink);
+  --color-primary-hover: #4a3d2c;
+  --color-on-primary:    var(--color-parchment);
+  --color-gold-hover:    #b8953a;
+  --color-on-gold:       var(--color-ink);
+  --color-gold-text:     #7d5f1e;
 
   /* ─── Status colors ──────────────────────────── */
   --color-success:  #1a6b2b;
   --color-warning:  #8a5e00;
   --color-danger:   #9b1c1c;
   --color-info:     #1a4e8a;
+  --color-complete: #3730a3;
+  --color-danger-hover: #7f1d1d;
+  --color-on-danger:    #fff;
+  --color-success-bg:   #e8f6ec;
+  --color-danger-bg:    #fdecec;
+  --color-info-bg:      #e8f0fb;
+  --color-complete-bg:  #e6e9fd;
+  --color-gold-bg:      #fbf3d5;
 
   /* ─── Game theme slots ───────────────────────── */
   --game-primary:   #5a3e2b;
