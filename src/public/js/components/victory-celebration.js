@@ -126,30 +126,45 @@ function factLines({ gameName, winners }) {
   return winners.flatMap((w) => winnerFactLines(w.name, w.facts, gameName).slice(0, perWinner));
 }
 
+/** The announcement in two parts: who won, then what's special about it. */
 function announcementText(data) {
   const { gameName, score, winners } = data;
   const pts = `${score} point${score === 1 ? '' : 's'}`;
   const facts = factLines(data).join(' ');
   if (winners.length === 1) {
     const [w] = winners;
-    return `Congratulations, ${w.name}! ${w.name} wins ${gameName} with ${pts}! ${facts}`.trim();
+    return { headline: `Congratulations, ${w.name}! ${w.name} wins ${gameName} with ${pts}!`, facts };
   }
   const names = winners.map((w) => w.name);
   const list = `${names.slice(0, -1).join(', ')} and ${names.at(-1)}`;
-  return `It's a tie! ${list} share the win in ${gameName} with ${pts}! ${facts}`.trim();
+  return { headline: `It's a tie! ${list} share the win in ${gameName} with ${pts}!`, facts };
 }
 
-function speak(text) {
+/**
+ * Two announcers: the headline in one random English voice (on-device ones
+ * when there are any, since network voices can lag), the facts in another.
+ * The first gets a random pitch; the second is pitched clearly the other way
+ * (lower after a high first voice, higher after a low one) so they sound
+ * like two people even on a device with a single voice.
+ */
+function speak({ headline, facts }) {
   if (!('speechSynthesis' in window)) return;
   speechSynthesis.cancel();
+  const voices = englishVoices();
+  const first = randomItem(voices);
+  const firstPitch = 0.85 + Math.random() * 0.45;   // 0.85–1.3
+  const gap = 0.3 + Math.random() * 0.1;            // always a clear step apart
+  const secondPitch = firstPitch >= 1.1 ? firstPitch - gap : firstPitch + gap;
+  utter(headline, first, firstPitch);
+  if (facts) utter(facts, randomItem(voices.filter((v) => v !== first)) ?? first, secondPitch);
+}
+
+/** Queues one line; utterances play one after another. */
+function utter(text, voice, pitch) {
   const u = new SpeechSynthesisUtterance(text);
   u.lang = document.documentElement.lang || 'en';
-  // A different announcer each time: a random English voice (on-device ones
-  // when there are any, since network voices can lag), with a little pitch and
-  // pace variation so it still changes on devices that only have one voice
   u.rate = 0.95 + Math.random() * 0.15;
-  u.pitch = 0.9 + Math.random() * 0.4;
-  const voice = randomItem(englishVoices());
+  u.pitch = pitch;
   if (voice) u.voice = voice;
   speechSynthesis.speak(u);
 }
