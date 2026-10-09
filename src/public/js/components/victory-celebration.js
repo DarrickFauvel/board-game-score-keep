@@ -19,14 +19,50 @@ export function primeAudio() {
     if (audioCtx.state === 'suspended') audioCtx.resume();
   } catch { audioCtx = null; }
   // Some browsers also gate speech on a gesture; an empty utterance unlocks it
-  try { speechSynthesis.speak(new SpeechSynthesisUtterance('')); } catch { /* no speech support */ }
+  // getVoices() also starts Chrome's async voice load, ready by the time the fanfare ends
+  try { speechSynthesis.speak(new SpeechSynthesisUtterance('')); speechSynthesis.getVoices(); } catch { /* no speech support */ }
 }
 
 const soundAllowed = () => audioCtx?.state === 'running';
 
-/** A short brass-style flourish: G4 C5 E5 G5, then a held C6 chord. */
+/**
+ * Short brass-style flourishes; each celebration plays a random one, never the
+ * same twice in a row. Notes are [pitch or chord, start s, length s, level?].
+ */
+const FANFARES = [
+  // Classic: G4 C5 E5 G5, then a held C major chord
+  [['G4', 0, 0.16], ['C5', 0.16, 0.16], ['E5', 0.32, 0.16], ['G5', 0.48, 0.30],
+   [['C6', 'E5', 'G5'], 0.80, 1.0, 0.7]],
+  // Bugle charge
+  [['G4', 0, 0.12], ['C5', 0.12, 0.12], ['E5', 0.24, 0.12], ['G5', 0.36, 0.24],
+   ['E5', 0.66, 0.12], [['G5', 'C5', 'E5'], 0.78, 0.9, 0.7]],
+  // Ta-ta-ta-taaa, up a fifth
+  [['C5', 0, 0.11], ['C5', 0.13, 0.11], ['C5', 0.26, 0.11], ['G5', 0.39, 0.45],
+   [['C5', 'E5', 'G5', 'C6'], 0.90, 1.0, 0.6]],
+  // Fast two-octave run to the top
+  [['C4', 0, 0.08], ['E4', 0.08, 0.08], ['G4', 0.16, 0.08], ['C5', 0.24, 0.08],
+   ['E5', 0.32, 0.08], ['G5', 0.40, 0.08], [['C6', 'E5', 'G5', 'C5'], 0.48, 1.1, 0.6]],
+  // IV–V–I cadence in F
+  [['F4', 0, 0.12], ['A4', 0.12, 0.12], ['C5', 0.24, 0.12], ['F5', 0.36, 0.24],
+   [['Bb4', 'D5', 'F5'], 0.66, 0.28, 0.6], [['C5', 'E5', 'G5'], 0.96, 0.28, 0.6],
+   [['F5', 'A5', 'C6'], 1.26, 1.0, 0.6]],
+];
+let lastFanfare = -1;
+
+/** Note name such as 'G4' or 'Bb4' to Hz. */
+function hz(name) {
+  const [, letter, accidental, octave] = name.match(/^([A-G])(b|#)?(\d)$/);
+  const semitone = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 }[letter]
+    + (accidental === '#' ? 1 : accidental === 'b' ? -1 : 0);
+  return 440 * 2 ** ((12 * (Number(octave) + 1) + semitone - 69) / 12);
+}
+
+/** Plays a random fanfare; returns ms until it has finished (0 if muted). */
 function playFanfare() {
   if (!soundAllowed()) return 0;
+  let pick = Math.floor(Math.random() * (FANFARES.length - 1));
+  if (pick >= lastFanfare && lastFanfare >= 0) pick++; // skip last time's
+  lastFanfare = pick;
   const t0 = audioCtx.currentTime + 0.05;
   const master = audioCtx.createGain();
   master.gain.value = 0.18;
@@ -51,12 +87,12 @@ function playFanfare() {
       osc.stop(t0 + start + length + 0.02);
     }
   };
-  note(392.0, 0.00, 0.16);  // G4
-  note(523.25, 0.16, 0.16); // C5
-  note(659.25, 0.32, 0.16); // E5
-  note(783.99, 0.48, 0.30); // G5
-  for (const f of [1046.5, 659.25, 783.99]) note(f, 0.80, 1.0, 0.7); // C6 major chord
-  return 1900; // ms until the flourish has finished
+  let end = 0;
+  for (const [pitch, start, length, level] of FANFARES[pick]) {
+    for (const name of [pitch].flat()) note(hz(name), start, length, level);
+    end = Math.max(end, start + length);
+  }
+  return Math.round((end + 0.1) * 1000);
 }
 
 function announcementText({ gameName, score, winners }) {
@@ -75,12 +111,23 @@ function speak(text) {
   speechSynthesis.cancel();
   const u = new SpeechSynthesisUtterance(text);
   u.lang = document.documentElement.lang || 'en';
-  u.rate = 1;
-  u.pitch = 1.15;
-  const voice = speechSynthesis.getVoices().find((v) => v.lang?.startsWith('en') && v.localService);
+  // A different announcer each time: a random English voice (on-device ones
+  // when there are any, since network voices can lag), with a little pitch and
+  // pace variation so it still changes on devices that only have one voice
+  u.rate = 0.95 + Math.random() * 0.15;
+  u.pitch = 0.9 + Math.random() * 0.4;
+  const voice = randomItem(englishVoices());
   if (voice) u.voice = voice;
   speechSynthesis.speak(u);
 }
+
+function englishVoices() {
+  const english = speechSynthesis.getVoices().filter((v) => v.lang?.startsWith('en'));
+  const local = english.filter((v) => v.localService);
+  return local.length ? local : english;
+}
+
+const randomItem = (items) => items[Math.floor(Math.random() * items.length)];
 
 function playAnnouncement(data) {
   const fanfareMs = playFanfare();
