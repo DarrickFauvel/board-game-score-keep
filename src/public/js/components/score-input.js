@@ -60,6 +60,8 @@ class ScoreInput extends HTMLElement {
           border-radius: 6px;
         }
         button:disabled { opacity: 0.4; cursor: default; }
+        /* ±10 for big-scoring games; smaller type so "+10" fits the same tap target */
+        button.big { font-size: 0.95rem; color: var(--color-text-muted, #6b5e4e); }
         input[type="number"] {
           width: 3rem;
           min-height: 2.5rem;
@@ -80,7 +82,8 @@ class ScoreInput extends HTMLElement {
         }
       </style>
       <div class="wrap" part="wrap">
-        <button type="button" part="button" aria-label="Decrease" ${disabled ? 'disabled' : ''}>−</button>
+        <button type="button" part="button" class="big" data-delta="-10" aria-label="Decrease by 10" ${disabled ? 'disabled' : ''}>−10</button>
+        <button type="button" part="button" data-delta="-1" aria-label="Decrease" ${disabled ? 'disabled' : ''}>−</button>
         <input type="number"
                value="${value}"
                min="${isFinite(min) ? min : ''}"
@@ -88,28 +91,26 @@ class ScoreInput extends HTMLElement {
                step="${step}"
                aria-label="${this.getAttribute('aria-label') ?? 'Score'}"
                ${disabled ? 'disabled' : ''}>
-        <button type="button" part="button" aria-label="Increase" ${disabled ? 'disabled' : ''}>+</button>
+        <button type="button" part="button" data-delta="1" aria-label="Increase" ${disabled ? 'disabled' : ''}>+</button>
+        <button type="button" part="button" class="big" data-delta="10" aria-label="Increase by 10" ${disabled ? 'disabled' : ''}>+10</button>
       </div>`;
 
-    const [decBtn, incBtn] = this.shadowRoot.querySelectorAll('button');
     const input = this.shadowRoot.querySelector('input');
 
-    decBtn.addEventListener('click', () => {
-      const newVal = Math.max(min, parseFloat(input.value) - step);
-      input.value = newVal;
-      this.#save(sessionId, participantId, categoryId, round, newVal);
-    });
-
-    incBtn.addEventListener('click', () => {
-      const newVal = Math.min(max, parseFloat(input.value) + step);
-      input.value = newVal;
-      this.#save(sessionId, participantId, categoryId, round, newVal);
+    // −/+ move by `step`; −10/+10 by ten steps. A cleared field counts as 0.
+    this.shadowRoot.querySelectorAll('button[data-delta]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const current = parseFloat(input.value) || 0;
+        const newVal = Math.min(max, Math.max(min, current + Number(btn.dataset.delta) * step));
+        input.value = newVal;
+        this.#save(sessionId, participantId, categoryId, round, newVal);
+      });
     });
 
     // 'change' already fires only on commit (blur/Enter), so save straight away:
     // a delayed save would be dropped if the commit came from tapping Next Round.
     input.addEventListener('change', () => {
-      this.#save(sessionId, participantId, categoryId, round, parseFloat(input.value));
+      this.#save(sessionId, participantId, categoryId, round, parseFloat(input.value) || 0);
     });
   }
 
