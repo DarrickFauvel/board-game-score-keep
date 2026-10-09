@@ -41,7 +41,7 @@ class AvatarPicker extends HTMLElement {
         avatar-picker .ap-tab:focus-visible { outline: 3px solid var(--color-border-focus, #0066cc); outline-offset: 2px; border-radius: 4px; }
         avatar-picker .ap-panel { display: none; }
         avatar-picker .ap-panel[data-active] { display: block; }
-        avatar-picker input[type="file"] { font-family: inherit; font-size: 0.875rem; min-height: 3rem; }
+        avatar-picker input[type="file"] { font-family: inherit; font-size: 0.875rem; min-height: 3rem; max-width: 100%; }
         avatar-picker input[type="text"] {
           width: 100%;
           padding: 0.5rem 0.75rem;

@@ -60,6 +60,12 @@ table {
   width: 100%;
 }
 
+/* Fieldsets default to min-width: min-content, which lets wide contents
+   push them past the viewport on phones */
+fieldset {
+  min-width: 0;
+}
+
 dialog {
   border: none;
   border-radius: var(--radius-lg);

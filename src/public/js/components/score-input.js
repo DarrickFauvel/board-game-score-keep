@@ -49,8 +49,11 @@ class ScoreInput extends HTMLElement {
           transition: background 120ms ease;
           -webkit-user-select: none;
           user-select: none;
+          touch-action: manipulation;
         }
-        button:hover:not(:disabled) { background: var(--color-surface, #e8e0d0); }
+        @media (hover: hover) {
+          button:hover:not(:disabled) { background: var(--color-surface, #e8e0d0); }
+        }
         button:focus-visible {
           outline: 3px solid #0066cc;
           outline-offset: -2px;
@@ -58,7 +61,7 @@ class ScoreInput extends HTMLElement {
         }
         button:disabled { opacity: 0.4; cursor: default; }
         input[type="number"] {
-          width: 5rem;
+          width: 3.5rem;
           min-height: 3rem;
           border: none;
           text-align: center;
@@ -72,6 +75,9 @@ class ScoreInput extends HTMLElement {
         input[type="number"]::-webkit-outer-spin-button,
         input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
         input:focus-visible { outline: 3px solid #0066cc; border-radius: 4px; }
+        @media (min-width: 48rem) {
+          input[type="number"] { width: 5rem; }
+        }
       </style>
       <div class="wrap" part="wrap">
         <button type="button" part="button" aria-label="Decrease" ${disabled ? 'disabled' : ''}>−</button>

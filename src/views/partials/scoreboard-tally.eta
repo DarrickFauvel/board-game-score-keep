@@ -17,7 +17,7 @@ const maxTotal = Math.max(...Object.values(totals), 0);
   <% } %>
 </div>
 
-<div style="overflow-x:auto">
+<div class="scoreboard-wrap">
 <table class="scoreboard" aria-label="Running tally scores">
   <thead>
     <tr>
