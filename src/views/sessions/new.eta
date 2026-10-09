@@ -16,7 +16,7 @@
 
       <div style="margin-top:var(--space-3)">
         <label class="form-label" for="player-search">Add a player</label>
-        <div style="display:flex;gap:var(--space-2)">
+        <div class="input-row">
           <input class="form-control" type="text" id="player-search"
                  placeholder="Search players…"
                  list="player-suggestions"
@@ -32,7 +32,7 @@
 
       <div style="margin-top:var(--space-2)">
         <p style="font-size:var(--text-sm);color:var(--color-text-muted)">Or add a guest player:</p>
-        <div style="display:flex;gap:var(--space-2);margin-top:var(--space-1)">
+        <div class="input-row" style="margin-top:var(--space-1)">
           <input class="form-control" type="text" id="guest-name" placeholder="Guest name" maxlength="60">
           <button type="button" class="btn btn--secondary" onclick="addGuest()">Add Guest</button>
         </div>
@@ -60,7 +60,7 @@
     </section>
     <% } %>
 
-    <div style="display:flex;gap:var(--space-2);justify-content:flex-end;margin-top:var(--space-6)">
+    <div class="form-actions" style="margin-top:var(--space-6)">
       <a href="/games/<%= it.game.id %>" class="btn btn--secondary">Cancel</a>
       <button type="submit" class="btn btn--primary">Start Session</button>
     </div>

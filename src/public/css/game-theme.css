@@ -72,7 +72,7 @@
 }
 
 .game-layout .card,
-.game-layout .scoreboard,
+.game-layout .scoreboard-wrap,
 .game-layout .session-card {
   border-color: color-mix(in srgb, var(--game-primary-ui) 30%, transparent);
 }
@@ -88,6 +88,7 @@
 
 .game-layout .scoreboard thead,
 .game-layout .scoreboard tfoot {
+  --sb-bg:            var(--game-primary-ui);
   --color-text:       var(--game-on-primary);
   --color-text-muted: color-mix(in oklab, var(--game-on-primary) 82%, var(--game-primary-ui));
   background: var(--game-primary-ui);

@@ -14,9 +14,13 @@
   text-decoration: none;
   cursor: pointer;
   transition: background var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast);
-  white-space: nowrap;
+  /* Long labels wrap rather than push past a phone-width screen */
+  max-width: 100%;
+  text-align: center;
+  text-wrap: balance;
   -webkit-user-select: none;
   user-select: none;
+  touch-action: manipulation; /* no double-tap-zoom delay */
 }
 
 .btn:disabled,
@@ -120,6 +124,31 @@ textarea.form-control {
   font-weight: 600;
 }
 
+/* Submit/cancel row: stacked full-width thumb targets on phones (primary on top),
+   right-aligned inline buttons from 30rem up. Put the primary action last in markup. */
+.form-actions {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+}
+
+.form-actions > .btn { width: 100%; }
+
+@media (min-width: 30rem) {
+  .form-actions { flex-direction: row; justify-content: flex-end; }
+  .form-actions > .btn { width: auto; }
+}
+
+/* Text input with a trailing button that shares its row */
+.input-row {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.input-row > .form-control { flex: 1; min-width: 0; }
+.input-row > .btn { flex-shrink: 0; white-space: nowrap; }
+
 .form-row {
   display: grid;
   gap: var(--space-3);
@@ -137,6 +166,8 @@ textarea.form-control {
   align-items: center;
   gap: var(--space-2);
 }
+
+.color-field .form-control { flex: 1; min-width: 0; }
 
 .color-field input[type="color"] {
   width: 3rem;
@@ -191,9 +222,11 @@ textarea.form-control {
   transition: --cover-scale 600ms ease, filter 600ms ease;
 }
 
-:is(.card, .keep-card):hover .game-cover::before {
-  --cover-scale: 1.15;
-  filter: blur(12px) brightness(0.6) saturate(1.8);
+@media (hover: hover) {
+  :is(.card, .keep-card):hover .game-cover::before {
+    --cover-scale: 1.15;
+    filter: blur(12px) brightness(0.6) saturate(1.8);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -241,24 +274,27 @@ textarea.form-control {
 }
 
 /* ─── Scoreboard table ────────────────────────────── */
+/* The wrapper scrolls sideways on phones; the player column stays pinned. */
+.scoreboard-wrap {
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
 .scoreboard {
   width: 100%;
   font-size: var(--text-sm);
-  border-radius: var(--radius-md);
-  overflow: hidden;
-  border: 1px solid var(--color-border);
 }
 
-.scoreboard thead {
-  background: var(--color-surface);
-  position: sticky;
-  top: 0;
-  z-index: 1;
-}
+/* --sb-bg is the opaque fill the sticky column needs to cover cells scrolling under it */
+.scoreboard tbody { --sb-bg: var(--color-bg-raised); background: var(--sb-bg); }
+.scoreboard thead,
+.scoreboard tfoot { --sb-bg: var(--color-surface); background: var(--sb-bg); }
 
 .scoreboard th,
 .scoreboard td {
-  padding: var(--space-2);
+  padding: var(--space-1);
   text-align: center;
   border-bottom: 1px solid var(--color-border);
 }
@@ -267,6 +303,16 @@ textarea.form-control {
 .scoreboard td:first-child {
   text-align: left;
   font-weight: 600;
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: var(--sb-bg);
+  box-shadow: 1px 0 0 var(--color-border);
+}
+
+@media (min-width: 48rem) {
+  .scoreboard th,
+  .scoreboard td { padding: var(--space-2); }
 }
 
 .scoreboard tbody tr:last-child td { border-bottom: none; }
@@ -354,7 +400,9 @@ textarea.form-control {
   min-height: var(--tap-min);
 }
 
-.session-card:hover { background: var(--color-surface); }
+@media (hover: hover) {
+  .session-card:hover { background: var(--color-surface); }
+}
 
 /* ─── Stats grid ──────────────────────────────────── */
 .stats-grid {
@@ -380,6 +428,21 @@ textarea.form-control {
   font-size: var(--text-xs);
   color: var(--color-text-muted);
   margin-top: var(--space-1);
+}
+
+/* ─── Photo grid ──────────────────────────────────── */
+.photo-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+}
+
+@media (min-width: 40rem) {
+  .photo-grid {
+    grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr));
+    gap: var(--space-3);
+  }
 }
 
 /* ─── Divider ─────────────────────────────────────── */

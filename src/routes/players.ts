@@ -11,7 +11,7 @@ router.get('/', async (req, res, next) => {
     const players = q
       ? await playerService.search(q)
       : await playerService.listAll();
-    if (req.accepts('json')) return res.json(players);
+    if (req.accepts(['html', 'json']) === 'json') return res.json(players);
     res.renderEta('players/index', { title: 'Players', players, user: req.user });
   } catch (err) { next(err); }
 });

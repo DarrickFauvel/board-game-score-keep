@@ -47,8 +47,10 @@ body {
 }
 
 /* ─── Main layout ────────────────────────────────── */
+/* Mobile first: narrow gutters on phones, widened at the breakpoint below.
+   max() keeps content clear of notches/rounded corners (viewport-fit=cover). */
 main {
-  padding: var(--space-4) var(--space-3);
+  padding: var(--space-3) max(var(--space-2), env(safe-area-inset-right)) var(--space-4) max(var(--space-2), env(safe-area-inset-left));
   max-width: 72rem;
   margin-inline: auto;
   width: 100%;
@@ -57,7 +59,7 @@ main {
 
 @media (min-width: 48rem) {
   main {
-    padding: var(--space-6) var(--space-4);
+    padding: var(--space-6) max(var(--space-4), env(safe-area-inset-right)) var(--space-6) max(var(--space-4), env(safe-area-inset-left));
   }
 }
 
@@ -80,7 +82,7 @@ textarea:focus-visible {
 .site-header {
   background: var(--color-chrome);
   color: var(--color-chrome-text);
-  padding: var(--space-2) var(--space-3);
+  padding: max(var(--space-1), env(safe-area-inset-top)) max(var(--space-2), env(safe-area-inset-right)) var(--space-1) max(var(--space-2), env(safe-area-inset-left));
   display: flex;
   align-items: center;
   gap: var(--space-2);
@@ -219,9 +221,20 @@ textarea:focus-visible {
   background: var(--color-surface);
   border-top: 1px solid var(--color-border);
   text-align: center;
-  padding: var(--space-3);
+  padding: var(--space-3) var(--space-2) max(var(--space-3), env(safe-area-inset-bottom));
   font-size: var(--text-xs);
   color: var(--color-text-muted);
+}
+
+.site-footer__credit { margin-top: 0.25rem; }
+
+.site-footer__credit a {
+  color: var(--color-text);
+  font-weight: 600;
+  text-underline-offset: 0.2em;
+  /* Inline links are short; pad the hit area toward a full tap target */
+  display: inline-block;
+  padding-block: 0.5rem;
 }
 
 /* ─── Flash messages ─────────────────────────────── */
@@ -248,7 +261,9 @@ textarea:focus-visible {
 
 .page-header__title {
   font-size: var(--text-xl);
-  flex: 1;
+  /* Takes the full row on phones, so actions drop below instead of squeezing it */
+  flex: 1 1 12rem;
+  min-width: 0;
 }
 
 /* ─── Section spacing ────────────────────────────── */

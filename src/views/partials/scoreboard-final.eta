@@ -6,6 +6,7 @@ for (const p of it.participants) {
 const maxTotal = Math.max(...Object.values(totals), 0);
 %>
 
+<div class="scoreboard-wrap">
 <table class="scoreboard" aria-label="Final scores">
   <thead>
     <tr>
@@ -42,3 +43,4 @@ const maxTotal = Math.max(...Object.values(totals), 0);
     <% }) %>
   </tbody>
 </table>
+</div>

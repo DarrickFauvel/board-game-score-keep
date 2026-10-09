@@ -17,8 +17,12 @@
 
 .keep-hero {
   text-align: center;
-  padding: var(--space-8) var(--space-4);
+  padding: var(--space-4) var(--space-2);
   position: relative;
+}
+
+@media (min-width: 48rem) {
+  .keep-hero { padding: var(--space-8) var(--space-4); }
 }
 
 .keep-hero::before,
@@ -52,7 +56,7 @@
   color: var(--color-chrome-text);
   font-family: 'MedievalSharp', serif;
   text-align: center;
-  padding: var(--space-2) var(--space-6);
+  padding: var(--space-2) var(--space-4);
   margin: var(--space-4) auto;
   max-width: 28rem;
   clip-path: polygon(0 0, 100% 0, 95% 50%, 100% 100%, 0 100%, 5% 50%);
@@ -106,7 +110,9 @@
   transition: box-shadow var(--transition-base), transform var(--transition-base);
 }
 
-.keep-card:hover {
-  box-shadow: var(--shadow-md);
-  transform: translateY(-2px);
+@media (hover: hover) {
+  .keep-card:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+  }
 }

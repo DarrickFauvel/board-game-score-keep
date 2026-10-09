@@ -7,7 +7,7 @@ for (const entry of it.scores) {
 const maxTotal = Math.max(...Object.values(totals), 0);
 %>
 
-<div style="overflow-x:auto">
+<div class="scoreboard-wrap">
 <table class="scoreboard" aria-label="Category scores">
   <thead>
     <tr>

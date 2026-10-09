@@ -95,7 +95,7 @@
   }
 
   .card,
-  .scoreboard,
+  .scoreboard-wrap,
   .session-card {
     border-width: 2px;
   }

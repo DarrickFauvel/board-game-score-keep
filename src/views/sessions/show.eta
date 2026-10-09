@@ -81,7 +81,7 @@ const maxTotal = Math.max(...Object.values(totals), 0);
   <h2 id="photos-heading">Photos</h2>
 
   <% if (it.photos && it.photos.length > 0) { %>
-  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(10rem,1fr));gap:var(--space-3);margin-bottom:var(--space-4)">
+  <div class="photo-grid">
     <% for (const photo of it.photos) { %>
     <div style="position:relative">
       <img src="<%= it.imgUrl(photo.photo_url) %>" alt="Session photo"
@@ -90,7 +90,7 @@ const maxTotal = Math.max(...Object.values(totals), 0);
             data-confirm="Remove this photo?"
             data-confirm-title="Delete Photo"
             data-confirm-label="Delete">
-        <button type="submit" class="btn btn--danger btn--sm" aria-label="Delete photo" style="padding:0.25rem 0.5rem;min-height:0;line-height:1">✕</button>
+        <button type="submit" class="btn btn--danger btn--sm" aria-label="Delete photo" style="line-height:1">✕</button>
       </form>
     </div>
     <% } %>
