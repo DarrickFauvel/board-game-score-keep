@@ -137,6 +137,24 @@ router.post('/:gameId/sessions/:id/complete', async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
+router.post('/:gameId/sessions/:id/rounds', async (req, res, next) => {
+  try {
+    const game = await gameService.findById(req.params.gameId, req.user.sub);
+    if (!game) return next(Object.assign(new Error('Not Found'), { status: 404 }));
+    const { sessionService } = await import('../services/sessionService.js');
+    const session = await sessionService.findById(req.params.id);
+    if (!session) return next(Object.assign(new Error('Not Found'), { status: 404 }));
+    const round = Number(req.body.round);
+    if (session.status === 'active' && Number.isInteger(round) && round > 0) {
+      const { scoreService } = await import('../services/scoreService.js');
+      const { sseRegistry } = await import('../services/sseRegistry.js');
+      await scoreService.closeRound(req.params.id, round, req.user.sub);
+      sseRegistry.broadcastFullRefresh(req.params.id);
+    }
+    res.redirect(`/games/${req.params.gameId}/sessions/${req.params.id}`);
+  } catch (err) { next(err); }
+});
+
 router.post('/:gameId/sessions/:id/note',
   async (req, res, next) => {
     try {

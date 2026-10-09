@@ -96,6 +96,8 @@
 
   .card,
   .scoreboard-wrap,
+  .standings,
+  .round-card,
   .session-card {
     border-width: 2px;
   }
