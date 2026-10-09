@@ -246,13 +246,16 @@ function addStyles() {
       border: none; border-radius: 0;
       background: radial-gradient(circle at 50% 40%, color-mix(in oklab, var(--color-chrome) 70%, var(--color-gold)) 0%, var(--color-chrome) 70%);
       color: var(--color-chrome-text);
-      display: grid; place-items: center; text-align: center;
-      overflow: hidden;
+      /* The card centres itself with auto margins rather than place-items, so
+         when it is taller than a short phone screen it starts at the top and
+         the overlay scrolls, instead of being cut off at both ends */
+      display: grid; justify-items: center; text-align: center;
+      overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain;
     }
     .victory:not([open]) { display: none; }
     .victory::backdrop { background: var(--color-chrome); }
-    .victory__confetti { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
-    .victory__card { position: relative; display: grid; gap: var(--space-2); justify-items: center; max-width: 32rem; }
+    .victory__confetti { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+    .victory__card { position: relative; display: grid; gap: var(--space-2); justify-items: center; max-width: 32rem; margin-block: auto; }
     .victory__trophy { font-size: clamp(4rem, 3rem + 8vw, 7rem); line-height: 1; animation: victory-pop 700ms cubic-bezier(0.34, 1.56, 0.64, 1) both; }
     .victory__eyebrow { font-size: var(--text-sm); letter-spacing: 0.12em; text-transform: uppercase; color: var(--color-gold); }
     .victory__title {
@@ -273,6 +276,14 @@ function addStyles() {
     .victory__actions .btn--secondary:hover { background: var(--color-chrome-hover); }
     @keyframes victory-pop { from { transform: scale(0.2) rotate(-20deg); opacity: 0; } to { transform: none; opacity: 1; } }
     @keyframes victory-rise { from { transform: translateY(1rem); opacity: 0; } to { transform: none; opacity: 1; } }
+    /* Short screens (most phones): smaller trophy and title so it all fits */
+    @media (max-height: 760px) {
+      .victory__card { gap: var(--space-1); }
+      .victory__trophy { font-size: clamp(2.5rem, 9dvh, 5rem); }
+      .victory__title { font-size: clamp(1.75rem, 1rem + 5vw, 2.75rem); }
+      .victory__facts { font-size: var(--text-sm); line-height: 1.3; }
+      .victory__actions { margin-top: var(--space-1); }
+    }
     @media (prefers-reduced-motion: reduce) {
       .victory__trophy, .victory__title, .victory__detail, .victory__facts, .victory__actions { animation: none; }
     }
@@ -334,6 +345,9 @@ export function celebrateVictory(data) {
       playAnnouncement(data);
       soundBtn.textContent = '🔊 Hear it again';
     }
-    dialog.querySelector('[data-victory-close]').focus();
+    // Keep the trophy and title in view: showModal() scrolls its autofocused
+    // button into view, and on a short screen the buttons may sit below the fold
+    dialog.querySelector('[data-victory-close]').focus({ preventScroll: true });
+    dialog.scrollTop = 0;
   });
 }
