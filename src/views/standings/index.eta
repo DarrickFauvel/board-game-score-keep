@@ -1,0 +1,61 @@
+<% layout('../layouts/base') %>
+
+<div class="page-header">
+  <h1 class="page-header__title">Standings</h1>
+</div>
+
+<% if (it.games.length > 1) { %>
+<nav class="tab-bar" aria-label="Filter standings by game">
+  <a class="tab-bar__item" href="/standings" <%~ !it.selectedGame ? 'aria-current="page"' : '' %>>All games</a>
+  <% it.games.forEach(function(game) { %>
+  <a class="tab-bar__item" href="/standings?game=<%= game.id %>" <%~ it.selectedGame && it.selectedGame.id === game.id ? 'aria-current="page"' : '' %>><%= game.name %></a>
+  <% }) %>
+</nav>
+<% } %>
+
+<% if (it.standings.length === 0) { %>
+<div class="empty-state">
+  <span class="empty-state__icon" aria-hidden="true">🏆</span>
+  <h2 class="empty-state__title">No standings yet</h2>
+  <p>Complete a session with two or more players<%= it.selectedGame ? ' of ' + it.selectedGame.name : '' %> and the rankings appear here.</p>
+</div>
+<% } else { %>
+<p class="leaderboard__summary">
+  <%= it.selectedGame ? it.selectedGame.name + ' · ' : '' %><%= it.sessionCount %> completed session<%= it.sessionCount !== 1 ? 's' : '' %>.
+  Ranked by wins, then win rate; ties share a rank.
+</p>
+
+<ol class="leaderboard" role="list">
+  <% it.standings.forEach(function(s) { %>
+  <li class="leaderboard__row<%= s.rank <= 3 ? ' leaderboard__row--top' : '' %>">
+    <span class="leaderboard__rank leaderboard__rank--<%= s.rank %>"><span class="visually-hidden">Rank </span><%= s.rank %></span>
+    <% if (s.avatarUrl) { %>
+    <img class="avatar" src="<%= it.imgUrl(s.avatarUrl) %>" alt="" aria-hidden="true">
+    <% } else { %>
+    <div class="avatar" style="background:<%= s.color || 'var(--color-surface)' %>" aria-hidden="true"><%= s.name.charAt(0).toUpperCase() %></div>
+    <% } %>
+    <div class="leaderboard__who">
+      <% if (s.playerId) { %>
+      <a class="leaderboard__name" href="/players/<%= s.playerId %>"><%= s.name %></a>
+      <% } else { %>
+      <span class="leaderboard__name"><%= s.name %></span>
+      <% } %>
+      <%/* Each stat stays on one line; the list wraps between stats */%>
+      <span class="leaderboard__meta">
+        <span><%= s.played %> played</span> <span><%= s.winRate %>% wins</span> <span>avg finish <%= s.avgFinish %></span>
+        <% if (it.selectedGame) { %><span>avg score <%= s.avgScore %></span> <span>best <%= s.bestScore %></span><% } %>
+      </span>
+    </div>
+    <div class="leaderboard__wins">
+      <strong><%= s.wins %></strong>
+      <span><%= s.wins === 1 ? 'win' : 'wins' %></span>
+    </div>
+  </li>
+  <% }) %>
+</ol>
+<% } %>
+
+<script>
+  // Keep the selected game's tab visible when the filter bar scrolls sideways
+  document.querySelector('.tab-bar [aria-current="page"]')?.scrollIntoView({ inline: 'center', block: 'nearest' });
+</script>

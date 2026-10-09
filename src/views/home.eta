@@ -5,22 +5,67 @@
   <p class="keep-subtitle">Your hall of victories and defeats, faithfully recorded.</p>
 </div>
 
-<div class="keep-banner" aria-hidden="true">Hall of Games</div>
-
-<section aria-labelledby="games-heading" style="padding-bottom:var(--space-8)">
-  <div class="page-header">
-    <h2 id="games-heading" style="flex:1">Your Games</h2>
-    <a href="/games/new" class="btn btn--gold">+ Add a Game</a>
-  </div>
+<section aria-labelledby="fame-heading" class="hall">
+  <h2 id="fame-heading" class="keep-banner">Hall of Fame</h2>
 
   <% if (it.games.length === 0) { %>
   <div class="empty-state">
     <span class="empty-state__icon" aria-hidden="true">🛡</span>
     <h3 class="empty-state__title">The Keep awaits its first game!</h3>
-    <p style="margin-bottom:var(--space-4)">Add a board game to start tracking scores and session history.</p>
-    <a href="/games/new" class="btn btn--primary">Add Your First Game</a>
+    <p style="margin-bottom:var(--space-4)">Add a board game, play a session, and the winners go up on the wall.</p>
+    <a href="/games/new" class="btn btn--gold">Add your first game</a>
   </div>
+  <% } else if (it.hall.podium.length === 0) { %>
+  <p class="hall__empty">No champions yet. Finish a game with two or more players and the first name goes up on the wall.</p>
+  <p class="hall__more hall__more--center"><a href="/games">Start a session from My Games →</a></p>
   <% } else { %>
-  <%~ include('partials/game-list', it) %>
+  <%/* DOM order is 1st, 2nd, 3rd for screen readers; CSS lays it out 2–1–3 */%>
+  <ol class="podium" role="list" aria-label="Top players">
+    <% it.hall.podium.forEach(function(s, i) { %>
+    <li class="podium__place podium__place--<%= i + 1 %>">
+      <span class="podium__medal" aria-hidden="true"><%= ['🥇', '🥈', '🥉'][s.rank - 1] || '🏅' %></span>
+      <% if (s.avatarUrl) { %>
+      <img class="avatar podium__avatar" src="<%= it.imgUrl(s.avatarUrl) %>" alt="" aria-hidden="true">
+      <% } else { %>
+      <div class="avatar podium__avatar" style="background:<%= s.color || 'var(--color-surface)' %>" aria-hidden="true"><%= s.name.charAt(0).toUpperCase() %></div>
+      <% } %>
+      <span class="podium__name"><span class="visually-hidden">Rank <%= s.rank %>: </span><%= s.name %></span>
+      <span class="podium__wins"><%= s.wins %> <%= s.wins === 1 ? 'win' : 'wins' %></span>
+      <span class="podium__step<%= s.rank === 1 ? ' podium__step--gold' : '' %>" aria-hidden="true"><%= s.rank %></span>
+    </li>
+    <% }) %>
+  </ol>
+
+  <div class="hall__columns">
+    <% if (it.hall.champions.length) { %>
+    <div>
+      <h3 class="hall__heading">Game champions</h3>
+      <ul class="hall__list" role="list">
+        <% it.hall.champions.forEach(function(c) { %>
+        <li>
+          <a href="/standings?game=<%= c.gameId %>" class="hall__game"><%= c.gameName %></a>
+          <span class="hall__who">👑 <%= c.leaders.map(l => l.name).join(' & ') %> · <%= c.leaders[0].wins %> <%= c.leaders[0].wins === 1 ? 'win' : 'wins' %></span>
+        </li>
+        <% }) %>
+      </ul>
+    </div>
+    <% } %>
+
+    <% if (it.hall.victories.length) { %>
+    <div>
+      <h3 class="hall__heading">Latest victories</h3>
+      <ul class="hall__list" role="list">
+        <% it.hall.victories.forEach(function(v) { %>
+        <li>
+          <a href="/games/<%= v.gameId %>/sessions/<%= v.sessionId %>" class="hall__game">🏆 <%= v.winners.join(' & ') %> <%= v.winners.length > 1 ? 'tied' : 'won' %> <%= v.gameName %></a>
+          <span class="hall__who"><%= new Date(v.completedAt).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) %></span>
+        </li>
+        <% }) %>
+      </ul>
+    </div>
+    <% } %>
+  </div>
+
+  <p class="hall__more"><a href="/standings">Full standings →</a></p>
   <% } %>
 </section>

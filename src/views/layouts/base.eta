@@ -11,6 +11,8 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <%/* Cinzel: Roman carved capitals for the wordmark and Keep display type */%>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&display=swap">
 
   <link rel="stylesheet" href="/css/tokens.css">
   <link rel="stylesheet" href="/css/reset.css">
@@ -57,6 +59,7 @@
       <% if (it.user) { %>
       <a href="/games">My Games</a>
       <a href="/players">Players</a>
+      <a href="/standings">Standings</a>
       <qr-share></qr-share>
       <theme-toggle aria-label="Toggle dark mode"></theme-toggle>
       <form action="/auth/logout" method="POST" style="margin:0">
@@ -75,6 +78,7 @@
       <% if (it.user) { %>
       <a href="/games" class="site-header__mobile-link">My Games</a>
       <a href="/players" class="site-header__mobile-link">Players</a>
+      <a href="/standings" class="site-header__mobile-link">Standings</a>
       <div style="display:flex;align-items:center;gap:var(--space-2);padding:var(--space-1) var(--space-2)">
         <theme-toggle aria-label="Toggle dark mode"></theme-toggle>
       </div>
