@@ -1,0 +1,25 @@
+<%/* Compact game rows: the whole row opens the game; "+ Session" starts one.
+     Expects it.games and it.imgUrl. */%>
+<ul class="game-list" role="list">
+  <% it.games.forEach(function(game) { %>
+  <li class="game-row">
+    <a class="game-row__main" href="/games/<%= game.id %>">
+      <% if (game.image_url) { %>
+      <div class="game-row__thumb game-cover" style="--cover-bg: url('<%= it.imgUrl(game.image_url) %>')">
+        <img class="game-cover__img" src="<%= it.imgUrl(game.image_url) %>" alt="" loading="lazy">
+      </div>
+      <% } else { %>
+      <div class="game-row__thumb game-row__thumb--empty" aria-hidden="true">🎲</div>
+      <% } %>
+      <span class="game-row__text">
+        <span class="game-row__name"><%= game.name %></span>
+        <span class="game-row__meta">
+          <%= game.scoring_mode === 'tally' ? 'Running tally' : game.scoring_mode === 'final' ? 'Final score' : 'Custom categories' %><% if (game.teams_mode !== 'none') { %> &bull; Team play<% } %>
+        </span>
+      </span>
+    </a>
+    <a href="/games/<%= game.id %>/sessions/new" class="btn btn--secondary btn--sm game-row__action"
+       aria-label="Start new session of <%= game.name %>"><span aria-hidden="true">+</span><span class="game-row__action-label" aria-hidden="true">Session</span></a>
+  </li>
+  <% }) %>
+</ul>
