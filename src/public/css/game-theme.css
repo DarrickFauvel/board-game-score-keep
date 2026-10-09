@@ -2,67 +2,101 @@
 
 .game-layout {
   /*
-   * Derive accessible text colors from each game surface using relative color syntax.
-   * The ramp (0.55 - l) * 20 is steep enough that any color clearly above or below
-   * the ~0.55 oklch lightness threshold snaps to near-black (0.1) or near-white (0.95).
-   * Chroma and hue are zeroed so the result is always a neutral gray, not a tinted tone.
+   * Mid-tone colours (oklch lightness near 0.55) can't reach 4.5:1 with either
+   * black or white text, so each game colour is first pushed out of that band:
+   * lighter colours up, darker colours down. Colours already clear of the band
+   * are untouched. snap = 1 for light colours, 0 for dark ones.
+   *   page surface:      >= 0.80 or <= 0.30 (room for muted text, status colours, raised cards),
+   *                      chroma capped at 0.12 — a fully saturated page background is hard to read
+   *   buttons / headers: >= 0.70 or <= 0.40 (only need text on top)
    */
-  --game-on-primary:   oklch(from var(--game-primary)   clamp(0.1, calc(0.1 + (0.55 - l) * 20), 0.95) 0 0);
-  --game-on-secondary: oklch(from var(--game-secondary) clamp(0.1, calc(0.1 + (0.55 - l) * 20), 0.95) 0 0);
-  --game-on-accent:    oklch(from var(--game-accent)    clamp(0.1, calc(0.1 + (0.55 - l) * 20), 0.95) 0 0);
+  --game-surface: oklch(from var(--game-secondary)
+    calc(clamp(0, (l - 0.55) * 1000, 1) * max(l, 0.80) + (1 - clamp(0, (l - 0.55) * 1000, 1)) * min(l, 0.30)) min(c, 0.12) h);
+  --game-primary-ui: oklch(from var(--game-primary)
+    calc(clamp(0, (l - 0.55) * 1000, 1) * max(l, 0.70) + (1 - clamp(0, (l - 0.55) * 1000, 1)) * min(l, 0.40)) c h);
+  --game-accent-ui: oklch(from var(--game-accent)
+    calc(clamp(0, (l - 0.55) * 1000, 1) * max(l, 0.70) + (1 - clamp(0, (l - 0.55) * 1000, 1)) * min(l, 0.40)) c h);
 
-  /* Override semantic text tokens so form labels, inputs, and hints
-     stay readable against --game-secondary regardless of dark mode. */
-  --color-text:       var(--game-on-secondary);
-  --color-text-muted: oklch(from var(--game-secondary) clamp(0.25, calc(0.25 + (0.5 - l) * 16), 0.75) 0 0);
+  /* Text on each surface: pure black on light, pure white on dark */
+  --game-on-surface: oklch(from var(--game-surface)    clamp(0, calc((0.55 - l) * 1000), 1) 0 0);
+  --game-on-primary: oklch(from var(--game-primary-ui) clamp(0, calc((0.55 - l) * 1000), 1) 0 0);
+  --game-on-accent:  oklch(from var(--game-accent-ui)  clamp(0, calc((0.55 - l) * 1000), 1) 0 0);
+  /* Kept for templates that reference it */
+  --game-on-secondary: var(--game-on-surface);
 
-  background-color: var(--game-secondary);
-  color: var(--game-on-secondary);
-}
+  /* The opposite extreme: white on light surfaces, black on dark ones.
+     Mixing toward it lifts a surface while only ever increasing text contrast. */
+  --game-away-surface: oklch(from var(--game-surface)    clamp(0, calc((l - 0.55) * 1000), 1) 0 0);
+  --game-away-primary: oklch(from var(--game-primary-ui) clamp(0, calc((l - 0.55) * 1000), 1) 0 0);
 
-.game-layout .form-control {
-  color: oklch(from var(--color-bg-raised) clamp(0.1, calc(0.1 + (0.55 - l) * 20), 0.95) 0 0);
+  /* Override the semantic tokens so every component on a game page sits on
+     game-derived surfaces, in both light and dark mode. */
+  --color-bg:           var(--game-surface);
+  --color-bg-raised:    color-mix(in oklab, var(--game-surface) 55%, var(--game-away-surface));
+  --color-surface:      color-mix(in oklab, var(--game-surface) 92%, var(--game-on-surface));
+  --color-text:         var(--game-on-surface);
+  --color-text-muted:   color-mix(in oklab, var(--game-on-surface) 82%, var(--game-surface));
+  --color-border:       color-mix(in oklab, var(--game-on-surface) 25%, var(--game-surface));
+  --color-border-input: color-mix(in oklab, var(--game-on-surface) 60%, var(--game-surface));
+
+  /* Status colors: fixed hue, lightness snapped to the surface (dark on light, light on dark) */
+  --color-danger:   oklch(from var(--game-surface) clamp(0.34, calc(0.34 + (0.55 - l) * 1000), 0.80) 0.15 25);
+  --color-success:  oklch(from var(--game-surface) clamp(0.40, calc(0.40 + (0.55 - l) * 1000), 0.82) 0.12 150);
+  --color-info:     oklch(from var(--game-surface) clamp(0.40, calc(0.40 + (0.55 - l) * 1000), 0.80) 0.12 255);
+  --color-complete: oklch(from var(--game-surface) clamp(0.40, calc(0.40 + (0.55 - l) * 1000), 0.82) 0.14 280);
+  --color-gold-text: oklch(from var(--game-surface) clamp(0.40, calc(0.40 + (0.55 - l) * 1000), 0.84) 0.12 85);
+  --color-on-danger: var(--game-surface);
+  --color-danger-bg:   color-mix(in oklab, var(--color-danger) 14%, var(--color-bg-raised));
+  --color-success-bg:  color-mix(in oklab, var(--color-success) 14%, var(--color-bg-raised));
+  --color-info-bg:     color-mix(in oklab, var(--color-info) 14%, var(--color-bg-raised));
+  --color-complete-bg: color-mix(in oklab, var(--color-complete) 14%, var(--color-bg-raised));
+  --color-gold-bg:     color-mix(in oklab, var(--color-gold-text) 14%, var(--color-bg-raised));
+
+  background-color: var(--game-surface);
+  color: var(--game-on-surface);
 }
 
 .game-layout .btn--primary {
-  background: var(--game-primary);
+  background: var(--game-primary-ui);
   color: var(--game-on-primary);
-  border-color: var(--game-primary);
+  border-color: var(--game-primary-ui);
 }
 
 .game-layout .btn--primary:hover {
-  background: color-mix(in srgb, var(--game-primary) 80%, black);
+  background: color-mix(in oklab, var(--game-primary-ui) 82%, var(--game-away-primary));
 }
 
 .game-layout .btn--gold {
-  background: var(--game-accent);
+  background: var(--game-accent-ui);
   color: var(--game-on-accent);
 }
 
 .game-layout .card,
 .game-layout .scoreboard,
 .game-layout .session-card {
-  border-color: color-mix(in srgb, var(--game-primary) 30%, transparent);
+  border-color: color-mix(in srgb, var(--game-primary-ui) 30%, transparent);
 }
 
 .game-layout .btn--secondary {
-  border-color: var(--game-primary);
-  color: var(--game-on-secondary);
+  border-color: var(--game-primary-ui);
+  color: var(--game-on-surface);
 }
 .game-layout .btn--secondary:hover {
-  background: color-mix(in srgb, var(--game-primary) 12%, transparent);
-  color: var(--game-on-secondary);
+  background: color-mix(in srgb, var(--game-primary-ui) 12%, transparent);
+  color: var(--game-on-surface);
 }
 
 .game-layout .scoreboard thead,
 .game-layout .scoreboard tfoot {
-  background: var(--game-primary);
+  --color-text:       var(--game-on-primary);
+  --color-text-muted: color-mix(in oklab, var(--game-on-primary) 82%, var(--game-primary-ui));
+  background: var(--game-primary-ui);
   color: var(--game-on-primary);
 }
 
 .game-layout .badge--active {
-  background: color-mix(in srgb, var(--game-accent) 20%, white);
-  color: color-mix(in srgb, var(--game-primary) 80%, black);
+  background: color-mix(in oklab, var(--game-accent-ui) 25%, var(--color-bg-raised));
+  color: var(--color-text);
 }
 
 /* Accent stripe — decorative top border on game pages */

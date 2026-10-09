@@ -33,12 +33,12 @@ class AvatarPicker extends HTMLElement {
           transition: background 120ms ease, color 120ms ease;
         }
         avatar-picker .ap-tab[aria-selected="true"] {
-          background: var(--color-ink, #2c2416);
-          color: oklch(from var(--color-ink, #2c2416) clamp(0.1, calc(0.1 + (0.55 - l) * 20), 0.95) 0 0);
-          border-color: var(--color-ink, #2c2416);
+          background: var(--color-primary, #2c2416);
+          color: var(--color-on-primary, #f5f0e8);
+          border-color: var(--color-primary, #2c2416);
         }
         avatar-picker .ap-tab:hover:not([aria-selected="true"]) { background: var(--color-surface, #e8e0d0); }
-        avatar-picker .ap-tab:focus-visible { outline: 3px solid #0066cc; outline-offset: 2px; border-radius: 4px; }
+        avatar-picker .ap-tab:focus-visible { outline: 3px solid var(--color-border-focus, #0066cc); outline-offset: 2px; border-radius: 4px; }
         avatar-picker .ap-panel { display: none; }
         avatar-picker .ap-panel[data-active] { display: block; }
         avatar-picker input[type="file"] { font-family: inherit; font-size: 0.875rem; min-height: 3rem; }
@@ -51,7 +51,7 @@ class AvatarPicker extends HTMLElement {
           font-family: inherit;
           min-height: 3rem;
         }
-        avatar-picker input:focus-visible { outline: 3px solid #0066cc; outline-offset: 2px; border-radius: 6px; }
+        avatar-picker input:focus-visible { outline: 3px solid var(--color-border-focus, #0066cc); outline-offset: 2px; border-radius: 6px; }
         avatar-picker video { max-width: 100%; border-radius: 8px; }
         avatar-picker .ap-btn {
           display: inline-flex; align-items: center; justify-content: center;
@@ -62,7 +62,7 @@ class AvatarPicker extends HTMLElement {
           transition: background 120ms ease; margin-top: 0.5rem;
         }
         avatar-picker .ap-btn:hover { background: var(--color-surface, #e8e0d0); }
-        avatar-picker .ap-btn:focus-visible { outline: 3px solid #0066cc; outline-offset: 2px; border-radius: 6px; }
+        avatar-picker .ap-btn:focus-visible { outline: 3px solid var(--color-border-focus, #0066cc); outline-offset: 2px; border-radius: 6px; }
         avatar-picker canvas { display: none; }
         avatar-picker .ap-preview { max-width: 160px; border-radius: 8px; margin-top: 0.5rem; }
       </style>

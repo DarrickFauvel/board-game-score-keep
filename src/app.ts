@@ -37,6 +37,7 @@ export function createApp() {
   app.use(express.json());
   app.use(cookieParser());
   app.use(express.static(join(__dirname, 'public')));
+  app.use('/vendor/qrcode-generator', express.static(join(__dirname, '../node_modules/qrcode-generator/dist')));
 
   const eta = new Eta({ views: join(__dirname, 'views'), cache: !config.isDev });
   app.use((_req: Request, res: Response, next: NextFunction) => {

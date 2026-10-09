@@ -56,11 +56,13 @@
       <% if (it.user) { %>
       <a href="/games">My Games</a>
       <a href="/players">Players</a>
+      <qr-share></qr-share>
       <theme-toggle aria-label="Toggle dark mode"></theme-toggle>
       <form action="/auth/logout" method="POST" style="margin:0">
         <button type="submit" class="btn btn--ghost" style="color:inherit">Sign Out</button>
       </form>
       <% } else { %>
+      <qr-share></qr-share>
       <a href="/auth/login">Sign In</a>
       <a href="/auth/register" class="btn btn--gold">Create Account</a>
       <% } %>
@@ -75,12 +77,14 @@
       <div style="display:flex;align-items:center;gap:var(--space-2);padding:var(--space-1) var(--space-2)">
         <theme-toggle aria-label="Toggle dark mode"></theme-toggle>
       </div>
+      <qr-share label="QR code"></qr-share>
       <form action="/auth/logout" method="POST" style="margin:0">
         <button type="submit" class="site-header__mobile-link" style="width:100%;text-align:left;background:none;border:none;cursor:pointer;font:inherit;color:inherit">Sign Out</button>
       </form>
       <% } else { %>
       <a href="/auth/login" class="site-header__mobile-link">Sign In</a>
       <a href="/auth/register" class="site-header__mobile-link">Create Account</a>
+      <qr-share label="QR code"></qr-share>
       <% } %>
     </div>
   </header>

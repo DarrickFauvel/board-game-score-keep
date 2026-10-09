@@ -9,7 +9,7 @@ class GameImage extends HTMLElement {
       display: 'block',
       position: 'relative',
       overflow: 'hidden',
-      background: 'var(--color-ink)',
+      background: 'var(--color-chrome)',
     });
 
     if (src) {
@@ -89,7 +89,7 @@ class GameImage extends HTMLElement {
 
   #shieldSvg() {
     return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="64" height="64" aria-hidden="true">
-      <path fill="var(--color-stone,#8b7d6b)" d="M12 1L3 5v6c0 5.25 3.75 10.15 9 11.25C17.25 21.15 21 16.25 21 11V5L12 1zm0 2.18l7 3.12v4.7c0 4.34-2.97 8.38-7 9.56-4.03-1.18-7-5.22-7-9.56V6.3l7-3.12z"/>
+      <path fill="var(--color-text-muted,#6b5e4e)" d="M12 1L3 5v6c0 5.25 3.75 10.15 9 11.25C17.25 21.15 21 16.25 21 11V5L12 1zm0 2.18l7 3.12v4.7c0 4.34-2.97 8.38-7 9.56-4.03-1.18-7-5.22-7-9.56V6.3l7-3.12z"/>
     </svg>`;
   }
 }

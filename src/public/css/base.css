@@ -20,7 +20,7 @@ body {
   left: 0;
   padding: var(--space-2) var(--space-3);
   background: var(--color-border-focus);
-  color: #fff;
+  color: var(--color-on-focus);
   font-weight: 700;
   font-size: var(--text-base);
   z-index: var(--z-toast);
@@ -78,8 +78,8 @@ textarea:focus-visible {
 
 /* ─── Page header (site-wide) ────────────────────── */
 .site-header {
-  background: var(--color-ink);
-  color: var(--color-parchment);
+  background: var(--color-chrome);
+  color: var(--color-chrome-text);
   padding: var(--space-2) var(--space-3);
   display: flex;
   align-items: center;
@@ -94,6 +94,7 @@ textarea:focus-visible {
   letter-spacing: -0.02em;
   text-decoration: none;
   color: var(--color-gold);
+  white-space: nowrap;
 }
 
 /* ─── Hamburger button ───────────────────────────── */
@@ -107,13 +108,13 @@ textarea:focus-visible {
   min-width: var(--tap-min);
   background: none;
   border: none;
-  color: var(--color-parchment);
+  color: var(--color-chrome-text);
   cursor: pointer;
   border-radius: var(--radius-md);
   transition: background var(--transition-fast);
 }
 
-.site-header__menu-btn:hover { background: rgba(255 255 255 / 0.1); }
+.site-header__menu-btn:hover { background: var(--color-chrome-hover); }
 
 .site-header__menu-icon {
   display: block;
@@ -157,9 +158,9 @@ textarea:focus-visible {
   margin-left: auto;
 }
 
-.site-header__nav a,
-.site-header__nav button {
-  color: var(--color-parchment);
+.site-header__nav a:not(.btn),
+.site-header__nav button:not(.btn) {
+  color: var(--color-chrome-text);
   text-decoration: none;
   font-size: var(--text-sm);
   padding: var(--space-1) var(--space-2);
@@ -170,9 +171,9 @@ textarea:focus-visible {
   transition: background var(--transition-fast);
 }
 
-.site-header__nav a:hover,
-.site-header__nav button:hover {
-  background: rgba(255 255 255 / 0.1);
+.site-header__nav a:not(.btn):hover,
+.site-header__nav button:not(.btn):hover {
+  background: var(--color-chrome-hover);
 }
 
 /* ─── Mobile menu panel ──────────────────────────── */
@@ -181,8 +182,8 @@ textarea:focus-visible {
   top: 100%;
   left: 0;
   right: 0;
-  background: var(--color-ink);
-  border-top: 1px solid rgba(255 255 255 / 0.12);
+  background: var(--color-chrome);
+  border-top: 1px solid var(--color-chrome-line);
   padding: var(--space-2) var(--space-3);
   display: flex;
   flex-direction: column;
@@ -191,7 +192,7 @@ textarea:focus-visible {
 }
 
 .site-header__mobile-link {
-  color: var(--color-parchment);
+  color: var(--color-chrome-text);
   text-decoration: none;
   font-size: var(--text-sm);
   font-weight: 600;
@@ -203,10 +204,11 @@ textarea:focus-visible {
   transition: background var(--transition-fast);
 }
 
-.site-header__mobile-link:hover { background: rgba(255 255 255 / 0.1); }
+.site-header__mobile-link:hover { background: var(--color-chrome-hover); }
 
 /* ─── Breakpoint: show desktop nav, hide mobile ──── */
-@container (min-width: 40rem) {
+/* Signed-in nav (links + QR + theme toggle + sign out) needs ~44rem */
+@container (min-width: 46rem) {
   .site-header__menu-btn    { display: none; }
   .site-header__nav         { display: flex; }
   .site-header__mobile-menu { display: none !important; }
@@ -231,9 +233,9 @@ textarea:focus-visible {
   border-left: 4px solid;
 }
 
-.flash--error   { background: #fef2f2; border-color: var(--color-danger);  color: var(--color-danger);  }
-.flash--success { background: #f0fdf4; border-color: var(--color-success); color: var(--color-success); }
-.flash--info    { background: #eff6ff; border-color: var(--color-info);    color: var(--color-info);    }
+.flash--error   { background: var(--color-danger-bg); border-color: var(--color-danger);  color: var(--color-danger);  }
+.flash--success { background: var(--color-success-bg); border-color: var(--color-success); color: var(--color-success); }
+.flash--info    { background: var(--color-info-bg); border-color: var(--color-info);    color: var(--color-info);    }
 
 /* ─── Page header section ────────────────────────── */
 .page-header {
@@ -251,3 +253,42 @@ textarea:focus-visible {
 
 /* ─── Section spacing ────────────────────────────── */
 .section + .section { margin-top: var(--space-6); }
+
+/* ─── Theme switch: soft reveal from click origin ── */
+/* theme-toggle.js sets --theme-x/-y/-radius and the .theme-transition class,
+   then swaps the theme inside document.startViewTransition(). */
+@property --theme-reveal {
+  syntax: '<length>';
+  inherits: false;
+  initial-value: 0px;
+}
+
+@keyframes theme-reveal {
+  to { --theme-reveal: calc(var(--theme-radius) + var(--theme-feather)); }
+}
+
+html.theme-transition {
+  --theme-feather: 12rem;
+}
+
+/* Suppress element transitions so the new snapshot is the final state */
+html.theme-transition *,
+html.theme-transition *::before,
+html.theme-transition *::after {
+  transition: none !important;
+}
+
+html.theme-transition::view-transition-old(root),
+html.theme-transition::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+html.theme-transition::view-transition-new(root) {
+  mask-image: radial-gradient(
+    circle at var(--theme-x) var(--theme-y),
+    #000 calc(var(--theme-reveal) - var(--theme-feather)),
+    transparent var(--theme-reveal)
+  );
+  animation: theme-reveal 750ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
