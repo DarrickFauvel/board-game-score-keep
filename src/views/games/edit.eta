@@ -28,6 +28,20 @@
     </div>
 
     <div class="form-group">
+      <label class="form-label" for="bgg_url">BoardGameGeek link</label>
+      <input class="form-control" type="url" inputmode="url" id="bgg_url" name="bgg_url" maxlength="300"
+             placeholder="https://boardgamegeek.com/boardgame/266192/wingspan" value="<%= it.game.bgg_url || '' %>" aria-describedby="bgg_url-hint">
+      <span class="form-hint" id="bgg_url-hint">Optional. Paste the game's page from boardgamegeek.com for rules, rankings and reviews.</span>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label" for="rules_url">Rules link</label>
+      <input class="form-control" type="url" inputmode="url" id="rules_url" name="rules_url" maxlength="500"
+             placeholder="https://example.com/rules.pdf" value="<%= it.game.rules_url || '' %>" aria-describedby="rules_url-hint">
+      <span class="form-hint" id="rules_url-hint">Optional. A direct link to the rulebook, such as the publisher's PDF. It shows as a Rules button during sessions.</span>
+    </div>
+
+    <div class="form-group">
       <label class="form-label" for="scoring_mode">Scoring mode <span class="required" aria-hidden="true">*</span></label>
       <select class="form-control" id="scoring_mode" name="scoring_mode" required aria-required="true"
               data-bind:scoring-mode>
