@@ -55,7 +55,7 @@ function injectStyles() {
       width: min(22rem, calc(100% - 2rem));
       max-height: calc(100dvh - 2rem);
       overflow-y: auto;
-      padding: var(--space-3);
+      padding: var(--space-2);
       border: 1px solid var(--color-border);
       border-radius: var(--radius-lg);
       background: var(--color-bg-raised);
@@ -111,18 +111,22 @@ function injectStyles() {
       .qr-share__dialog::backdrop { transition: none; }
     }
 
+    /* Compact so the whole dialog fits a phone screen without scrolling;
+       the title leaves room for the corner close button */
     .qr-share__title {
-      font-size: var(--text-lg);
-      margin-bottom: var(--space-1);
+      font-size: var(--text-base);
+      /* Clears the corner close button, which sits partly in the dialog padding */
+      padding-inline: 1.75rem;
+      margin-bottom: 0.25rem;
     }
     .qr-share__hint {
       font-size: var(--text-xs);
       color: var(--color-text-muted);
-      margin-bottom: var(--space-3);
+      margin-bottom: var(--space-2);
     }
     /* Always dark-on-white so phone cameras can read it in either theme */
     .qr-share__code {
-      width: min(14rem, 100%, 40dvh);
+      width: min(10rem, 100%, 34dvh);
       margin-inline: auto;
       background: #fff;
       border-radius: var(--radius-md);
@@ -134,12 +138,42 @@ function injectStyles() {
     .qr-share__code svg { width: 100%; height: auto; display: block; }
     .qr-share__url {
       display: block;
-      margin-top: var(--space-2);
+      margin-top: var(--space-1);
       font-size: var(--text-xs);
       font-weight: 600;
       word-break: break-all;
     }
-    .qr-share__close { margin-top: var(--space-3); width: 100%; }
+    .qr-share__close {
+      position: absolute;
+      top: 0.25rem;
+      right: 0.25rem;
+      width: 2.5rem; /* 50px at the app's 20px root: still a full tap target */
+      height: 2.5rem;
+      display: grid;
+      place-items: center;
+      border-radius: var(--radius-md);
+      color: var(--color-text-muted);
+      font-size: var(--text-lg);
+      line-height: 1;
+    }
+    .qr-share__close:hover { background: var(--color-surface); color: var(--color-text); }
+
+    /* Short landscape screens: code beside the text instead of above it */
+    @media (orientation: landscape) and (max-height: 32rem) {
+      .qr-share__dialog[open] {
+        width: min(32rem, calc(100% - 2rem));
+        display: grid;
+        grid-template-columns: auto 1fr;
+        grid-template-areas: "code title" "code hint" "code url";
+        align-content: center;
+        column-gap: var(--space-3);
+        text-align: left;
+      }
+      .qr-share__title { grid-area: title; padding-inline: 0 2.5rem; }
+      .qr-share__hint { grid-area: hint; margin-bottom: var(--space-1); }
+      .qr-share__code { grid-area: code; width: min(10rem, 60dvh); }
+      .qr-share__url { grid-area: url; margin-top: 0; }
+    }
   `;
   document.head.appendChild(style);
 }
@@ -168,11 +202,11 @@ class QrShare extends HTMLElement {
     this.#dialog.className = 'qr-share__dialog';
     this.#dialog.setAttribute('aria-labelledby', titleId);
     this.#dialog.innerHTML = `
-      <h2 class="qr-share__title" id="${titleId}">Scan to open The Keep</h2>
-      <p class="qr-share__hint">Point a phone camera at the code.</p>
+      <h2 class="qr-share__title" id="${titleId}">Scan to open</h2>
+      <p class="qr-share__hint">Point a phone camera here to open The Keep.</p>
       <div class="qr-share__code" role="img" aria-label="QR code linking to ${url}"></div>
       <a class="qr-share__url" href="${url}">${url}</a>
-      <button type="button" class="btn btn--secondary qr-share__close">Close</button>`;
+      <button type="button" class="qr-share__close" aria-label="Close"><span aria-hidden="true">×</span></button>`;
     document.body.appendChild(this.#dialog);
     this.#code = this.#dialog.querySelector('.qr-share__code');
 
