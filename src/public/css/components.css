@@ -108,6 +108,8 @@
   border-color: var(--color-danger);
 }
 
+.form-control--narrow { max-width: 8rem; }
+
 textarea.form-control {
   min-height: 6rem;
   resize: vertical;
@@ -472,6 +474,39 @@ textarea.form-control {
 .standings__total {
   font-size: var(--text-base);
   font-variant-numeric: tabular-nums;
+}
+
+.standings__progress {
+  display: block;
+  width: 100%;
+  height: 0.5rem;
+  margin-bottom: var(--space-1);
+  border: none;
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  background: var(--color-surface);
+  accent-color: var(--color-gold);
+}
+.standings__progress::-webkit-progress-bar { background: var(--color-surface); }
+.standings__progress::-webkit-progress-value { background: var(--color-gold); border-radius: var(--radius-full); }
+.standings__progress::-moz-progress-bar { background: var(--color-gold); border-radius: var(--radius-full); }
+
+/* Shown once every planned round is in */
+.round-done {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-2);
+  margin-bottom: var(--space-2);
+  border: 2px solid var(--color-gold);
+  border-radius: var(--radius-md);
+  background: var(--color-gold-bg);
+  font-size: var(--text-sm);
+}
+
+.round-done .btn { width: 100%; }
+
+@media (min-width: 30rem) {
+  .round-done .btn { width: auto; justify-self: start; }
 }
 
 .round-list {

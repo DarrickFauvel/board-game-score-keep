@@ -104,7 +104,10 @@ router.post('/:gameId/sessions', async (req, res, next) => {
     const game = await gameService.findById(req.params.gameId, req.user.sub);
     if (!game) return next(Object.assign(new Error('Not Found'), { status: 404 }));
     const { sessionService } = await import('../services/sessionService.js');
-    const session = await sessionService.create(req.params.gameId, req.user.sub, req.body as Record<string, unknown>);
+    const { parseRoundCount } = await import('../services/rounds.js');
+    const form = req.body as Record<string, unknown>;
+    const plannedRounds = game.scoring_mode === 'tally' ? parseRoundCount(form.planned_rounds) : null;
+    const session = await sessionService.create(req.params.gameId, req.user.sub, form, plannedRounds);
     res.redirect(`/games/${req.params.gameId}/sessions/${session.id}`);
   } catch (err) { next(err); }
 });

@@ -19,13 +19,21 @@ const isActive = it.session.status === 'active';
 // nobody scrolls to score; a finished game reads in order like a score sheet.
 const displayRounds = isActive ? [nextRound, ...finishedRounds.slice().reverse()] : sortedRounds;
 const standings = it.participants.slice().sort((a, b) => (totals[b.id] || 0) - (totals[a.id] || 0));
+const played = isActive ? finishedRounds.length : sortedRounds.length;
+// Optional round count set when the session started (from the game's rules by default)
+const planned = Number(it.session.planned_rounds) || null;
+const allPlanned = isActive && planned && played >= planned;
+const roundLabel = (r) => planned && r <= planned ? 'Round ' + r + ' of ' + planned : 'Round ' + r;
 %>
 
 <section class="standings" aria-labelledby="standings-heading">
   <h2 id="standings-heading" class="standings__title">
     Standings
-    <span class="standings__meta"><% const played = isActive ? finishedRounds.length : sortedRounds.length; %><%= played %> round<%= played !== 1 ? 's' : '' %> played</span>
+    <span class="standings__meta"><% if (planned) { %><%= Math.min(played, planned) %> of <%= planned %> rounds played<%= played > planned ? ' + ' + (played - planned) + ' extra' : '' %><% } else { %><%= played %> round<%= played !== 1 ? 's' : '' %> played<% } %></span>
   </h2>
+  <% if (planned) { %>
+  <progress class="standings__progress" max="<%= planned %>" value="<%= Math.min(played, planned) %>" aria-label="Rounds played"></progress>
+  <% } %>
   <ol class="standings__list" role="list">
     <% standings.forEach(function(p, i) {
        const total = totals[p.id] || 0;
@@ -42,6 +50,18 @@ const standings = it.participants.slice().sort((a, b) => (totals[b.id] || 0) - (
   </ol>
 </section>
 
+<% if (allPlanned) { %>
+<div class="round-done" role="status">
+  <p><strong>All <%= planned %> rounds are in.</strong> Complete the session to lock the scores and crown the winner, or keep playing an extra round below.</p>
+  <form action="/games/<%= it.game.id %>/sessions/<%= it.session.id %>/complete" method="POST"
+        data-confirm="Mark this session as complete? Scores will be locked."
+        data-confirm-title="Complete Session"
+        data-confirm-label="Complete">
+    <button type="submit" class="btn btn--gold">Complete Session</button>
+  </form>
+</div>
+<% } %>
+
 <div class="round-list">
   <% displayRounds.forEach(function(r) {
      const isCurrent = isActive && r === nextRound;
@@ -51,8 +71,8 @@ const standings = it.participants.slice().sort((a, b) => (totals[b.id] || 0) - (
   <section class="round-card<%= isCurrent ? ' round-card--current' : '' %>" aria-labelledby="round-<%= r %>-heading">
     <div class="round-card__header">
       <h3 id="round-<%= r %>-heading" class="round-card__title">
-        Round <%= r %>
-        <% if (isCurrent) { %><span class="badge badge--active">Current</span><% } %>
+        <%= roundLabel(r) %>
+        <% if (isCurrent) { %><span class="badge badge--active"><%= planned && r === planned ? 'Final round' : planned && r > planned ? 'Extra round' : 'Current' %></span><% } %>
       </h3>
       <% if (isCorrectable) { %>
       <button type="button" class="btn btn--ghost btn--sm" aria-pressed="false"
@@ -81,7 +101,7 @@ const standings = it.participants.slice().sort((a, b) => (totals[b.id] || 0) - (
     <form class="round-card__next" method="POST"
           action="/games/<%= it.game.id %>/sessions/<%= it.session.id %>/rounds">
       <input type="hidden" name="round" value="<%= r %>">
-      <button type="submit" class="btn btn--secondary">Next Round →</button>
+      <button type="submit" class="btn btn--secondary"><%= planned && r === planned ? 'Finish final round' : 'Next Round →' %></button>
     </form>
     <% } %>
   </section>
