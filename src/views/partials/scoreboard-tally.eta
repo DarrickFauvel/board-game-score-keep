@@ -30,16 +30,18 @@ const planned = Number(it.session.planned_rounds) || null;
 const target = Number(it.session.target_score) || null;
 const targetReached = isActive && target && standings.some(p => (totals[p.id] || 0) >= target);
 const allPlanned = isActive && planned && played >= planned && !targetReached;
-const roundLabel = (r) => planned && r <= planned ? 'Round ' + r + ' of ' + planned : 'Round ' + r;
+// The game's own word for a round ("Race 2 of 5") and for points
+const u = it.units(it.game);
+const roundLabel = (r) => planned && r <= planned ? u.Round + ' ' + r + ' of ' + planned : u.Round + ' ' + r;
 %>
 
 <section class="standings" aria-labelledby="standings-heading">
   <h2 id="standings-heading" class="standings__title">
     Standings
-    <span class="standings__meta"><% if (planned) { %><%= Math.min(played, planned) %> of <%= planned %> rounds played<%= played > planned ? ' + ' + (played - planned) + ' extra' : '' %><% } else { %><%= played %> round<%= played !== 1 ? 's' : '' %> played<% } %><% if (target) { %> · first to <%= target %><% } %></span>
+    <span class="standings__meta"><% if (planned) { %><%= Math.min(played, planned) %> of <%= planned %> <%= u.rounds %> played<%= played > planned ? ' + ' + (played - planned) + ' extra' : '' %><% } else { %><%= u.roundCount(played) %> played<% } %><% if (target) { %> · first to <%= target %><% } %></span>
   </h2>
   <% if (planned) { %>
-  <progress class="standings__progress" max="<%= planned %>" value="<%= Math.min(played, planned) %>" aria-label="Rounds played"></progress>
+  <progress class="standings__progress" max="<%= planned %>" value="<%= Math.min(played, planned) %>" aria-label="<%= u.Rounds %> played"></progress>
   <% } %>
   <ol class="standings__list" role="list">
     <% standings.forEach(function(p, i) {
@@ -61,7 +63,7 @@ const roundLabel = (r) => planned && r <= planned ? 'Round ' + r + ' of ' + plan
 
 <% if (allPlanned) { %>
 <div class="round-done" role="status">
-  <p><strong>All <%= planned %> rounds are in.</strong> Complete the session to lock the scores and crown the winner, or keep playing an extra round below.</p>
+  <p><strong>All <%= planned %> <%= u.rounds %> are in.</strong> Complete the session to lock the scores and crown the winner, or keep playing an extra <%= u.round %> below.</p>
   <form action="/games/<%= it.game.id %>/sessions/<%= it.session.id %>/complete" method="POST"
         data-confirm="Mark this session as complete? Scores will be locked."
         data-confirm-title="Complete Session"
@@ -82,11 +84,11 @@ const roundLabel = (r) => planned && r <= planned ? 'Round ' + r + ' of ' + plan
     <div class="round-card__header">
       <h3 id="round-<%= r %>-heading" class="round-card__title">
         <%= roundLabel(r) %>
-        <% if (isCurrent) { %><span class="badge badge--active"><%= planned && r === planned ? 'Final round' : planned && r > planned ? 'Extra round' : 'Current' %></span><% } %>
+        <% if (isCurrent) { %><span class="badge badge--active"><%= planned && r === planned ? 'Final ' + u.round : planned && r > planned ? 'Extra ' + u.round : 'Current' %></span><% } %>
       </h3>
       <% if (isCorrectable) { %>
       <button type="button" class="btn btn--ghost btn--sm" aria-pressed="false"
-              aria-label="Edit round <%= r %> scores" onclick="toggleRoundEdit(this)">Edit</button>
+              aria-label="Edit <%= u.round %> <%= r %> scores" onclick="toggleRoundEdit(this)">Edit</button>
       <% } %>
     </div>
     <ul class="round-card__rows" role="list">
@@ -102,7 +104,7 @@ const roundLabel = (r) => planned && r <= planned ? 'Round ' + r + ' of ' + plan
         <% if (isActive) { %>
         <score-input session-id="<%= it.session.id %>" participant-id="<%= p.id %>"
                      round="<%= r %>" value="<%= entry ? entry.value : 0 %>"
-                     aria-label="Round <%= r %> score for <%= p.display_name %>"></score-input>
+                     aria-label="<%= u.Round %> <%= r %> score for <%= p.display_name %>"></score-input>
         <% } %>
       </li>
       <% }) %>
@@ -111,7 +113,7 @@ const roundLabel = (r) => planned && r <= planned ? 'Round ' + r + ' of ' + plan
     <form class="round-card__next" method="POST"
           action="/games/<%= it.game.id %>/sessions/<%= it.session.id %>/rounds">
       <input type="hidden" name="round" value="<%= r %>">
-      <button type="submit" class="btn btn--secondary"><%= planned && r === planned ? 'Finish final round' : 'Next Round →' %></button>
+      <button type="submit" class="btn btn--secondary"><%= planned && r === planned ? 'Finish final ' + u.round : 'Next ' + u.Round + ' →' %></button>
     </form>
     <% } %>
   </section>

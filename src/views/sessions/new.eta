@@ -62,7 +62,7 @@
 
     <% if (it.game.scoring_mode === 'tally') { %>
     <div class="form-group" style="margin-top:var(--space-4)">
-      <label class="form-label" for="planned_rounds">Number of rounds</label>
+      <label class="form-label" for="planned_rounds">Number of <%= it.units(it.game).rounds %></label>
       <input class="form-control form-control--narrow" type="number" inputmode="numeric" id="planned_rounds" name="planned_rounds"
              min="1" max="99" step="1" value="<%= it.game.suggested_rounds || '' %>" aria-describedby="planned_rounds-hint">
       <span class="form-hint" id="planned_rounds-hint">
@@ -72,11 +72,11 @@
     <% } %>
 
     <div class="form-group" style="margin-top:var(--space-4)">
-      <label class="form-label" for="target_score">Points to win</label>
+      <label class="form-label" for="target_score"><%= it.units(it.game).Points %> to win</label>
       <input class="form-control form-control--narrow" type="number" inputmode="numeric" id="target_score" name="target_score"
              min="1" max="9999" step="1" value="<%= it.game.target_score || '' %>" aria-describedby="target_score-hint">
       <span class="form-hint" id="target_score-hint">
-        <% if (it.game.target_score) { %>The rules say first to <%= it.game.target_score %>. Change it for a shorter or longer game, or clear it to play without a target.<% } else { %>Optional. For "first to …" games; leave blank to play without a target.<% } %>
+        <% if (it.game.target_score) { %>The rules say first to <%= it.units(it.game).pointCount(Number(it.game.target_score)) %>. Change it for a shorter or longer game, or clear it to play without a target.<% } else { %>Optional. For "first to …" games; leave blank to play without a target.<% } %>
       </span>
     </div>
 

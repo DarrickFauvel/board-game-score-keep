@@ -9,6 +9,7 @@ import './components/qr-share.js';
 import './components/photo-gallery.js';
 import { primeAudio, celebrateVictory } from './components/victory-celebration.js';
 import './components/live-scores.js';
+import './units.js';
 
 /* Mount a shared confirm-dialog for programmatic use */
 const dialog = document.createElement('confirm-dialog');

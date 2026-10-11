@@ -59,14 +59,30 @@
     </div>
 
     <div class="form-group" data-show="$scoringMode === 'tally'">
-      <label class="form-label" for="suggested_rounds">Rounds per game</label>
+      <label class="form-label" for="round_name">What's a round called?</label>
+      <input class="form-control form-control--narrow" type="text" id="round_name" name="round_name" maxlength="24"
+             placeholder="round" value="<%= it.game.round_name || '' %>" aria-describedby="round_name-hint">
+      <span class="form-hint" id="round_name-hint">Optional. One of them, like race, hand or leg. The scoreboard says "Race 2 of 5" and "Next Race".</span>
+    </div>
+
+    <div class="form-group" data-show="$scoringMode === 'tally'">
+      <label class="form-label" for="suggested_rounds"
+             data-unit-label="round_name" data-unit-default="round" data-unit-template="{units} per game"><%= it.units(it.game).Rounds %> per game</label>
       <input class="form-control form-control--narrow" type="number" inputmode="numeric" id="suggested_rounds" name="suggested_rounds"
              min="1" max="99" step="1" value="<%= it.game.suggested_rounds || '' %>" aria-describedby="suggested_rounds-hint">
       <span class="form-hint" id="suggested_rounds-hint">From the rulebook. Each new session starts with this many; leave blank if the game ends some other way.</span>
     </div>
 
     <div class="form-group">
-      <label class="form-label" for="target_score">Points to win</label>
+      <label class="form-label" for="point_name">What are points called?</label>
+      <input class="form-control form-control--narrow" type="text" id="point_name" name="point_name" maxlength="24"
+             placeholder="point" value="<%= it.game.point_name || '' %>" aria-describedby="point_name-hint">
+      <span class="form-hint" id="point_name-hint">Optional. One of them, like victory point or VP. Used in "First to 10 victory points" and the victory celebration.</span>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label" for="target_score"
+             data-unit-label="point_name" data-unit-default="point" data-unit-template="{units} to win"><%= it.units(it.game).Points %> to win</label>
       <input class="form-control form-control--narrow" type="number" inputmode="numeric" id="target_score" name="target_score"
              min="1" max="9999" step="1" value="<%= it.game.target_score || '' %>" aria-describedby="target_score-hint">
       <span class="form-hint" id="target_score-hint">For "first to …" games, like 10 in Catan. Each new session starts with this target; leave blank if there isn't one.</span>
