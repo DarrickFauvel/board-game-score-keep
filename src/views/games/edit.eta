@@ -42,6 +42,13 @@
     </div>
 
     <div class="form-group">
+      <label class="form-label" for="rules_video_url">Rules video link</label>
+      <input class="form-control" type="url" inputmode="url" id="rules_video_url" name="rules_video_url" maxlength="500"
+             placeholder="https://www.youtube.com/watch?v=…" value="<%= it.game.rules_video_url || '' %>" aria-describedby="rules_video_url-hint">
+      <span class="form-hint" id="rules_video_url-hint">Optional. A how-to-play video, such as one on YouTube. It shows as a Rules video button during sessions.</span>
+    </div>
+
+    <div class="form-group">
       <label class="form-label" for="scoring_mode">Scoring mode <span class="required" aria-hidden="true">*</span></label>
       <select class="form-control" id="scoring_mode" name="scoring_mode" required aria-required="true"
               data-bind:scoring-mode>

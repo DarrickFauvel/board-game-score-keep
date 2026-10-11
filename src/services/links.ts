@@ -34,7 +34,12 @@ export function normalizeRulesUrl(value: unknown): string | null | false {
   return url ? url.toString() : url;
 }
 
+/** A how-to-play video link (YouTube, Vimeo, …): any web address, kept as given. */
+export const normalizeRulesVideoUrl = normalizeRulesUrl;
+
 export const BGG_URL_ERROR =
   "That doesn't look like a BoardGameGeek link. Paste the address of the game's page, like https://boardgamegeek.com/boardgame/266192/wingspan.";
 export const RULES_URL_ERROR =
   "The rules link needs to be a web address, like https://example.com/rules.pdf.";
+export const RULES_VIDEO_URL_ERROR =
+  "The rules video link needs to be a web address, like https://www.youtube.com/watch?v=….";
