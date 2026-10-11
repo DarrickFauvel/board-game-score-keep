@@ -26,14 +26,17 @@ const standings = it.participants.slice().sort((a, b) => (totals[b.id] || 0) - (
 const played = isActive ? finishedRounds.length : sortedRounds.length;
 // Optional round count set when the session started (from the game's rules by default)
 const planned = Number(it.session.planned_rounds) || null;
-const allPlanned = isActive && planned && played >= planned;
+// Optional "first to N points" target; once reached, its banner replaces this one
+const target = Number(it.session.target_score) || null;
+const targetReached = isActive && target && standings.some(p => (totals[p.id] || 0) >= target);
+const allPlanned = isActive && planned && played >= planned && !targetReached;
 const roundLabel = (r) => planned && r <= planned ? 'Round ' + r + ' of ' + planned : 'Round ' + r;
 %>
 
 <section class="standings" aria-labelledby="standings-heading">
   <h2 id="standings-heading" class="standings__title">
     Standings
-    <span class="standings__meta"><% if (planned) { %><%= Math.min(played, planned) %> of <%= planned %> rounds played<%= played > planned ? ' + ' + (played - planned) + ' extra' : '' %><% } else { %><%= played %> round<%= played !== 1 ? 's' : '' %> played<% } %></span>
+    <span class="standings__meta"><% if (planned) { %><%= Math.min(played, planned) %> of <%= planned %> rounds played<%= played > planned ? ' + ' + (played - planned) + ' extra' : '' %><% } else { %><%= played %> round<%= played !== 1 ? 's' : '' %> played<% } %><% if (target) { %> · first to <%= target %><% } %></span>
   </h2>
   <% if (planned) { %>
   <progress class="standings__progress" max="<%= planned %>" value="<%= Math.min(played, planned) %>" aria-label="Rounds played"></progress>
@@ -53,6 +56,8 @@ const roundLabel = (r) => planned && r <= planned ? 'Round ' + r + ' of ' + plan
     <% }) %>
   </ol>
 </section>
+
+<%~ include('../partials/target-reached', { ...it, totals }) %>
 
 <% if (allPlanned) { %>
 <div class="round-done" role="status">

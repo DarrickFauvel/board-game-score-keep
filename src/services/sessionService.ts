@@ -30,11 +30,14 @@ export const sessionService = {
     return result.rows[0] ?? null;
   },
 
-  async create(gameId: string, userId: string, body: Record<string, unknown>, plannedRounds: number | null = null) {
+  async create(
+    gameId: string, userId: string, body: Record<string, unknown>,
+    plannedRounds: number | null = null, targetScore: number | null = null,
+  ) {
     const result = await db.execute({
       // rounds_closed = 0: rounds advance only when someone taps Next Round
-      sql: 'INSERT INTO sessions (game_id, created_by, planned_rounds, rounds_closed) VALUES (?, ?, ?, 0) RETURNING *',
-      args: [gameId, userId, plannedRounds],
+      sql: 'INSERT INTO sessions (game_id, created_by, planned_rounds, target_score, rounds_closed) VALUES (?, ?, ?, ?, 0) RETURNING *',
+      args: [gameId, userId, plannedRounds, targetScore],
     });
     const session = result.rows[0];
 

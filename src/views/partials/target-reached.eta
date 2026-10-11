@@ -1,0 +1,28 @@
+<%/* "First to N points" for an active session: who's reached the target, with
+     a button to complete the session. Expects it.totals (participant id → total).
+     Reaching it ends the game; the winner is still the highest total, since two
+     can cross together. With showGoal, says what the target is until then. */%>
+<%
+const target = Number(it.session.target_score) || null;
+const reached = target && it.session.status === 'active'
+  ? it.participants.filter(p => (it.totals[p.id] || 0) >= target)
+      .sort((a, b) => (it.totals[b.id] || 0) - (it.totals[a.id] || 0))
+  : [];
+%>
+<% if (reached.length) {
+   const names = reached.map(p => p.display_name);
+   const who = names.length > 1 ? names.slice(0, -1).join(', ') + ' and ' + names[names.length - 1] : names[0];
+%>
+<div class="round-done" role="status">
+  <p><strong>🏁 <%= who %> reached <%= target %>!</strong> Complete the session to lock the scores and crown the winner<%= names.length > 1 ? ' (the highest total takes it)' : '' %>.</p>
+  <form action="/games/<%= it.game.id %>/sessions/<%= it.session.id %>/complete" method="POST"
+        data-confirm="Mark this session as complete? Scores will be locked."
+        data-confirm-title="Complete Session"
+        data-confirm-label="Complete"
+        data-celebrate>
+    <button type="submit" class="btn btn--gold">Complete Session</button>
+  </form>
+</div>
+<% } else if (target && it.showGoal) { %>
+<p class="form-hint" style="margin-bottom:var(--space-2)">First to <%= target %> points wins.</p>
+<% } %>
