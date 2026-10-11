@@ -126,10 +126,13 @@ function factLines({ gameName, winners }) {
   return winners.flatMap((w) => winnerFactLines(w.name, w.facts, gameName).slice(0, perWinner));
 }
 
+/** "7 victory points", in the game's own word for points when the server sent one. */
+const scoreLabel = ({ score, scoreLabel: label }) => label ?? `${score} point${score === 1 ? '' : 's'}`;
+
 /** The announcement in two parts: who won, then what's special about it. */
 function announcementText(data) {
-  const { gameName, score, winners } = data;
-  const pts = `${score} point${score === 1 ? '' : 's'}`;
+  const { gameName, winners } = data;
+  const pts = scoreLabel(data);
   const facts = factLines(data).join(' ');
   if (winners.length === 1) {
     const [w] = winners;
@@ -326,7 +329,7 @@ export function celebrateVictory(data) {
       <div class="victory__trophy" aria-hidden="true">🏆</div>
       <p class="victory__eyebrow">${escapeHtml(data.gameName)}</p>
       <h2 class="victory__title" id="victory-title">${escapeHtml(title)}</h2>
-      <p class="victory__detail" id="victory-detail">${data.score} point${data.score === 1 ? '' : 's'}</p>
+      <p class="victory__detail" id="victory-detail">${escapeHtml(scoreLabel(data))}</p>
       ${facts.length ? `<ul class="victory__facts" id="victory-facts">${facts.map((f) => `<li>${escapeHtml(f)}</li>`).join('')}</ul>` : ''}
       <div class="victory__actions">
         <button type="button" class="btn btn--gold" data-victory-sound>🔊 Play announcement</button>

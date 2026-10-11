@@ -7,6 +7,11 @@ function suggestedRounds(body: Record<string, unknown>) {
   return body.scoring_mode === 'tally' ? parseRoundCount(body.suggested_rounds) : null;
 }
 
+/** Likewise a name for them. Already normalized by the route. */
+function roundName(body: Record<string, unknown>) {
+  return body.scoring_mode === 'tally' ? (body.round_name as string) || null : null;
+}
+
 export const gameService = {
   async listByOwner(userId: string) {
     const result = await db.execute({
@@ -28,8 +33,8 @@ export const gameService = {
     const imageUrl = await resolveImageUrl(file, body.image_url as string | undefined, 'games');
     const result = await db.execute({
       sql: `INSERT INTO games
-              (owner_id, name, image_url, scoring_mode, teams_mode, color_primary, color_secondary, color_accent, suggested_rounds, target_score, bgg_url, rules_url, rules_video_url)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+              (owner_id, name, image_url, scoring_mode, teams_mode, color_primary, color_secondary, color_accent, suggested_rounds, target_score, bgg_url, rules_url, rules_video_url, round_name, point_name)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             RETURNING *`,
       args: [
         userId,
@@ -45,6 +50,8 @@ export const gameService = {
         (body.bgg_url as string) || null,
         (body.rules_url as string) || null,
         (body.rules_video_url as string) || null,
+        roundName(body),
+        (body.point_name as string) || null,
       ],
     });
     const game = result.rows[0];
@@ -70,13 +77,13 @@ export const gameService = {
     await db.execute({
       sql: `UPDATE games SET
               name = ?, scoring_mode = ?, teams_mode = ?,
-              color_primary = ?, color_secondary = ?, color_accent = ?, suggested_rounds = ?, target_score = ?, bgg_url = ?, rules_url = ?, rules_video_url = ?,
+              color_primary = ?, color_secondary = ?, color_accent = ?, suggested_rounds = ?, target_score = ?, bgg_url = ?, rules_url = ?, rules_video_url = ?, round_name = ?, point_name = ?,
               updated_at = strftime('%Y-%m-%dT%H:%M:%fZ','now')
               ${imageUrl !== undefined ? ', image_url = ?' : ''}
             WHERE id = ?`,
       args: imageUrl !== undefined
-        ? [body.name as string, body.scoring_mode as string, (body.teams_mode as string) ?? 'none', (body.color_primary as string) || null, (body.color_secondary as string) || null, (body.color_accent as string) || null, suggestedRounds(body), parseTargetScore(body.target_score), (body.bgg_url as string) || null, (body.rules_url as string) || null, (body.rules_video_url as string) || null, imageUrl, id]
-        : [body.name as string, body.scoring_mode as string, (body.teams_mode as string) ?? 'none', (body.color_primary as string) || null, (body.color_secondary as string) || null, (body.color_accent as string) || null, suggestedRounds(body), parseTargetScore(body.target_score), (body.bgg_url as string) || null, (body.rules_url as string) || null, (body.rules_video_url as string) || null, id],
+        ? [body.name as string, body.scoring_mode as string, (body.teams_mode as string) ?? 'none', (body.color_primary as string) || null, (body.color_secondary as string) || null, (body.color_accent as string) || null, suggestedRounds(body), parseTargetScore(body.target_score), (body.bgg_url as string) || null, (body.rules_url as string) || null, (body.rules_video_url as string) || null, roundName(body), (body.point_name as string) || null, imageUrl, id]
+        : [body.name as string, body.scoring_mode as string, (body.teams_mode as string) ?? 'none', (body.color_primary as string) || null, (body.color_secondary as string) || null, (body.color_accent as string) || null, suggestedRounds(body), parseTargetScore(body.target_score), (body.bgg_url as string) || null, (body.rules_url as string) || null, (body.rules_video_url as string) || null, roundName(body), (body.point_name as string) || null, id],
     });
 
     if (body.scoring_mode === 'categories') {

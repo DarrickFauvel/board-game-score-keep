@@ -21,13 +21,14 @@
       <dl style="display:grid;grid-template-columns:auto 1fr;gap:var(--space-1) var(--space-3)">
         <dt style="font-weight:600;color:var(--color-text-muted)">Scoring</dt>
         <dd><%= it.game.scoring_mode === 'tally' ? 'Running tally' : it.game.scoring_mode === 'final' ? 'Final score' : 'Custom categories' %></dd>
+        <% const u = it.units(it.game) %>
         <% if (it.game.scoring_mode === 'tally' && it.game.suggested_rounds) { %>
-        <dt style="font-weight:600;color:var(--color-text-muted)">Rounds</dt>
+        <dt style="font-weight:600;color:var(--color-text-muted)"><%= u.Rounds %></dt>
         <dd><%= it.game.suggested_rounds %> per game</dd>
         <% } %>
         <% if (it.game.target_score) { %>
         <dt style="font-weight:600;color:var(--color-text-muted)">To win</dt>
-        <dd>First to <%= it.game.target_score %> points</dd>
+        <dd>First to <%= u.pointCount(Number(it.game.target_score)) %></dd>
         <% } %>
         <dt style="font-weight:600;color:var(--color-text-muted)">Teams</dt>
         <dd><%= it.game.teams_mode === 'none' ? 'Individual players' : it.game.teams_mode === 'adhoc' ? 'Ad-hoc teams' : 'Profile-linked teams' %></dd>

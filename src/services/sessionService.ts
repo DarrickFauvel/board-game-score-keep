@@ -1,6 +1,7 @@
 import { db } from '../db/client.js';
 import { processUploadedImage } from './imageService.js';
 import { standingsService } from './standingsService.js';
+import { gameUnits } from './units.js';
 
 interface ParticipantInput {
   display_name: string;
@@ -84,7 +85,7 @@ export const sessionService = {
    */
   async getCelebration(sessionId: string, userId: string) {
     const result = await db.execute({
-      sql: `SELECT s.game_id, g.name AS game_name, sp.id, sp.display_name, sp.color, p.preferred_color,
+      sql: `SELECT s.game_id, g.name AS game_name, g.point_name, sp.id, sp.display_name, sp.color, p.preferred_color,
                    COALESCE(SUM(se.value), 0) AS total
             FROM session_participants sp
             JOIN sessions s ON s.id = sp.session_id
@@ -97,7 +98,7 @@ export const sessionService = {
       args: [sessionId],
     });
     const rows = (result.rows as unknown as {
-      game_id: string; game_name: string; id: string; display_name: string; color: string | null; preferred_color: string | null; total: number;
+      game_id: string; game_name: string; point_name: string | null; id: string; display_name: string; color: string | null; preferred_color: string | null; total: number;
     }[]).map((r) => ({ ...r, total: Number(r.total) }));
     const top = Math.max(0, ...rows.map((r) => r.total));
     const facts = top > 0 && rows.length
@@ -106,6 +107,7 @@ export const sessionService = {
     return {
       gameName: rows[0]?.game_name ?? '',
       score: top,
+      scoreLabel: gameUnits(rows[0]).pointCount(top),  // "7 victory points"
       winners: top > 0
         ? rows.filter((r) => r.total === top).map((r) => ({
             name: r.display_name,
