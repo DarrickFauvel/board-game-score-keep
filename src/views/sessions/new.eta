@@ -71,6 +71,15 @@
     </div>
     <% } %>
 
+    <div class="form-group" style="margin-top:var(--space-4)">
+      <label class="form-label" for="target_score">Points to win</label>
+      <input class="form-control form-control--narrow" type="number" inputmode="numeric" id="target_score" name="target_score"
+             min="1" max="9999" step="1" value="<%= it.game.target_score || '' %>" aria-describedby="target_score-hint">
+      <span class="form-hint" id="target_score-hint">
+        <% if (it.game.target_score) { %>The rules say first to <%= it.game.target_score %>. Change it for a shorter or longer game, or clear it to play without a target.<% } else { %>Optional. For "first to …" games; leave blank to play without a target.<% } %>
+      </span>
+    </div>
+
     <div class="form-actions" style="margin-top:var(--space-6)">
       <a href="/games/<%= it.game.id %>" class="btn btn--secondary">Cancel</a>
       <button type="submit" class="btn btn--primary">Start Session</button>

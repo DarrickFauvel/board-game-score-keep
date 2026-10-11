@@ -25,6 +25,10 @@
         <dt style="font-weight:600;color:var(--color-text-muted)">Rounds</dt>
         <dd><%= it.game.suggested_rounds %> per game</dd>
         <% } %>
+        <% if (it.game.target_score) { %>
+        <dt style="font-weight:600;color:var(--color-text-muted)">To win</dt>
+        <dd>First to <%= it.game.target_score %> points</dd>
+        <% } %>
         <dt style="font-weight:600;color:var(--color-text-muted)">Teams</dt>
         <dd><%= it.game.teams_mode === 'none' ? 'Individual players' : it.game.teams_mode === 'adhoc' ? 'Ad-hoc teams' : 'Profile-linked teams' %></dd>
         <% if (it.game.rules_url || it.game.rules_video_url || it.game.bgg_url) { %>

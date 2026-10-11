@@ -7,6 +7,8 @@ const maxTotal = Math.max(...Object.values(totals), 0);
 const isActive = it.session.status === 'active';
 %>
 
+<%~ include('../partials/target-reached', { ...it, totals, showGoal: true }) %>
+
 <%/* One score per player, so a list rather than a table: on phones the stepper
      drops below a long name instead of forcing a sideways scroll. */%>
 <section class="round-card" aria-labelledby="final-scores-heading">
