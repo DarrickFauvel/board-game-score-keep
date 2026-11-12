@@ -1,6 +1,6 @@
 <%/* "First to N points" for an active session: who's reached the target, with
      a button to complete the session. Expects it.totals (participant id → total).
-     Reaching it ends the game; the winner is still decided by the game's rule:
+     Reaching it ends the game; the winner is still decided by the game rule:
      the highest total, since two can cross together, or in lowest-wins games
      (Hearts) the lowest. With showGoal, says what the target is until then. */%>
 <%

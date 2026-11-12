@@ -4,7 +4,7 @@ for (const p of it.participants) totals[p.id] = 0;
 for (const entry of it.scores) {
   totals[entry.participant_id] = (totals[entry.participant_id] || 0) + (entry.value || 0);
 }
-// The winning total by the game's rule (highest, or lowest); null while undecided
+// The winning total by the game rule (highest, or lowest); null while undecided
 const rule = it.winRule(it.game);
 const winTotal = rule.winningTotal(Object.values(totals));
 %>

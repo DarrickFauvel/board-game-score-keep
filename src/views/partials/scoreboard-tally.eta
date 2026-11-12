@@ -17,7 +17,7 @@ const nextRound = it.session.rounds_closed != null
   ? Number(it.session.rounds_closed) + 1
   : (latestRound > 0 && latestScored < it.participants.length ? latestRound : latestRound + 1);
 const finishedRounds = sortedRounds.filter(r => r !== nextRound);
-// The winning total by the game's rule (highest, or lowest); null while undecided
+// The winning total by the game rule (highest, or lowest); null while undecided
 const rule = it.winRule(it.game);
 const winTotal = rule.winningTotal(Object.values(totals));
 const isActive = it.session.status === 'active';

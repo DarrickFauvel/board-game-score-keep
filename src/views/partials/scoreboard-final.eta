@@ -3,7 +3,7 @@ const totals = {};
 for (const p of it.participants) {
   totals[p.id] = it.scores.filter(s => s.participant_id === p.id).reduce((sum, s) => sum + (s.value || 0), 0);
 }
-// The winning total by the game's rule (highest, or lowest); null while undecided
+// The winning total by the game rule (highest, or lowest); null while undecided
 const rule = it.winRule(it.game);
 const winTotal = rule.winningTotal(Object.values(totals));
 const isActive = it.session.status === 'active';
