@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#2c2416">
+  <meta name="theme-color" content="#0c0a08">
   <meta name="description" content="Board Game Score Keep — track your game nights">
   <title><%= it.title ? it.title + ' | ' : '' %>Board Game Score Keep</title>
 
@@ -11,8 +11,8 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <%/* Cinzel: Roman carved capitals for the wordmark and Keep display type */%>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&display=swap">
+  <%/* The landing page's pairing: Funnel Display for headings and numbers, Funnel Sans for text, DM Mono for labels */%>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Funnel+Display:wght@400..700&family=Funnel+Sans:wght@400..700&family=DM+Mono:wght@400;500&display=swap">
 
   <link rel="stylesheet" href="/css/tokens.css">
   <link rel="stylesheet" href="/css/reset.css">
@@ -57,9 +57,10 @@
 
     <nav class="site-header__nav" aria-label="Main navigation">
       <% if (it.user) { %>
-      <a href="/games">My Games</a>
-      <a href="/players">Players</a>
-      <a href="/standings">Standings</a>
+      <% const here = (href) => (it.currentPath || '').startsWith(href) ? ' aria-current="page"' : '' %>
+      <a href="/games"<%~ here('/games') %>>My Games</a>
+      <a href="/players"<%~ here('/players') %>>Players</a>
+      <a href="/standings"<%~ here('/standings') %>>Standings</a>
       <qr-share></qr-share>
       <theme-toggle aria-label="Toggle dark mode"></theme-toggle>
       <form action="/auth/logout" method="POST" style="margin:0">

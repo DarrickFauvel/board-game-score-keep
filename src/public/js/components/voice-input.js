@@ -32,7 +32,7 @@ class VoiceInput extends HTMLElement {
           animation: pulse 1s ease-in-out infinite;
         }
         button:hover { background: var(--color-surface, #e8e0d0); }
-        button:focus-visible { outline: 3px solid #0066cc; outline-offset: 2px; }
+        button:focus-visible { outline: 3px solid var(--color-border-focus, #1c1a17); outline-offset: 2px; }
         @keyframes pulse {
           0%, 100% { transform: scale(1); }
           50% { transform: scale(1.15); }

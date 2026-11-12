@@ -3,79 +3,91 @@
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     color-scheme: dark;
-    --color-bg:          #1a1612;
-    --color-bg-raised:   #252118;
-    --color-surface:     #2e2920;
-    --color-text:        #f0e8d8;
-    --color-text-muted:  #aa9c89;
-    --color-border:      #4a4035;
-    --color-border-input: #7a6e62;
-    --color-border-focus: #4d9fff;
-    --color-focus-ring:  0 0 0 3px rgba(77 159 255 / 0.5);
-    --color-on-focus:    #10141a;
+    --color-bg:          #0c0a08;
+    --color-bg-base:     #0c0a08;
+    --color-bg-raised:   #181512;
+    --color-surface:     #221e1a;
+    --color-text:        #f3efe8;
+    --color-text-muted:  #a39d93;
+    --color-border:      #2e2a25;
+    --color-border-strong: #3d3832;
+    --color-border-input: #6b645a;
+    --color-border-focus: #c9a45a;
+    --color-focus-ring:  0 0 0 3px rgb(201 164 90 / 0.45);
+    --color-on-focus:    #0c0a08;
 
-    --color-chrome:       #110e0b;
-    --color-chrome-text:  #f0e8d8;
+    --color-chrome:       #0c0a08;
+    --color-chrome-text:  #f3efe8;
+    --color-chrome-line:  rgb(255 255 255 / 0.08);
 
-    --color-primary:       #f0e8d8;
-    --color-primary-hover: #d9ccb4;
-    --color-on-primary:    #1a1612;
-    --color-gold:          #d4a83c;
-    --color-gold-hover:    #e0b955;
-    --color-on-gold:       #1a1612;
-    --color-gold-text:     #e0b955;
+    --color-primary:       #f3efe8;
+    --color-primary-hover: #d9d3c8;
+    --color-on-primary:    #0c0a08;
+    --color-gold:          #c9a45a;
+    --color-gold-hover:    #d4b46e;
+    --color-on-gold:       #0c0a08;
+    --color-gold-text:     #d9b876;
 
-    --color-success:  #86d39a;
+    --color-success:  #8fd19b;
     --color-warning:  #e8b64a;
     --color-danger:   #f28b82;
     --color-info:     #8fbcf2;
-    --color-complete: #b4bcfa;
+    --color-complete: #d9d3c8;
     --color-danger-hover: #f6a9a2;
-    --color-on-danger:    #1a1612;
-    --color-success-bg:   #16301d;
+    --color-on-danger:    #0c0a08;
+    --color-success-bg:   #15261a;
     --color-danger-bg:    #3a1a17;
     --color-info-bg:      #15263d;
-    --color-complete-bg:  #24244a;
-    --color-gold-bg:      #352b12;
+    --color-complete-bg:  #2a2622;
+    --color-gold-bg:      #2a2112;
+
+    --shadow-sm: 0 0 0 1px rgb(255 255 255 / 0.02);
+    --shadow-md: 0 0 0 1px rgb(255 255 255 / 0.04), 0 12px 28px -14px rgb(0 0 0 / 0.7);
   }
 }
 
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --color-bg:          #1a1612;
-  --color-bg-raised:   #252118;
-  --color-surface:     #2e2920;
-  --color-text:        #f0e8d8;
-  --color-text-muted:  #aa9c89;
-  --color-border:      #4a4035;
-  --color-border-input: #7a6e62;
-  --color-border-focus: #4d9fff;
-  --color-focus-ring:  0 0 0 3px rgba(77 159 255 / 0.5);
-  --color-on-focus:    #10141a;
+  --color-bg:          #0c0a08;
+  --color-bg-base:     #0c0a08;
+  --color-bg-raised:   #181512;
+  --color-surface:     #221e1a;
+  --color-text:        #f3efe8;
+  --color-text-muted:  #a39d93;
+  --color-border:      #2e2a25;
+  --color-border-strong: #3d3832;
+  --color-border-input: #6b645a;
+  --color-border-focus: #c9a45a;
+  --color-focus-ring:  0 0 0 3px rgb(201 164 90 / 0.45);
+  --color-on-focus:    #0c0a08;
 
-  --color-chrome:       #110e0b;
-  --color-chrome-text:  #f0e8d8;
+  --color-chrome:       #0c0a08;
+  --color-chrome-text:  #f3efe8;
+  --color-chrome-line:  rgb(255 255 255 / 0.08);
 
-  --color-primary:       #f0e8d8;
-  --color-primary-hover: #d9ccb4;
-  --color-on-primary:    #1a1612;
-  --color-gold:          #d4a83c;
-  --color-gold-hover:    #e0b955;
-  --color-on-gold:       #1a1612;
-  --color-gold-text:     #e0b955;
+  --color-primary:       #f3efe8;
+  --color-primary-hover: #d9d3c8;
+  --color-on-primary:    #0c0a08;
+  --color-gold:          #c9a45a;
+  --color-gold-hover:    #d4b46e;
+  --color-on-gold:       #0c0a08;
+  --color-gold-text:     #d9b876;
 
-  --color-success:  #86d39a;
+  --color-success:  #8fd19b;
   --color-warning:  #e8b64a;
   --color-danger:   #f28b82;
   --color-info:     #8fbcf2;
-  --color-complete: #b4bcfa;
+  --color-complete: #d9d3c8;
   --color-danger-hover: #f6a9a2;
-  --color-on-danger:    #1a1612;
-  --color-success-bg:   #16301d;
+  --color-on-danger:    #0c0a08;
+  --color-success-bg:   #15261a;
   --color-danger-bg:    #3a1a17;
   --color-info-bg:      #15263d;
-  --color-complete-bg:  #24244a;
-  --color-gold-bg:      #352b12;
+  --color-complete-bg:  #2a2622;
+  --color-gold-bg:      #2a2112;
+
+  --shadow-sm: 0 0 0 1px rgb(255 255 255 / 0.02);
+  --shadow-md: 0 0 0 1px rgb(255 255 255 / 0.04), 0 12px 28px -14px rgb(0 0 0 / 0.7);
 }
 
 /* ─── High contrast mode ────────────────────────── */
