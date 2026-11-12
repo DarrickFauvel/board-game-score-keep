@@ -11,6 +11,7 @@ import { errorHandler, notFound } from './middleware/error.js';
 import { config } from './config.js';
 import { resolveImageUrl } from './services/imageService.js';
 import { gameUnits } from './services/units.js';
+import { winRule } from './services/winRule.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -49,7 +50,7 @@ export function createApp() {
   app.use((_req: Request, res: Response, next: NextFunction) => {
     res.renderEta = (template: string, data: Record<string, unknown> = {}) => {
       try {
-        const html = eta.render(template, { ...data, config, imgUrl: resolveImageUrl, units: gameUnits });
+        const html = eta.render(template, { ...data, config, imgUrl: resolveImageUrl, units: gameUnits, winRule });
         res.send(html);
       } catch (err) { next(err); }
     };

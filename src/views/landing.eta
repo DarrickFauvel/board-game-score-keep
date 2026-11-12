@@ -389,7 +389,7 @@
         </div>
         <div class="faq span-6 start-7">
           <div class="faq__item"><h3>Which games does it work with?</h3><p>Any game that ends in points. Add the game once, pick how it scores, and reuse it every session.</p></div>
-          <div class="faq__item"><h3>Can the lowest score win?</h3><p>Not yet. Every game ranks the highest total first, so golf-style games such as Hearts read backwards for now.</p></div>
+          <div class="faq__item"><h3>Can the lowest score win?</h3><p>Yes. Set Who wins to Lowest score on a game such as Golf or Hearts, and the scoreboard, the trophy and the standings all rank the lowest total first.</p></div>
           <div class="faq__item"><h3>Do the other players need an account?</h3><p>No. Players are names you add to a session; only the person keeping score signs in.</p></div>
           <div class="faq__item"><h3>Does it remember past games?</h3><p>Yes. Each finished session keeps its scores, photos and notes, and counts toward the standings.</p></div>
           <div class="faq__item"><h3>Is there an app to download?</h3><p>No. It runs in the phone's browser: open the address and sign in.</p></div>

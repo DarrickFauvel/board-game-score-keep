@@ -26,9 +26,12 @@
         <dt style="font-weight:600;color:var(--color-text-muted)"><%= u.Rounds %></dt>
         <dd><%= it.game.suggested_rounds %> per game</dd>
         <% } %>
+        <% const lowestWins = it.winRule(it.game).lowestWins %>
+        <dt style="font-weight:600;color:var(--color-text-muted)">Winner</dt>
+        <dd><%= lowestWins ? 'Lowest score' : 'Highest score' %></dd>
         <% if (it.game.target_score) { %>
-        <dt style="font-weight:600;color:var(--color-text-muted)">To win</dt>
-        <dd>First to <%= u.pointCount(Number(it.game.target_score)) %></dd>
+        <dt style="font-weight:600;color:var(--color-text-muted)"><%= lowestWins ? 'Game ends' : 'To win' %></dt>
+        <dd><%= lowestWins ? 'When someone reaches' : 'First to' %> <%= u.pointCount(Number(it.game.target_score)) %></dd>
         <% } %>
         <dt style="font-weight:600;color:var(--color-text-muted)">Teams</dt>
         <dd><%= it.game.teams_mode === 'none' ? 'Individual players' : it.game.teams_mode === 'adhoc' ? 'Ad-hoc teams' : 'Profile-linked teams' %></dd>

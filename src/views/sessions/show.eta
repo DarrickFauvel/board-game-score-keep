@@ -1,9 +1,10 @@
 <% layout('../layouts/base') %>
 <%
-// Same rule as the scoreboard trophy: someone finished on a total above 0
+// Same rule as the scoreboard trophy (see winRule): the game has been decided
 const sessionTotals = {};
+for (const p of it.participants) sessionTotals[p.id] = 0;
 for (const s of it.scores) sessionTotals[s.participant_id] = (sessionTotals[s.participant_id] || 0) + (s.value || 0);
-const hasWinner = Math.max(0, ...Object.values(sessionTotals)) > 0;
+const hasWinner = it.winRule(it.game).winningTotal(Object.values(sessionTotals)) !== null;
 %>
 
 <div class="page-header">
@@ -47,7 +48,6 @@ const totals = {};
 for (const p of it.participants) {
   totals[p.id] = it.scores.filter(s => s.participant_id === p.id).reduce((sum, s) => sum + (s.value || 0), 0);
 }
-const maxTotal = Math.max(...Object.values(totals), 0);
 %>
 
 <%/* Live sync while the session is active: the stream patches two signals,

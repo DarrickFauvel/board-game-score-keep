@@ -49,7 +49,11 @@ export const playerService = {
               s.status,
               sp.display_name,
               SUM(se.value) AS total_score,
-              RANK() OVER (PARTITION BY s.id ORDER BY SUM(se.value) DESC) AS rank
+              -- 1 = won: highest total, or lowest in lowest-wins games
+              RANK() OVER (
+                PARTITION BY s.id
+                ORDER BY CASE WHEN g.lowest_wins = 1 THEN COALESCE(SUM(se.value), 0) ELSE -COALESCE(SUM(se.value), 0) END
+              ) AS rank
             FROM session_participants sp
             JOIN sessions s ON s.id = sp.session_id
             JOIN games g ON g.id = s.game_id

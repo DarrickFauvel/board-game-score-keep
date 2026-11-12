@@ -98,7 +98,7 @@ router.post('/:id',
         const categories = await scoreService.listCategories(req.params.id);
         // Keep what was typed so it can be corrected
         const typed = { ...game, bgg_url: req.body.bgg_url, rules_url: req.body.rules_url, rules_video_url: req.body.rules_video_url,
-          round_name: req.body.round_name, point_name: req.body.point_name };
+          round_name: req.body.round_name, point_name: req.body.point_name, lowest_wins: req.body.lowest_wins };
         return res.status(400).renderEta('games/edit', { title: `Edit ${game.name}`, game: typed, categories, user: req.user, error: parsed.error });
       }
       await gameService.update(req.params.id, { ...req.body, ...parsed.fields } as Record<string, unknown>, req.file);
