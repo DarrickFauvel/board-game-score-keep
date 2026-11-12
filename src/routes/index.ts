@@ -7,7 +7,7 @@ import teamsRouter from './teams.js';
 import standingsRouter from './standings.js';
 import sseRouter from './sse.js';
 import proxyRouter from './proxy.js';
-import { requireAuth } from '../middleware/auth.js';
+import { requireAuth, optionalAuth } from '../middleware/auth.js';
 
 const router = Router();
 
@@ -20,7 +20,9 @@ router.use('/players', requireAuth, playersRouter);
 router.use('/teams', requireAuth, teamsRouter);
 router.use('/standings', requireAuth, standingsRouter);
 
-router.get('/', requireAuth, async (req, res, next) => {
+// Signed-out visitors get the public landing page; signed-in users get The Keep.
+router.get('/', optionalAuth, async (req, res, next) => {
+  if (!req.user) return res.renderEta('landing');
   try {
     const { gameService } = await import('../services/gameService.js');
     const { standingsService } = await import('../services/standingsService.js');

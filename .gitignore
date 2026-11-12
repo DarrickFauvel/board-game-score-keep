@@ -9,3 +9,8 @@ src/public/uploads/
 *.db
 *.db-shm
 *.db-wal
+
+# Taste Skill (reinstall: npx skills add Leonxlnx/taste-skill)
+.claude/skills/design-taste-frontend/
+.taste-skill/
+.claude/settings.local.json
