@@ -4,7 +4,9 @@ for (const p of it.participants) totals[p.id] = 0;
 for (const entry of it.scores) {
   totals[entry.participant_id] = (totals[entry.participant_id] || 0) + (entry.value || 0);
 }
-const maxTotal = Math.max(...Object.values(totals), 0);
+// The winning total by the game's rule (highest, or lowest); null while undecided
+const rule = it.winRule(it.game);
+const winTotal = rule.winningTotal(Object.values(totals));
 %>
 
 <%~ include('../partials/target-reached', { ...it, totals, showGoal: true }) %>
@@ -21,7 +23,7 @@ const maxTotal = Math.max(...Object.values(totals), 0);
   <tbody>
     <% it.participants.forEach(function(p) {
        const total = totals[p.id] || 0;
-       const isWinner = it.session.status === 'completed' && total === maxTotal && maxTotal > 0;
+       const isWinner = it.session.status === 'completed' && total === winTotal;
     %>
     <tr id="participant-<%= p.id %>" class="<%= isWinner ? 'score-winner' : '' %>">
       <td>
@@ -50,7 +52,7 @@ const maxTotal = Math.max(...Object.values(totals), 0);
     <tr>
       <td>Total</td>
       <% it.categories.forEach(function() { %><td></td><% }) %>
-      <td><strong><%= Math.max(...Object.values(totals)) || 0 %></strong></td>
+      <td><strong><%= rule.best(Object.values(totals)) %></strong></td>
     </tr>
   </tfoot>
 </table>

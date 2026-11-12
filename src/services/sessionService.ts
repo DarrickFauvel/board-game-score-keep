@@ -2,6 +2,7 @@ import { db } from '../db/client.js';
 import { processUploadedImage } from './imageService.js';
 import { standingsService } from './standingsService.js';
 import { gameUnits } from './units.js';
+import { winRule } from './winRule.js';
 
 interface ParticipantInput {
   display_name: string;
@@ -78,14 +79,14 @@ export const sessionService = {
   },
 
   /**
-   * Who won, for the victory celebration: everyone tied on the highest
-   * positive total (the scoreboard's trophy rule). No winners when nobody
-   * scored above 0. Each winner carries their record in this game (see
+   * Who won, for the victory celebration: everyone tied on the winning total
+   * (the scoreboard's trophy rule, see winRule). No winners while the game is
+   * undecided. Each winner carries their record in this game (see
    * standingsService.winnerFacts) once the session is completed.
    */
   async getCelebration(sessionId: string, userId: string) {
     const result = await db.execute({
-      sql: `SELECT s.game_id, g.name AS game_name, g.point_name, sp.id, sp.display_name, sp.color, p.preferred_color,
+      sql: `SELECT s.game_id, g.name AS game_name, g.point_name, g.lowest_wins, sp.id, sp.display_name, sp.color, p.preferred_color,
                    COALESCE(SUM(se.value), 0) AS total
             FROM session_participants sp
             JOIN sessions s ON s.id = sp.session_id
@@ -98,17 +99,17 @@ export const sessionService = {
       args: [sessionId],
     });
     const rows = (result.rows as unknown as {
-      game_id: string; game_name: string; point_name: string | null; id: string; display_name: string; color: string | null; preferred_color: string | null; total: number;
+      game_id: string; game_name: string; point_name: string | null; lowest_wins: number; id: string; display_name: string; color: string | null; preferred_color: string | null; total: number;
     }[]).map((r) => ({ ...r, total: Number(r.total) }));
-    const top = Math.max(0, ...rows.map((r) => r.total));
-    const facts = top > 0 && rows.length
+    const top = winRule(rows[0]).winningTotal(rows.map((r) => r.total));
+    const facts = top !== null
       ? await standingsService.winnerFacts(userId, rows[0].game_id, sessionId)
       : new Map();
     return {
       gameName: rows[0]?.game_name ?? '',
-      score: top,
-      scoreLabel: gameUnits(rows[0]).pointCount(top),  // "7 victory points"
-      winners: top > 0
+      score: top ?? 0,
+      scoreLabel: gameUnits(rows[0]).pointCount(top ?? 0),  // "7 victory points"
+      winners: top !== null
         ? rows.filter((r) => r.total === top).map((r) => ({
             name: r.display_name,
             color: r.color ?? r.preferred_color ?? null,

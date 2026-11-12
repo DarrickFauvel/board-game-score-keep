@@ -1,4 +1,5 @@
 import { db } from '../db/client.js';
+import { winRule } from './winRule.js';
 
 export interface Standing {
   key: string;
@@ -35,6 +36,7 @@ interface ParticipantResult {
   player_name: string | null;
   avatar_url: string | null;
   preferred_color: string | null;
+  lowest_wins: number;
   total: number;
 }
 
@@ -50,7 +52,7 @@ function personKey(r: ParticipantResult) {
 /** Every participant's total in the user's completed sessions, oldest session first. */
 async function fetchResults(userId: string, gameId?: string): Promise<ParticipantResult[]> {
   const result = await db.execute({
-    sql: `SELECT s.id AS session_id, s.game_id, g.name AS game_name, s.completed_at,
+    sql: `SELECT s.id AS session_id, s.game_id, g.name AS game_name, g.lowest_wins, s.completed_at,
                  sp.id AS participant_id, sp.player_id, sp.display_name, sp.color,
                  p.display_name AS player_name, p.avatar_url, p.preferred_color,
                  COALESCE(SUM(se.value), 0) AS total
@@ -74,15 +76,18 @@ function bySession(rows: ParticipantResult[]) {
   return [...sessions.values()].filter((participants) => participants.length >= 2);
 }
 
-/** Everyone tied on the highest positive total — the scoreboard's trophy rule. */
+/** The game's win rule for a session's (or a game's) results. */
+const ruleOf = (rows: ParticipantResult[]) => winRule(rows[0]);
+
+/** Everyone tied on the winning total (see winRule) — the scoreboard's trophy rule. */
 function winnersOf(participants: ParticipantResult[]) {
-  const top = Math.max(...participants.map((p) => p.total));
-  return top > 0 ? participants.filter((p) => p.total === top) : [];
+  const top = ruleOf(participants).winningTotal(participants.map((p) => p.total));
+  return top === null ? [] : participants.filter((p) => p.total === top);
 }
 
 /**
  * Ranks people across sessions. A session is won by everyone tied on the
- * highest positive total. Solo sessions are skipped since a one-player "win"
+ * winning total: the highest, or the lowest in lowest-wins games. Solo sessions are skipped since a one-player "win"
  * says nothing. Ranked by wins, then win rate, then games played; tied players
  * share a rank.
  */
@@ -91,10 +96,11 @@ function rank(rows: ParticipantResult[]): { standings: Standing[]; sessionCount:
   const people = new Map<string, Standing & { finishSum: number; scoreSum: number }>();
   for (const participants of sessions) {
     const winners = new Set(winnersOf(participants));
+    const rule = ruleOf(participants);
     for (const p of participants) {
       const key = personKey(p);
-      // Competition ranking within the session: 1 + number of strictly higher totals
-      const finish = 1 + participants.filter((o) => o.total > p.total).length;
+      // Competition ranking within the session: 1 + number of strictly better totals
+      const finish = 1 + participants.filter((o) => rule.beats(o.total, p.total)).length;
       const person = people.get(key) ?? {
         key, rank: 0, playerId: p.player_id, name: p.player_name ?? p.display_name.trim(),
         avatarUrl: p.avatar_url, color: p.preferred_color ?? p.color,
@@ -105,7 +111,8 @@ function rank(rows: ParticipantResult[]): { standings: Standing[]; sessionCount:
       if (winners.has(p)) person.wins++;
       person.finishSum += finish;
       person.scoreSum += p.total;
-      person.bestScore = person.bestScore === null ? p.total : Math.max(person.bestScore, p.total);
+      // Best by the session's own rule; only meaningful within one game, as avgScore
+      person.bestScore = person.bestScore === null ? p.total : rule.best([person.bestScore, p.total]);
       // Guests keep the latest spelling and colour they were entered with
       if (!p.player_id) { person.name = p.display_name.trim(); person.color = p.color ?? person.color; }
       people.set(key, person);
@@ -132,8 +139,8 @@ export interface WinnerFacts {
   wins: number;            // in this game, counting this session
   played: number;
   streak: number;          // consecutive wins in this game ending with this session
-  gameRecord: boolean;     // highest total anyone has scored in this game
-  personalBest: boolean;   // their highest total in this game (not their first game)
+  gameRecord: boolean;     // best total anyone has scored in this game (lowest in lowest-wins games)
+  personalBest: boolean;   // their best total in this game (not their first game)
   tookLead: boolean;       // now leads this game's standings alone and didn't before
 }
 
@@ -155,7 +162,8 @@ export const standingsService = {
       rank(history.flat()).standings.filter((s) => s.rank === 1 && s.wins > 0).map((s) => s.key));
     const leadersBefore = leaders(before);
     const leadersAfter = leaders([...before, current]);
-    const recordBefore = Math.max(-Infinity, ...before.flat().map((p) => p.total));
+    const rule = ruleOf(current);
+    const totalsBefore = before.flat().map((p) => p.total);
 
     for (const winner of winnersOf(current)) {
       const key = personKey(winner);
@@ -172,8 +180,8 @@ export const standingsService = {
         wins: mine.filter((r) => r.won).length,
         played: mine.length,
         streak,
-        gameRecord: before.length > 0 && winner.total > recordBefore,
-        personalBest: earlier.length > 0 && winner.total > Math.max(...earlier.map((r) => r.total)),
+        gameRecord: before.length > 0 && rule.beats(winner.total, rule.best(totalsBefore)),
+        personalBest: earlier.length > 0 && rule.beats(winner.total, rule.best(earlier.map((r) => r.total))),
         tookLead: before.length > 0 && leadersAfter.size === 1 && leadersAfter.has(key) && !leadersBefore.has(key),
       });
     }

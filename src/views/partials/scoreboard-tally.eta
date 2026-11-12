@@ -17,12 +17,14 @@ const nextRound = it.session.rounds_closed != null
   ? Number(it.session.rounds_closed) + 1
   : (latestRound > 0 && latestScored < it.participants.length ? latestRound : latestRound + 1);
 const finishedRounds = sortedRounds.filter(r => r !== nextRound);
-const maxTotal = Math.max(...Object.values(totals), 0);
+// The winning total by the game's rule (highest, or lowest); null while undecided
+const rule = it.winRule(it.game);
+const winTotal = rule.winningTotal(Object.values(totals));
 const isActive = it.session.status === 'active';
 // Vertical layout: while playing, the round being entered sits at the top so
 // nobody scrolls to score; a finished game reads in order like a score sheet.
 const displayRounds = isActive ? [nextRound, ...finishedRounds.slice().reverse()] : sortedRounds;
-const standings = it.participants.slice().sort((a, b) => (totals[b.id] || 0) - (totals[a.id] || 0));
+const standings = it.participants.slice().sort((a, b) => rule.compare(totals[a.id] || 0, totals[b.id] || 0));
 const played = isActive ? finishedRounds.length : sortedRounds.length;
 // Optional round count set when the session started (from the game's rules by default)
 const planned = Number(it.session.planned_rounds) || null;
@@ -38,7 +40,7 @@ const roundLabel = (r) => planned && r <= planned ? u.Round + ' ' + r + ' of ' +
 <section class="standings" aria-labelledby="standings-heading">
   <h2 id="standings-heading" class="standings__title">
     Standings
-    <span class="standings__meta"><% if (planned) { %><%= Math.min(played, planned) %> of <%= planned %> <%= u.rounds %> played<%= played > planned ? ' + ' + (played - planned) + ' extra' : '' %><% } else { %><%= u.roundCount(played) %> played<% } %><% if (target) { %> · first to <%= target %><% } %></span>
+    <span class="standings__meta"><% if (planned) { %><%= Math.min(played, planned) %> of <%= planned %> <%= u.rounds %> played<%= played > planned ? ' + ' + (played - planned) + ' extra' : '' %><% } else { %><%= u.roundCount(played) %> played<% } %><% if (target) { %> · <%= rule.lowestWins ? 'ends at' : 'first to' %> <%= target %><% } %><% if (rule.lowestWins) { %> · lowest wins<% } %></span>
   </h2>
   <% if (planned) { %>
   <progress class="standings__progress" max="<%= planned %>" value="<%= Math.min(played, planned) %>" aria-label="<%= u.Rounds %> played"></progress>
@@ -46,7 +48,7 @@ const roundLabel = (r) => planned && r <= planned ? u.Round + ' ' + r + ' of ' +
   <ol class="standings__list" role="list">
     <% standings.forEach(function(p, i) {
        const total = totals[p.id] || 0;
-       const isWinner = it.session.status === 'completed' && total === maxTotal && maxTotal > 0;
+       const isWinner = it.session.status === 'completed' && total === winTotal;
     %>
     <li id="participant-<%= p.id %>" class="standings__row <%= isWinner ? 'score-winner' : '' %>">
       <span class="standings__rank"><%= i + 1 %></span>

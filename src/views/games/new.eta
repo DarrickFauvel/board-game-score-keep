@@ -76,11 +76,20 @@
     </div>
 
     <div class="form-group">
+      <label class="form-label" for="lowest_wins">Who wins?</label>
+      <select class="form-control form-control--narrow" id="lowest_wins" name="lowest_wins" aria-describedby="lowest_wins-hint">
+        <option value="0" selected>Highest score</option>
+        <option value="1">Lowest score</option>
+      </select>
+      <span class="form-hint" id="lowest_wins-hint">Pick Lowest score for games like Golf or Hearts, where points count against you.</span>
+    </div>
+
+    <div class="form-group">
       <label class="form-label" for="target_score"
              data-unit-label="point_name" data-unit-default="point" data-unit-template="{units} to win">Points to win</label>
       <input class="form-control form-control--narrow" type="number" inputmode="numeric" id="target_score" name="target_score"
              min="1" max="9999" step="1" value="" aria-describedby="target_score-hint">
-      <span class="form-hint" id="target_score-hint">For "first to …" games, like 10 in Catan. Each new session starts with this target; leave blank if there isn't one.</span>
+      <span class="form-hint" id="target_score-hint">For "first to …" games, like 10 in Catan. In lowest-score games it's the score that ends the game, like 100 in Hearts. Each new session starts with this target; leave blank if there isn't one.</span>
     </div>
 
     <div data-show="$scoringMode === 'categories'" id="categories-section">
