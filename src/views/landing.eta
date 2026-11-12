@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Board Game Score Keep: a score keeper for board game nights</title>
+<title>The Keep · board game score keeper</title>
 <meta name="description" content="Track every round on your phone, total the scores and keep a hall of fame of who won each game your group plays.">
 <meta property="og:type" content="website">
-<meta property="og:title" content="Board Game Score Keep: a score keeper for board game nights">
+<meta property="og:title" content="The Keep · board game score keeper">
 <meta property="og:description" content="Track every round on your phone and keep a hall of fame of who won.">
 <meta property="og:image" content="https://keep.darrickdevelops.com/assets/share.jpg">
 <meta property="og:image:width" content="1200">
@@ -58,6 +58,10 @@
   .sk-win { border-radius: 12px; overflow: hidden; box-shadow: 0 0 0 1px rgb(0 0 0 / .07), 0 24px 60px -28px rgb(0 0 0 / .45); }
   .sk-bar { display: flex; align-items: center; gap: 10px; height: 40px; padding: 0 14px; border-bottom: 1px solid #ece8e1; font-size: 13px; color: #5f5a52; }
   .sk-bar__dots { display: flex; gap: 6px; } .sk-bar__dots i { width: 10px; height: 10px; border-radius: 50%; background: #dedad3; }
+  /* The descriptor stacked under the wordmark; the wordmark alone on phones */
+  .brand__name { display: flex; flex-direction: column; line-height: 1.05; }
+  .brand__desc { margin-top: 3px; font: 400 12px/1.2 var(--font-text); letter-spacing: 0; opacity: .62; white-space: nowrap; }
+  @media (max-width: 639px) { .nav .brand__desc { display: none; } }
   /* Visible credit for the CC BY-SA photo, over its bottom corner */
   .frame > .photo-credit { position: absolute; right: 8px; bottom: 8px; z-index: 1; padding: 2px 8px; border-radius: 6px; background: rgb(12 10 8 / 0.72); color: #fff; font-size: 12px; line-height: 1.5; }
   .photo-credit a { color: inherit; }
@@ -131,7 +135,7 @@
 </style>
 </head>
 <body>
-<!-- type: software (a web app that keeps score at board game nights)
+<!-- type: software (a web app that keeps score for board game groups)
      deal: hero collage, nav nav-centre, close close-type, footer footer-statement, rhythm dark-band,
      buttons tonal, mark: the app's own keep logo (replaces the dealt ring), grounds none, lit ground sage
      palette warm-black-gold (dealt third: the first, plum and pink, clashed with the app's own gold keep logo;
@@ -141,7 +145,7 @@
 <header class="nav nav--centre">
   <div class="wrap nav__bar">
     <a class="skip-link" href="#top">Skip to content</a>
-    <a class="nav__logo" href="#top"><svg class="logo-keep" width="22" height="24" viewBox="0 0 256 283" aria-hidden="true" focusable="false"><path fill="#c9a45a" d="M234.667 54.84L149.333 5.646a43.6 43.6 0 0 0-42.917 0L21.082 54.84C5.522 63.624 0 76.675 0 91.984v98.636c0 15.31 8.031 29.364 21.333 37.145l85.334 49.192a43.6 43.6 0 0 0 42.917 0l85.083-49.192C247.969 220.235 256 205.929 256 190.62V91.984c0-15.31-8.031-29.364-21.333-37.145m-57.224 158.368c0 2.510-1.757 4.267-4.016 4.267H82.824c-2.51 0-4.267-1.757-4.267-4.267v-18.573c0-2.259.753-4.266 2.51-6.023l10.792-10.541l6.525-60.738c.251-1.757-.502-3.262-1.757-4.266l-8.784-7.78c-1.757-1.507-2.51-3.765-2.51-6.024V69.647c0-2.51 1.757-4.518 4.267-4.518h13.302c2.259 0 4.518 2.008 4.518 4.267v6.777h11.043v-6.526a4.5 4.5 0 0 1 4.517-4.518h10.793c2.258 0 4.015 2.008 4.015 4.267v6.777h11.043v-6.275c0-2.51 2.51-4.769 5.020-4.769h13.051c2.259 0 4.769 2.008 4.769 4.267v30.62c0 2.008-1.004 3.764-2.26 5.27l-9.536 7.78c-1.255 1.005-1.757 2.51-1.757 4.016l6.776 60.989l10.792 11.043c1.255 1.255 1.757 2.76 1.757 4.517zm-49.192-63.75c-7.027-.25-12.549 6.024-12.549 12.8v26.103c0 1.506 1.255 2.76 2.76 2.76h18.824c1.506 0 3.012-1.505 3.012-3.011v-25.851c-.25-6.777-5.02-12.55-12.047-12.8"/></svg>Board Game Score Keep</a>
+    <a class="nav__logo" href="#top"><svg class="logo-keep" width="22" height="24" viewBox="0 0 256 283" aria-hidden="true" focusable="false"><path fill="#c9a45a" d="M234.667 54.84L149.333 5.646a43.6 43.6 0 0 0-42.917 0L21.082 54.84C5.522 63.624 0 76.675 0 91.984v98.636c0 15.31 8.031 29.364 21.333 37.145l85.334 49.192a43.6 43.6 0 0 0 42.917 0l85.083-49.192C247.969 220.235 256 205.929 256 190.62V91.984c0-15.31-8.031-29.364-21.333-37.145m-57.224 158.368c0 2.510-1.757 4.267-4.016 4.267H82.824c-2.51 0-4.267-1.757-4.267-4.267v-18.573c0-2.259.753-4.266 2.51-6.023l10.792-10.541l6.525-60.738c.251-1.757-.502-3.262-1.757-4.266l-8.784-7.78c-1.757-1.507-2.51-3.765-2.51-6.024V69.647c0-2.51 1.757-4.518 4.267-4.518h13.302c2.259 0 4.518 2.008 4.518 4.267v6.777h11.043v-6.526a4.5 4.5 0 0 1 4.517-4.518h10.793c2.258 0 4.015 2.008 4.015 4.267v6.777h11.043v-6.275c0-2.51 2.51-4.769 5.020-4.769h13.051c2.259 0 4.769 2.008 4.769 4.267v30.62c0 2.008-1.004 3.764-2.26 5.27l-9.536 7.78c-1.255 1.005-1.757 2.51-1.757 4.016l6.776 60.989l10.792 11.043c1.255 1.255 1.757 2.76 1.757 4.517zm-49.192-63.75c-7.027-.25-12.549 6.024-12.549 12.8v26.103c0 1.506 1.255 2.76 2.76 2.76h18.824c1.506 0 3.012-1.505 3.012-3.011v-25.851c-.25-6.777-5.02-12.55-12.047-12.8"/></svg><span class="brand__name">The Keep<span class="brand__desc">board game score keeper</span></span></a>
     <nav class="nav__links" aria-label="Main">
       <div class="nav__item"><a class="nav__link" href="#scoreboard">Scoreboard</a></div>
       <div class="nav__item">
@@ -178,14 +182,14 @@
   <section class="hero hero--collage" data-enter aria-labelledby="hero-h">
     <div class="wrap"><div class="hero-text grid hero__grid">
       <div class="hero__text span-5">
-        <h1 id="hero-h">Score keeper for board game nights</h1>
-        <p class="hero__lead">Board Game Score Keep adds up each round on your phone and remembers every winner. Three ways to score: a running tally, final totals or scoring categories.</p>
+        <h1 id="hero-h">Score keeper for your board game group</h1>
+        <p class="hero__lead">The Keep adds up each round on your phone and remembers every winner. Three ways to score: a running tally, final totals or scoring categories.</p>
         <div class="btn-row"><a class="btn btn--primary" href="/auth/register">Create an account<svg class="m-arrow" viewBox="0 0 12 12" aria-hidden="true"><path class="m-arrow__stem" d="M1 6h8"/><path class="m-arrow__head" d="M4.5 2.5 8 6l-3.5 3.5"/></svg></a><a class="btn btn--secondary" href="/auth/login">Sign in</a></div>
         <p class="hero__proof">Scores update live on every phone signed in to the game.</p>
       </div>
       <div class="hero__art frame--lit span-6 start-7" role="img" aria-label="A game of Azul in round 6 of 8, with Blue leading on 64 points, and the finished game's result card">
         <div class="ly-piece ly-piece--main sk sk-win" aria-hidden="true">
-          <div class="sk-bar"><span class="sk-bar__dots"><i></i><i></i><i></i></span><span>Score Keep · Azul, Friday night</span></div>
+          <div class="sk-bar"><span class="sk-bar__dots"><i></i><i></i><i></i></span><span>The Keep · Azul, Friday night</span></div>
           <div class="sk-body">
             <div class="sk-side">
               <span><i></i>Home</span><span class="is-on"><i></i>Games</span><span><i></i>Players</span><span><i></i>Standings</span>
@@ -226,7 +230,7 @@
   <section class="section" id="scoreboard" aria-labelledby="scoreboard-h">
     <div class="wrap">
       <div class="grid">
-        <h2 class="span-5" id="scoreboard-h">Every game night in one scoreboard</h2>
+        <h2 class="span-5" id="scoreboard-h">Every game you play in one scoreboard</h2>
         <div class="span-6 start-7 stack-4">
           <p class="muted">Pick the game, add the players and tap in scores as you go. Next round closes the round, and the totals and the leader change with each tap.</p>
           <a class="link" href="#scoring">See the scoring modes</a>
@@ -237,7 +241,7 @@
           <div class="ui ui-panel ui-win" data-ui="window" data-open="Playing" data-work="Scoring" data-done="Final">
             <div class="ui-win__bar">
               <span class="ui-dots" aria-hidden="true"><i></i><i></i><i></i></span>
-              <span class="ui-win__crumb">Score Keep <i>/</i> <b>Sessions</b></span>
+              <span class="ui-win__crumb">The Keep <i>/</i> <b>Sessions</b></span>
               <span class="ui-spacer"></span>
             </div>
             <div class="ui-win__body">
@@ -388,7 +392,7 @@
       <div class="grid">
         <div class="span-5 stack-4">
           <h2 id="faq-h">Questions</h2>
-          <p class="muted">What people ask before their first game night with Board Game Score Keep.</p>
+          <p class="muted">What people ask before their first game with The Keep.</p>
           <a class="link" href="/auth/register">Create an account</a>
         </div>
         <div class="faq span-6 start-7">
@@ -415,14 +419,14 @@
     <div class="closing__links">
       <div class="grid">
         <div class="span-4 stack-4">
-          <a class="nav__logo" href="#top"><svg class="logo-keep" width="22" height="24" viewBox="0 0 256 283" aria-hidden="true" focusable="false"><path fill="currentColor" d="M234.667 54.84L149.333 5.646a43.6 43.6 0 0 0-42.917 0L21.082 54.84C5.522 63.624 0 76.675 0 91.984v98.636c0 15.31 8.031 29.364 21.333 37.145l85.334 49.192a43.6 43.6 0 0 0 42.917 0l85.083-49.192C247.969 220.235 256 205.929 256 190.62V91.984c0-15.31-8.031-29.364-21.333-37.145m-57.224 158.368c0 2.510-1.757 4.267-4.016 4.267H82.824c-2.51 0-4.267-1.757-4.267-4.267v-18.573c0-2.259.753-4.266 2.51-6.023l10.792-10.541l6.525-60.738c.251-1.757-.502-3.262-1.757-4.266l-8.784-7.78c-1.757-1.507-2.51-3.765-2.51-6.024V69.647c0-2.51 1.757-4.518 4.267-4.518h13.302c2.259 0 4.518 2.008 4.518 4.267v6.777h11.043v-6.526a4.5 4.5 0 0 1 4.517-4.518h10.793c2.258 0 4.015 2.008 4.015 4.267v6.777h11.043v-6.275c0-2.51 2.51-4.769 5.020-4.769h13.051c2.259 0 4.769 2.008 4.769 4.267v30.62c0 2.008-1.004 3.764-2.26 5.27l-9.536 7.78c-1.255 1.005-1.757 2.51-1.757 4.016l6.776 60.989l10.792 11.043c1.255 1.255 1.757 2.76 1.757 4.517zm-49.192-63.75c-7.027-.25-12.549 6.024-12.549 12.8v26.103c0 1.506 1.255 2.76 2.76 2.76h18.824c1.506 0 3.012-1.505 3.012-3.011v-25.851c-.25-6.777-5.02-12.55-12.047-12.8"/></svg>Board Game Score Keep</a>
+          <a class="nav__logo" href="#top"><svg class="logo-keep" width="22" height="24" viewBox="0 0 256 283" aria-hidden="true" focusable="false"><path fill="currentColor" d="M234.667 54.84L149.333 5.646a43.6 43.6 0 0 0-42.917 0L21.082 54.84C5.522 63.624 0 76.675 0 91.984v98.636c0 15.31 8.031 29.364 21.333 37.145l85.334 49.192a43.6 43.6 0 0 0 42.917 0l85.083-49.192C247.969 220.235 256 205.929 256 190.62V91.984c0-15.31-8.031-29.364-21.333-37.145m-57.224 158.368c0 2.510-1.757 4.267-4.016 4.267H82.824c-2.51 0-4.267-1.757-4.267-4.267v-18.573c0-2.259.753-4.266 2.51-6.023l10.792-10.541l6.525-60.738c.251-1.757-.502-3.262-1.757-4.266l-8.784-7.78c-1.757-1.507-2.51-3.765-2.51-6.024V69.647c0-2.51 1.757-4.518 4.267-4.518h13.302c2.259 0 4.518 2.008 4.518 4.267v6.777h11.043v-6.526a4.5 4.5 0 0 1 4.517-4.518h10.793c2.258 0 4.015 2.008 4.015 4.267v6.777h11.043v-6.275c0-2.51 2.51-4.769 5.020-4.769h13.051c2.259 0 4.769 2.008 4.769 4.267v30.62c0 2.008-1.004 3.764-2.26 5.27l-9.536 7.78c-1.255 1.005-1.757 2.51-1.757 4.016l6.776 60.989l10.792 11.043c1.255 1.255 1.757 2.76 1.757 4.517zm-49.192-63.75c-7.027-.25-12.549 6.024-12.549 12.8v26.103c0 1.506 1.255 2.76 2.76 2.76h18.824c1.506 0 3.012-1.505 3.012-3.011v-25.851c-.25-6.777-5.02-12.55-12.047-12.8"/></svg><span class="brand__name">The Keep<span class="brand__desc">board game score keeper</span></span></a>
           <p class="footer__lede">Score keeping for board game groups: rounds, totals, winners and standings.</p>
         </div>
         <div class="span-2 start-7 footer__col"><h3>App</h3><ul><li><a href="#scoreboard">Scoreboard</a></li><li><a href="#scoring">Scoring</a></li><li><a href="#table">Sync</a></li></ul></div>
         <div class="span-2 footer__col"><h3>Help</h3><ul><li><a href="#faq">Questions</a></li><li><a href="/auth/login">Sign in</a></li></ul></div>
       </div>
       <div class="footer__legal">
-        <span>&copy; 2026 Board Game Score Keep · Game names are trademarks of their owners</span>
+        <span>&copy; 2026 The Keep · Game names are trademarks of their owners</span>
         <div class="socials"></div>
         <a class="credits" href="/assets/img/credits.json">Photographs via Wikimedia Commons</a>
       </div>

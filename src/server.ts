@@ -15,5 +15,5 @@ await runMigrations();
 
 const app = createApp();
 app.listen(config.port, () => {
-  console.log(`Board Game Score Keep running at ${config.baseUrl}`);
+  console.log(`The Keep running at ${config.baseUrl}`);
 });
