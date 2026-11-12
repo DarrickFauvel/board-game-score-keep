@@ -58,6 +58,9 @@
   .sk-win { border-radius: 12px; overflow: hidden; box-shadow: 0 0 0 1px rgb(0 0 0 / .07), 0 24px 60px -28px rgb(0 0 0 / .45); }
   .sk-bar { display: flex; align-items: center; gap: 10px; height: 40px; padding: 0 14px; border-bottom: 1px solid #ece8e1; font-size: 13px; color: #5f5a52; }
   .sk-bar__dots { display: flex; gap: 6px; } .sk-bar__dots i { width: 10px; height: 10px; border-radius: 50%; background: #dedad3; }
+  /* Visible credit for the CC BY-SA photo, over its bottom corner */
+  .frame > .photo-credit { position: absolute; right: 8px; bottom: 8px; z-index: 1; padding: 2px 8px; border-radius: 6px; background: rgb(12 10 8 / 0.72); color: #fff; font-size: 12px; line-height: 1.5; }
+  .photo-credit a { color: inherit; }
   .sk-body { display: grid; grid-template-columns: 148px minmax(0, 1fr); min-height: 640px; }
   .sk-side { padding: 14px 10px; border-right: 1px solid #ece8e1; display: grid; align-content: start; gap: 2px; font-size: 13px; color: #59544c; }
   .sk-side span { display: flex; align-items: center; gap: 8px; height: 30px; padding: 0 8px; border-radius: 7px; }
@@ -373,7 +376,8 @@
           <a class="link" href="#faq">Read the questions</a>
         </div>
         <div class="frame frame--photo frame--split span-6 start-7">
-          <img class="frame__img" src="/assets/img/photo-f24029775-960.jpg" srcset="/assets/img/photo-f24029775-500.jpg 500w, /assets/img/photo-f24029775-960.jpg 960w, /assets/img/photo-f24029775.jpg 1280w" sizes="(max-width: 639px) 100vw, 50vw" width="1280" height="848" alt="A family of four playing a board game around a coffee table" loading="lazy" decoding="async" data-source="stand-in" data-subject="a family playing a board game">
+          <img class="frame__img" src="/assets/img/photo-catan-floor-960.jpg" srcset="/assets/img/photo-catan-floor-500.jpg 500w, /assets/img/photo-catan-floor-960.jpg 960w, /assets/img/photo-catan-floor-1280.jpg 1280w" sizes="(max-width: 639px) 100vw, 50vw" width="1280" height="853" alt="Friends sitting on a wooden floor around a game of Catan, seen from above, with cards in hand and pieces spread around the board" loading="lazy" decoding="async">
+          <small class="photo-credit">Photo: <a href="https://commons.wikimedia.org/wiki/File:Playing_Settlers_of_Catan.jpg">Valentin Gorbunov</a>, <a href="https://creativecommons.org/licenses/by-sa/3.0/">CC BY-SA 3.0</a>, cropped</small>
         </div>
       </div>
     </div>

@@ -2,19 +2,21 @@
   "note": "Credits for the photographs in this folder: photos.mjs credits prints the footer block for the ones the pages use.",
   "photos": [
     {
-      "file": "photo-f24029775.jpg",
+      "file": "photo-catan-floor-960.jpg",
       "files": [
-        "photo-f24029775-500.jpg",
-        "photo-f24029775-960.jpg",
-        "photo-f24029775.jpg"
+        "photo-catan-floor-500.jpg",
+        "photo-catan-floor-960.jpg",
+        "photo-catan-floor-1280.jpg",
+        "../share.jpg"
       ],
-      "id": "f24029775",
-      "alt": "Family playing a board game (1)",
-      "by": "Bill Branson (Photographer)",
-      "licence": "Public domain",
-      "licenceUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
-      "page": "https://commons.wikimedia.org/wiki/File:Family_playing_a_board_game_(1).jpg",
-      "source": "Wikimedia Commons"
+      "id": "catan-floor",
+      "alt": "Playing Settlers of Catan",
+      "by": "Valentin Gorbunov",
+      "licence": "CC BY-SA 3.0",
+      "licenceUrl": "https://creativecommons.org/licenses/by-sa/3.0/",
+      "page": "https://commons.wikimedia.org/wiki/File:Playing_Settlers_of_Catan.jpg",
+      "source": "Wikimedia Commons",
+      "changes": "Resized and cropped. The cropped versions, including share.jpg, are shared under CC BY-SA 3.0 as well."
     },
     {
       "file": "photo-f178342135-960.jpg",
