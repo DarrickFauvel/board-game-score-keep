@@ -1,9 +1,9 @@
 <% layout('layouts/base') %>
 
 <div class="keep-hero">
-  <p class="keep-eyebrow">The Keep</p>
-  <h1 class="keep-title">Board Game Score Keep</h1>
-  <p class="keep-subtitle">Every win and loss from your game nights, kept in one place.</p>
+  <p class="keep-eyebrow">board game score keeper</p>
+  <h1 class="keep-title">The Keep</h1>
+  <p class="keep-subtitle">Every win and loss your group has played, kept in one place.</p>
 </div>
 
 <section aria-labelledby="fame-heading" class="hall">

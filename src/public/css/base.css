@@ -123,6 +123,21 @@ textarea:focus-visible {
   white-space: nowrap;
 }
 .site-header__logo svg { color: var(--color-gold); }
+/* The wordmark with its descriptor stacked underneath; the descriptor
+   shows once the header is wider than a phone */
+.site-header__name { display: flex; flex-direction: column; line-height: 1.05; }
+.site-header__desc {
+  display: none;
+  margin-top: 0.15rem;
+  font-family: var(--font-text);
+  font-size: 0.6rem;
+  font-weight: 400;
+  letter-spacing: 0;
+  color: var(--color-chrome-muted);
+}
+@container (min-width: 480px) {
+  .site-header__desc { display: block; }
+}
 
 /* ─── Hamburger button ───────────────────────────── */
 .site-header__menu-btn {

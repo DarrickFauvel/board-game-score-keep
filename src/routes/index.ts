@@ -30,7 +30,7 @@ router.get('/', optionalAuth, async (req, res, next) => {
       gameService.listByOwner(req.user.sub),
       standingsService.hallOfFame(req.user.sub),
     ]);
-    res.renderEta('home', { user: req.user, games, hall, title: 'The Keep', keepLayout: true });
+    res.renderEta('home', { user: req.user, games, hall, keepLayout: true });
   } catch (err) { next(err); }
 });
 
