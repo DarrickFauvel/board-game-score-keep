@@ -1,7 +1,8 @@
 /* ─── Root & body ────────────────────────────────── */
 html {
   font-size: var(--text-base);
-  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-family: var(--font-text);
+  line-height: var(--leading-normal);
   color: var(--color-text);
   background-color: var(--color-bg);
   scroll-behavior: smooth;
@@ -64,9 +65,26 @@ main {
 }
 
 /* ─── Typography ─────────────────────────────────── */
-h1 { font-size: var(--text-xl); }
+/* Headings in the display face, set tight like the landing page */
+h1, h2, h3 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  line-height: var(--leading-tight);
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+h1 { font-size: var(--text-xl); letter-spacing: -0.03em; }
 h2 { font-size: var(--text-lg); }
-h3 { font-size: var(--text-base); font-weight: 700; }
+h3 { font-size: var(--text-base); }
+
+/* Numbers line up in columns everywhere scores appear */
+table, .standings__total, .round-row__value, .leaderboard__wins, .stat-card__value { font-variant-numeric: tabular-nums; }
+
+/* Links in running text: a thin underline that thickens on hover */
+a { text-underline-offset: 0.2em; text-decoration-thickness: 1px; }
+@media (hover: hover) {
+  a:hover { text-decoration-thickness: 2px; }
+}
 
 a:focus-visible,
 button:focus-visible,
@@ -87,18 +105,24 @@ textarea:focus-visible {
   align-items: center;
   gap: var(--space-2);
   position: relative;
+  border-bottom: 1px solid var(--color-chrome-line);
   container-type: inline-size;
 }
 
 .site-header__logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: var(--tap-min);
   font-family: var(--font-display);
-  font-size: var(--text-lg);
-  font-weight: 700;
-  letter-spacing: 0.02em;
+  font-size: var(--text-base);
+  font-weight: 600;
+  letter-spacing: -0.02em;
   text-decoration: none;
-  color: var(--color-gold);
+  color: var(--color-chrome-text);
   white-space: nowrap;
 }
+.site-header__logo svg { color: var(--color-gold); }
 
 /* ─── Hamburger button ───────────────────────────── */
 .site-header__menu-btn {
@@ -163,7 +187,7 @@ textarea:focus-visible {
 
 .site-header__nav a:not(.btn),
 .site-header__nav button:not(.btn) {
-  color: var(--color-chrome-text);
+  color: var(--color-chrome-muted, var(--color-chrome-text));
   text-decoration: none;
   font-size: var(--text-sm);
   padding: var(--space-1) 0.75rem;
@@ -177,6 +201,13 @@ textarea:focus-visible {
 .site-header__nav a:not(.btn):hover,
 .site-header__nav button:not(.btn):hover {
   background: var(--color-chrome-hover);
+  color: var(--color-chrome-text);
+}
+/* The section you're in reads brighter, with a gold underline */
+.site-header__nav a[aria-current="page"] {
+  color: var(--color-chrome-text);
+  box-shadow: inset 0 -2px 0 var(--color-gold);
+  border-radius: 0;
 }
 
 /* ─── Mobile menu panel ──────────────────────────── */
@@ -220,7 +251,7 @@ textarea:focus-visible {
 
 /* ─── Footer ─────────────────────────────────────── */
 .site-footer {
-  background: var(--color-surface);
+  background: transparent;
   border-top: 1px solid var(--color-border);
   text-align: center;
   padding: var(--space-3) var(--space-2) max(var(--space-3), env(safe-area-inset-bottom));
@@ -232,7 +263,7 @@ textarea:focus-visible {
 
 .site-footer__credit a {
   color: var(--color-text);
-  font-weight: 600;
+  font-weight: 500;
   text-underline-offset: 0.2em;
   /* Inline links are short; pad the hit area toward a full tap target */
   display: inline-block;

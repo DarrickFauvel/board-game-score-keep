@@ -29,8 +29,9 @@ class ScoreInput extends HTMLElement {
           align-items: center;
           gap: 0.25rem;
           background: var(--color-bg-raised, #fff);
-          border: 2px solid var(--color-border, #b5a898);
-          border-radius: 8px;
+          border: 1px solid var(--color-border-strong, #d3ccc0);
+          border-radius: var(--radius-md, 10px);
+          box-shadow: var(--shadow-sm, none);
           overflow: hidden;
         }
         button {
@@ -41,8 +42,9 @@ class ScoreInput extends HTMLElement {
           min-width: 2.5rem; /* 50px at the app's 20px root — still a full tap target */
           min-height: 2.5rem;
           font-size: 1.25rem;
-          font-weight: 700;
-          color: var(--color-text, #2c2416);
+          font-weight: 500;
+          font-family: var(--font-text, inherit);
+          color: var(--color-text, #1c1a17);
           display: flex;
           align-items: center;
           justify-content: center;
@@ -52,31 +54,33 @@ class ScoreInput extends HTMLElement {
           touch-action: manipulation;
         }
         @media (hover: hover) {
-          button:hover:not(:disabled) { background: var(--color-surface, #e8e0d0); }
+          button:hover:not(:disabled) { background: var(--color-surface, #efebe3); }
         }
         button:focus-visible {
-          outline: 3px solid #0066cc;
+          outline: 3px solid var(--color-border-focus, #1c1a17);
           outline-offset: -2px;
           border-radius: 6px;
         }
         button:disabled { opacity: 0.4; cursor: default; }
         /* ±10 for big-scoring games; smaller type so "+10" fits the same tap target */
-        button.big { font-size: 0.95rem; color: var(--color-text-muted, #6b5e4e); }
+        button.big { font-size: 0.95rem; color: var(--color-text-muted, #6b655c); }
         input[type="number"] {
           width: 3rem;
           min-height: 2.5rem;
           border: none;
           text-align: center;
-          font-size: 1.125rem;
-          font-weight: 700;
+          font-size: 1.25rem;
+          font-weight: 600;
+          letter-spacing: -0.02em;
+          font-variant-numeric: tabular-nums;
           background: none;
-          color: var(--color-text, #2c2416);
-          font-family: inherit;
+          color: var(--color-text, #1c1a17);
+          font-family: var(--font-display, inherit);
           -moz-appearance: textfield;
         }
         input[type="number"]::-webkit-outer-spin-button,
         input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
-        input:focus-visible { outline: 3px solid #0066cc; border-radius: 4px; }
+        input:focus-visible { outline: 3px solid var(--color-border-focus, #1c1a17); border-radius: 4px; }
         @media (min-width: 48rem) {
           input[type="number"] { width: 5rem; }
         }

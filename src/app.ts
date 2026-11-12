@@ -47,10 +47,11 @@ export function createApp() {
   app.use('/vendor/qrcode-generator', express.static(join(__dirname, '../node_modules/qrcode-generator/dist')));
 
   const eta = new Eta({ views: join(__dirname, 'views'), cache: !config.isDev });
-  app.use((_req: Request, res: Response, next: NextFunction) => {
+  app.use((req: Request, res: Response, next: NextFunction) => {
     res.renderEta = (template: string, data: Record<string, unknown> = {}) => {
       try {
-        const html = eta.render(template, { ...data, config, imgUrl: resolveImageUrl, units: gameUnits, winRule });
+        // currentPath lets the layout mark the nav link for the section you're in
+        const html = eta.render(template, { ...data, config, imgUrl: resolveImageUrl, units: gameUnits, winRule, currentPath: req.originalUrl.split('?')[0] });
         res.send(html);
       } catch (err) { next(err); }
     };

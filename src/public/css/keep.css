@@ -1,71 +1,53 @@
-/* Medieval heraldic styles — only active on .keep-layout (home/lobby) */
-
+/* Home (the Keep): the hall of fame, in the landing page's look. Only loaded
+   on .keep-layout. */
 .keep-layout {
   background-color: var(--color-bg);
-  background-image:
-    repeating-linear-gradient(
-      45deg,
-      transparent,
-      transparent 40px,
-      rgba(139 125 107 / 0.06) 40px,
-      rgba(139 125 107 / 0.06) 80px
-    );
 }
 
 .keep-hero {
-  text-align: center;
-  padding: var(--space-4) var(--space-2);
-  position: relative;
+  padding: var(--space-3) 0 var(--space-4);
+  margin-bottom: var(--space-4);
+  border-bottom: 1px solid var(--color-border);
 }
 
 @media (min-width: 48rem) {
-  .keep-hero { padding: var(--space-8) var(--space-4); }
+  .keep-hero { padding: var(--space-4) 0 var(--space-6); }
 }
 
-.keep-hero::before,
-.keep-hero::after {
-  content: '';
-  display: block;
-  height: 4px;
-  background: linear-gradient(90deg, transparent, var(--color-gold), transparent);
-  margin: var(--space-4) auto;
-  max-width: 32rem;
+/* Small mono label above a heading, as on the landing page */
+.keep-eyebrow {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: -0.01em;
+  color: var(--color-gold-text);
+  margin-bottom: var(--space-1);
 }
 
 .keep-title {
   font-family: var(--font-display);
-  font-weight: 700;
-  /* Cinzel is wide: smaller on phones so the title sits on two lines, not four */
-  font-size: clamp(1.6rem, 0.8rem + 5vw, 4rem);
+  font-weight: 600;
+  font-size: clamp(2.25rem, 1.4rem + 4vw, 4.5rem);
+  line-height: 1.02;
+  letter-spacing: -0.04em;
   color: var(--color-text);
-  letter-spacing: 0.04em;
-  text-shadow: 2px 2px 0 rgba(201 168 76 / 0.3);
+  max-width: 16ch;
 }
 
 .keep-subtitle {
   font-size: var(--text-base);
   color: var(--color-text-muted);
   margin-top: var(--space-2);
+  max-width: 40ch;
 }
 
-/* Heraldic banner ribbon */
+/* Section heading for the hall of fame */
 .keep-banner {
-  position: relative;
-  background: var(--color-chrome);
-  color: var(--color-chrome-text);
   font-family: var(--font-display);
-  font-weight: 700;
-  text-align: center;
-  padding: var(--space-2) var(--space-4);
-  margin: var(--space-4) auto;
-  max-width: 28rem;
-  clip-path: polygon(0 0, 100% 0, 95% 50%, 100% 100%, 0 100%, 5% 50%);
-  font-size: var(--text-sm);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  font-weight: 600;
+  font-size: var(--text-lg);
+  letter-spacing: -0.02em;
+  margin-bottom: var(--space-3);
 }
-
-h2.keep-banner { font-weight: 700; }
 
 /* ─── Hall of Fame (home) ─────────────────────────── */
 .hall {
@@ -73,22 +55,29 @@ h2.keep-banner { font-weight: 700; }
 }
 
 .hall__empty {
-  text-align: center;
   color: var(--color-text-muted);
   font-size: var(--text-sm);
-  max-width: 32rem;
-  margin-inline: auto;
+  max-width: 40ch;
 }
 
-/* Podium: 2nd · 1st · 3rd, steps rising toward the middle */
+/* Podium: 2nd · 1st · 3rd, steps rising toward the middle, on one raised panel */
 .podium {
   list-style: none;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   align-items: end;
   gap: var(--space-1);
-  max-width: 32rem;
-  margin: 0 auto var(--space-4);
+  padding: var(--space-3) var(--space-2) 0;
+  margin: 0 0 var(--space-4);
+  background: var(--color-bg-raised);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+@media (min-width: 48rem) {
+  .podium { padding-inline: var(--space-8); gap: var(--space-2); }
 }
 
 .podium__place {
@@ -115,12 +104,11 @@ h2.keep-banner { font-weight: 700; }
 .podium__place--1 .podium__avatar {
   width: 3.75rem;
   height: 3.75rem;
-  border-color: var(--color-gold);
-  border-width: 3px;
+  box-shadow: 0 0 0 3px var(--color-gold);
 }
 
 .podium__name {
-  font-weight: 700;
+  font-weight: 600;
   font-size: var(--text-sm);
   line-height: var(--leading-tight);
   overflow-wrap: anywhere;
@@ -136,19 +124,22 @@ h2.keep-banner { font-weight: 700; }
   display: grid;
   place-items: start center;
   margin-top: var(--space-1);
-  padding-top: 0.25rem;
-  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
-  background: var(--color-chrome);
-  color: var(--color-chrome-text);
+  padding-top: 0.375rem;
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+  background: var(--color-surface);
+  color: var(--color-text-muted);
   font-family: var(--font-display);
-  font-weight: 700;
-  font-size: var(--text-base);
+  font-weight: 600;
+  font-size: var(--text-lg);
+  letter-spacing: -0.03em;
   height: 3rem;
 }
 
-.podium__place--1 .podium__step { height: 4rem; }
+.podium__place--1 .podium__step { height: 4.5rem; }
+
 /* Anyone tied for first gets a gold step, wherever they stand */
 .podium__step--gold { background: var(--color-gold); color: var(--color-on-gold); }
+
 .podium__place--3 .podium__step { height: 2.25rem; }
 
 .hall__columns {
@@ -157,13 +148,14 @@ h2.keep-banner { font-weight: 700; }
 }
 
 @media (min-width: 48rem) {
-  .hall__columns { grid-template-columns: 1fr 1fr; }
+  .hall__columns { grid-template-columns: 1fr 1fr; gap: var(--space-4); }
 }
 
 .hall__heading {
-  font-size: var(--text-sm);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: 500;
+  letter-spacing: -0.01em;
   color: var(--color-text-muted);
   margin-bottom: var(--space-1);
 }
@@ -178,9 +170,8 @@ h2.keep-banner { font-weight: 700; }
 }
 
 .hall__game {
-  font-weight: 700;
-  text-underline-offset: 0.2em;
-  text-decoration-thickness: 1px;
+  font-weight: 600;
+  color: var(--color-text);
 }
 
 .hall__who {
@@ -191,43 +182,8 @@ h2.keep-banner { font-weight: 700; }
 .hall__more {
   margin-top: var(--space-2);
   text-align: right;
-  font-weight: 600;
+  font-weight: 500;
 }
 
-.hall__more--center { text-align: center; }
-
-.hall__more a { text-underline-offset: 0.2em; display: inline-block; padding-block: 0.5rem; }
-
-/* Shield badge for game cards on the Keep */
-.keep-shield {
-  width: 3rem;
-  height: 3.5rem;
-  clip-path: polygon(50% 0%, 100% 20%, 100% 60%, 50% 100%, 0% 60%, 0% 20%);
-  background: var(--color-gold);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: var(--text-base);
-  flex-shrink: 0;
-}
-
-/* Decorative divider with diamond */
-.keep-divider {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  margin: var(--space-4) 0;
-  color: var(--color-text-muted);
-}
-
-.keep-divider::before,
-.keep-divider::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, var(--color-border));
-}
-
-.keep-divider::after {
-  background: linear-gradient(90deg, var(--color-border), transparent);
-}
+.hall__more--center { text-align: left; }
+.hall__more a { display: inline-block; padding-block: 0.5rem; color: var(--color-text); }

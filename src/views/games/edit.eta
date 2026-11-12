@@ -82,7 +82,7 @@
 
     <div class="form-group">
       <label class="form-label" for="lowest_wins">Who wins?</label>
-      <select class="form-control form-control--narrow" id="lowest_wins" name="lowest_wins" aria-describedby="lowest_wins-hint">
+      <select class="form-control form-control--medium" id="lowest_wins" name="lowest_wins" aria-describedby="lowest_wins-hint">
         <option value="0"<%= it.winRule(it.game).lowestWins ? '' : ' selected' %>>Highest score</option>
         <option value="1"<%= it.winRule(it.game).lowestWins ? ' selected' : '' %>>Lowest score</option>
       </select>
