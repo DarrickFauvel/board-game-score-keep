@@ -1,0 +1,434 @@
+<!doctype html>
+<html lang="en" data-type="software" data-radius="soft" data-ground="sage" data-buttons="tonal" data-motion>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Board Game Score Keep: a score keeper for board game nights</title>
+<meta name="description" content="Track every round on your phone, total the scores and keep a hall of fame of who won each game your group plays.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Board Game Score Keep: a score keeper for board game nights">
+<meta property="og:description" content="Track every round on your phone and keep a hall of fame of who won.">
+<meta property="og:image" content="/assets/share.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<meta name="theme-color" content="#0c0a08">
+<!-- <link rel="canonical" href="https://[the app's domain]/"> -->
+<meta name="site-kind" content="software">
+<meta name="page-type" content="software">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Funnel+Display:wght@400..700&family=Funnel+Sans:wght@400..600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/system.css">
+<link rel="stylesheet" href="/assets/ui/cards.css">
+<link rel="stylesheet" href="/assets/motion/motion.css">
+<link rel="stylesheet" href="/assets/backgrounds/backgrounds.css">
+<link rel="stylesheet" href="/assets/layout/layout.css">
+<link rel="stylesheet" href="/assets/icons/icon.css">
+<style>
+:root {
+  --p-bg: #0c0a08; --p-surface: #181512; --p-ink: #ffffff; --p-muted: #8f8a84;
+  --p-accent: #c9a45a; --p-accent-ink: #0c0a08; --p-action: #c9a45a; --p-action-ink: #0c0a08;
+  --p-inv-bg: #ffffff; --p-inv-surface: #ebebeb; --p-inv-ink: #0c0a08; --p-inv-muted: #5c5b59;
+  --p-inv-accent: #0c0a08; --p-inv-accent-ink: #ffffff; --p-inv-action: #0c0a08; --p-inv-action-ink: #ffffff;
+  --font-display: "Funnel Display", system-ui, sans-serif;
+  --font-text: "Funnel Sans", system-ui, sans-serif;
+  --font-mono: "DM Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --display-weight: 400;
+  --display-tracking: -0.03em;
+  --display-tracking-xl: -0.04em;
+  --ly-scale: 0.98;
+}
+</style>
+<link rel="stylesheet" href="/assets/ui/base.css">
+<link rel="stylesheet" href="/assets/ui/window/fragment.css">
+<script>document.documentElement.classList.add('m-enter');setTimeout(()=>document.documentElement.classList.add('m-enter-done'),700)</script>
+<script src="/assets/backgrounds/backgrounds.js"></script>
+<script>document.documentElement.classList.add('mo-js');setTimeout(()=>document.documentElement.classList.add('mo-safe'),2500)</script>
+<link rel="modulepreload" href="/assets/moments/moments.js">
+<link rel="modulepreload" href="/assets/moments/lib.js">
+<link rel="modulepreload" href="/assets/moments/liquid-type/moment.js">
+<!-- page CSS: only inside the visuals (the app's own scoreboard screens), and one --p-h per card group -->
+<style>
+  /* the app's scoreboard, drawn as live HTML: one look for the hero window, the app frame and the cards */
+  .sk { background: #fff; color: #1c1a17; font: 400 14px/1.4 var(--font-text); text-align: left; }
+  .sk b { font-weight: 500; }
+  .sk-win { border-radius: 12px; overflow: hidden; box-shadow: 0 0 0 1px rgb(0 0 0 / .07), 0 24px 60px -28px rgb(0 0 0 / .45); }
+  .sk-bar { display: flex; align-items: center; gap: 10px; height: 40px; padding: 0 14px; border-bottom: 1px solid #ece8e1; font-size: 13px; color: #5f5a52; }
+  .sk-bar__dots { display: flex; gap: 6px; } .sk-bar__dots i { width: 10px; height: 10px; border-radius: 50%; background: #dedad3; }
+  .sk-body { display: grid; grid-template-columns: 148px minmax(0, 1fr); min-height: 640px; }
+  .sk-side { padding: 14px 10px; border-right: 1px solid #ece8e1; display: grid; align-content: start; gap: 2px; font-size: 13px; color: #59544c; }
+  .sk-side span { display: flex; align-items: center; gap: 8px; height: 30px; padding: 0 8px; border-radius: 7px; }
+  .sk-side span.is-on { background: #f3efe6; color: #1c1a17; font-weight: 500; }
+  .sk-side i { width: 14px; height: 14px; border-radius: 4px; background: currentColor; opacity: .3; flex: none; }
+  .sk-main { padding: 16px 18px; display: grid; align-content: start; gap: 12px; min-width: 0; }
+  .sk-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .sk-head h4 { margin: 0; font: 500 16px/1.2 var(--font-text); color: inherit; }
+  .sk-head small { display: block; color: #6f695f; font-size: 13px; margin-top: 2px; }
+  .sk-btn { display: inline-flex; align-items: center; height: 30px; padding: 0 12px; border-radius: 7px; background: #1c1a17; color: #fff; font-size: 13px; font-weight: 500; white-space: nowrap; }
+  .sk-rows { display: grid; border-top: 1px solid #ece8e1; }
+  .sk-row { display: grid; grid-template-columns: 12px minmax(0, 1fr) auto 72px; align-items: center; gap: 12px; padding: 11px 2px; border-bottom: 1px solid #ece8e1; font-size: 14px; }
+  .sk-dot { width: 12px; height: 12px; border-radius: 50%; }
+  .sk-row small { display: block; color: #6f695f; font-size: 13px; }
+  .sk-step { display: inline-flex; gap: 4px; } .sk-step span { min-width: 34px; height: 28px; padding: 0 6px; display: grid; place-items: center; border: 1px solid #e3ded5; border-radius: 7px; font-size: 13px; color: #3d3932; }
+  .sk-num { text-align: right; font: 500 18px/1 var(--font-text); font-variant-numeric: tabular-nums; }
+  .sk-lead { display: inline-flex; align-items: center; gap: 5px; height: 22px; padding: 0 8px; border-radius: 99px; font-size: 13px; font-weight: 500; background: #f6ecd4; color: #7a5a17; white-space: nowrap; }
+  .sk-card { border-radius: 12px; padding: 14px 16px; box-shadow: 0 0 0 1px rgb(0 0 0 / .07), 0 18px 40px -20px rgb(0 0 0 / .5); }
+  .sk-card h5 { margin: 0; font: 500 14px/1.3 var(--font-text); }
+  .sk-card__row { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 6px; }
+  .sk-line { display: flex; align-items: center; gap: 8px; padding: 4px 0; font-size: 13px; color: #3d3932; }
+  .sk-line i { width: 18px; height: 18px; border-radius: 50%; display: grid; place-items: center; font-style: normal; font-size: 11px; background: #e9f3ea; color: #2d6a3a; flex: none; }
+  /* the open session in the app frame: a round-by-round grid */
+  .sk-grid { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+  .sk-grid th, .sk-grid td { padding: 10px 12px; border-bottom: 1px solid #ece8e1; text-align: right; font-size: 14px; }
+  .sk-grid th:first-child, .sk-grid td:first-child { text-align: left; color: #6f695f; }
+  .sk-grid thead th { font-weight: 500; color: #1c1a17; }
+  .sk-grid thead th span { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; }
+  .sk-grid tr.is-now td { background: #fbf6ea; }
+  .sk-grid tr.sk-total td { font-weight: 500; color: #1c1a17; border-bottom: 0; font-size: 16px; }
+  .sk-pane { height: 100%; }
+  .hero__art > .ly-piece--note { left: var(--s-6); bottom: var(--s-6); width: 300px; }
+  .hero__art .sk-main { padding-right: var(--ly-cut-room); }
+  .sk-hist h6 { margin: 8px 0 0; font: 500 13px/1.3 var(--font-text); color: #6f695f; }
+  .sk-hist .sk-grid th, .sk-hist .sk-grid td { padding: 8px 10px; font-size: 13px; }
+  /* small pieces inside the feature panels */
+  .sk-piece { border-radius: 12px; padding: 16px; box-shadow: 0 0 0 1px rgb(0 0 0 / .07); }
+  .sk-bars { display: grid; gap: 10px; }
+  .sk-bars div { display: grid; grid-template-columns: 64px minmax(0, 1fr) 40px; align-items: center; gap: 10px; font-size: 13px; }
+  .sk-bars em { display: block; height: 10px; border-radius: 99px; background: #efebe3; overflow: hidden; font-style: normal; }
+  .sk-bars em i { display: block; height: 100%; border-radius: inherit; }
+  .sk-field { display: grid; gap: 4px; margin-bottom: 12px; font-size: 13px; color: #6f695f; }
+  .sk-field span { height: 36px; display: flex; align-items: center; padding: 0 10px; border: 1px solid #e3ded5; border-radius: 8px; color: #1c1a17; font-size: 14px; }
+  .c-blue { background: #2f6fd6; } .c-red { background: #d2463a; } .c-yellow { background: #e0a91b; } .c-green { background: #3f9a52; }
+  #scoring .panel { --p-h: 300px; }
+  #scoring .sk-piece { width: min(360px, 100% - 48px); }
+  @media (max-width: 639px) { #scoring .panel { --p-h: 150px; } .sk-body { grid-template-columns: 1fr; } .sk-side { display: none; } }
+  /* the app frame (sections-library.md, app-frame) */
+  .app.ui { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); margin-top: var(--s-7); background: var(--u-bg); border: 1px solid var(--u-border); border-radius: var(--u-r); box-shadow: var(--u-shadow); }
+  .app > .app__pane { position: relative; min-width: 0; min-height: 0; overflow: hidden; }
+  .app > .app__pane + .app__pane { border-left: 1px solid var(--u-line); }
+  .app > .app__pane > .ui-panel { width: 100%; border: 0; border-radius: 0; box-shadow: none; }
+  .app > .app__pane::after { content: ""; position: absolute; inset: auto 0 0 0; height: 64px; background: linear-gradient(transparent, var(--u-bg)); pointer-events: none; }
+  @media (min-width: 1024px) and (max-width: 1279px) { .app.ui { grid-template-columns: minmax(0, 4fr) minmax(0, 8fr); } }
+  @media (max-width: 1023px) {
+    .app.ui { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); }
+    .app > .app__pane--list { max-height: 252px; }
+    .app > .app__pane--list::after { display: none; }
+    .app .ui-win__side { display: none; }
+    .app .ui-win__body { grid-template-columns: minmax(0, 1fr); }
+    .app > .app__pane + .app__pane { border-left: 0; border-top: 1px solid var(--u-line); }
+  }
+  @media (max-width: 639px) {
+    .app.ui { grid-template-rows: minmax(0, 1fr); }
+    .app > .app__pane--list { display: none; }
+    .app > .app__pane + .app__pane { border-top: 0; }
+  }
+</style>
+</head>
+<body>
+<!-- type: software (a web app that keeps score at board game nights)
+     deal: hero collage, nav nav-centre, close close-type, footer footer-statement, rhythm dark-band,
+     buttons tonal, mark: the app's own keep logo (replaces the dealt ring), grounds none, lit ground sage
+     palette warm-black-gold (dealt third: the first, plum and pink, clashed with the app's own gold keep logo;
+     gold on warm black matches the app's gold buttons and the felt-and-brass of a game table), type funnel
+     moments: liquid-type in #record (the one line the page wants remembered: wins are kept)
+     screens: hero 1, scoreboard 1, record 1, scoring 2, table 1, faq 1, footer 1 -->
+<header class="nav nav--centre">
+  <div class="wrap nav__bar">
+    <a class="skip-link" href="#top">Skip to content</a>
+    <a class="nav__logo" href="#top"><svg class="logo-keep" width="22" height="24" viewBox="0 0 256 283" aria-hidden="true" focusable="false"><path fill="#c9a45a" d="M234.667 54.84L149.333 5.646a43.6 43.6 0 0 0-42.917 0L21.082 54.84C5.522 63.624 0 76.675 0 91.984v98.636c0 15.31 8.031 29.364 21.333 37.145l85.334 49.192a43.6 43.6 0 0 0 42.917 0l85.083-49.192C247.969 220.235 256 205.929 256 190.62V91.984c0-15.31-8.031-29.364-21.333-37.145m-57.224 158.368c0 2.510-1.757 4.267-4.016 4.267H82.824c-2.51 0-4.267-1.757-4.267-4.267v-18.573c0-2.259.753-4.266 2.51-6.023l10.792-10.541l6.525-60.738c.251-1.757-.502-3.262-1.757-4.266l-8.784-7.78c-1.757-1.507-2.51-3.765-2.51-6.024V69.647c0-2.51 1.757-4.518 4.267-4.518h13.302c2.259 0 4.518 2.008 4.518 4.267v6.777h11.043v-6.526a4.5 4.5 0 0 1 4.517-4.518h10.793c2.258 0 4.015 2.008 4.015 4.267v6.777h11.043v-6.275c0-2.51 2.51-4.769 5.020-4.769h13.051c2.259 0 4.769 2.008 4.769 4.267v30.62c0 2.008-1.004 3.764-2.26 5.27l-9.536 7.78c-1.255 1.005-1.757 2.51-1.757 4.016l6.776 60.989l10.792 11.043c1.255 1.255 1.757 2.76 1.757 4.517zm-49.192-63.75c-7.027-.25-12.549 6.024-12.549 12.8v26.103c0 1.506 1.255 2.76 2.76 2.76h18.824c1.506 0 3.012-1.505 3.012-3.011v-25.851c-.25-6.777-5.02-12.55-12.047-12.8"/></svg>Board Game Score Keep</a>
+    <nav class="nav__links" aria-label="Main">
+      <div class="nav__item"><a class="nav__link" href="#scoreboard">Scoreboard</a></div>
+      <div class="nav__item">
+        <a class="nav__link" href="#scoring">Scoring <svg class="chev" viewBox="0 0 12 12" aria-hidden="true"><path d="M3 4.5l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+        <div class="nav__menu">
+          <div class="wrap grid">
+            <div class="menu-col span-3">
+              <p class="t-label">During the game</p>
+              <a href="#scoring">Running tally<span>Points added round by round</span></a>
+              <a href="#scoring">Target score<span>Ends at first to N points</span></a>
+            </div>
+            <div class="menu-col span-3">
+              <p class="t-label">After the game</p>
+              <a href="#scoring">Final totals<span>One score each at the end</span></a>
+              <a href="#record">Hall of fame<span>Wins and win rate per player</span></a>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="nav__item"><a class="nav__link" href="#table">Sync</a></div>
+      <div class="nav__item"><a class="nav__link" href="#faq">Questions</a></div>
+    </nav>
+    <div class="nav__actions">
+      <a class="nav__link" href="/auth/login">Sign in</a>
+      <a class="btn btn--primary" href="/auth/register">Create an account</a>
+    </div>
+    <button class="nav__toggle" type="button" aria-expanded="false" aria-label="Menu">
+      <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="M2 5h14M2 13h14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+    </button>
+  </div>
+</header>
+
+<main id="top">
+  <section class="hero hero--collage" data-enter aria-labelledby="hero-h">
+    <div class="wrap"><div class="hero-text grid hero__grid">
+      <div class="hero__text span-5">
+        <h1 id="hero-h">Score keeper for board game nights</h1>
+        <p class="hero__lead">Board Game Score Keep adds up each round on your phone and remembers every winner. Three ways to score: a running tally, final totals or scoring categories.</p>
+        <div class="btn-row"><a class="btn btn--primary" href="/auth/register">Create an account<svg class="m-arrow" viewBox="0 0 12 12" aria-hidden="true"><path class="m-arrow__stem" d="M1 6h8"/><path class="m-arrow__head" d="M4.5 2.5 8 6l-3.5 3.5"/></svg></a><a class="btn btn--secondary" href="/auth/login">Sign in</a></div>
+        <p class="hero__proof">Scores update live on every phone signed in to the game.</p>
+      </div>
+      <div class="hero__art frame--lit span-6 start-7" role="img" aria-label="A game of Azul in round 6 of 8, with Blue leading on 64 points, and the finished game's result card">
+        <div class="ly-piece ly-piece--main sk sk-win" aria-hidden="true">
+          <div class="sk-bar"><span class="sk-bar__dots"><i></i><i></i><i></i></span><span>Score Keep · Azul, Friday night</span></div>
+          <div class="sk-body">
+            <div class="sk-side">
+              <span><i></i>Home</span><span class="is-on"><i></i>Games</span><span><i></i>Players</span><span><i></i>Standings</span>
+            </div>
+            <div class="sk-main">
+              <div class="sk-head"><div><h4>Azul</h4><small>Round 6 of 8 · running tally</small></div><span class="sk-btn">Next round</span></div>
+              <div class="sk-rows">
+                <div class="sk-row"><span class="sk-dot c-blue"></span><div><b>Blue</b><small>+12 this round</small></div><span class="sk-lead">Leads</span><span class="sk-num">64</span></div>
+                <div class="sk-row"><span class="sk-dot c-red"></span><div><b>Red</b><small>+9 this round</small></div><span class="sk-step"><span>−1</span><span>+1</span><span>+10</span></span><span class="sk-num">58</span></div>
+                <div class="sk-row"><span class="sk-dot c-yellow"></span><div><b>Yellow</b><small>+4 this round</small></div><span class="sk-step"><span>−1</span><span>+1</span><span>+10</span></span><span class="sk-num">51</span></div>
+                <div class="sk-row"><span class="sk-dot c-green"></span><div><b>Green</b><small>+7 this round</small></div><span class="sk-step"><span>−1</span><span>+1</span><span>+10</span></span><span class="sk-num">47</span></div>
+              </div>
+              <div class="sk-hist">
+                <h6>Earlier rounds</h6>
+                <table class="sk-grid">
+                  <thead><tr><th>Round</th><th>Blue</th><th>Red</th><th>Yellow</th><th>Green</th></tr></thead>
+                  <tbody>
+                    <tr><td>Round 5</td><td>12</td><td>8</td><td>8</td><td>7</td></tr>
+                    <tr><td>Round 4</td><td>9</td><td>14</td><td>10</td><td>11</td></tr>
+                    <tr><td>Round 3</td><td>13</td><td>9</td><td>8</td><td>7</td></tr>
+                    <tr><td>Round 2</td><td>10</td><td>7</td><td>12</td><td>9</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="ly-piece ly-piece--note sk sk-card" aria-hidden="true" data-ly-steps="700">
+          <div class="sk-card__row"><h5>Blue wins Azul</h5><span class="sk-lead" data-step data-step-at="4">Final</span></div>
+          <div class="sk-line" data-step><i>✓</i><span>Game over after <b>8 rounds</b></span></div>
+          <div class="sk-line" data-step><i>✓</i><span>Blue <b>84</b>, Red 79, Yellow 70</span></div>
+          <div class="sk-line" data-step><i>✓</i><span>Added to the <b>hall of fame</b></span></div>
+        </div>
+      </div>
+    </div></div>
+  </section>
+
+  <section class="section" id="scoreboard" aria-labelledby="scoreboard-h">
+    <div class="wrap">
+      <div class="grid">
+        <h2 class="span-5" id="scoreboard-h">Every game night in one scoreboard</h2>
+        <div class="span-6 start-7 stack-4">
+          <p class="muted">Pick the game, add the players and tap in scores as you go. Next round closes the round, and the totals and the leader change with each tap.</p>
+          <a class="link" href="#scoring">See the scoring modes</a>
+        </div>
+      </div>
+      <div class="ui app fill" role="img" aria-label="The session list beside an open game of Azul, its scores laid out round by round" data-ui-pause-host>
+        <div class="app__pane app__pane--list">
+          <div class="ui ui-panel ui-win" data-ui="window" data-open="Playing" data-work="Scoring" data-done="Final">
+            <div class="ui-win__bar">
+              <span class="ui-dots" aria-hidden="true"><i></i><i></i><i></i></span>
+              <span class="ui-win__crumb">Score Keep <i>/</i> <b>Sessions</b></span>
+              <span class="ui-spacer"></span>
+            </div>
+            <div class="ui-win__body">
+              <nav class="ui-win__side" aria-hidden="true">
+                <span class="ui-win__nav is-on">Playing<em>2</em></span>
+                <span class="ui-win__nav">Finished<em>14</em></span>
+                <span class="ui-win__nav">Games<em>9</em></span>
+                <span class="ui-win__nav">Players<em>6</em></span>
+              </nav>
+              <div class="ui-win__main">
+                <div class="ui-win__cols" aria-hidden="true"><span>Game</span><span>Session</span><span>Status</span><span>When</span></div>
+                <ul class="ui-win__rows">
+                  <li class="ui-win__row"><span class="ui-avatar" data-tone="1">Az</span><span class="ui-win__who">Azul</span><span class="ui-win__sub">4 players · round 6 of 8</span><span class="ui-win__st is-you">Playing</span><span class="ui-win__age">now</span></li>
+                  <li class="ui-win__row"><span class="ui-avatar" data-tone="3">Tr</span><span class="ui-win__who">Ticket to Ride</span><span class="ui-win__sub">5 players · final scores</span><span class="ui-win__st is-you">Playing</span><span class="ui-win__age">1h</span></li>
+                  <li class="ui-win__row"><span class="ui-avatar" data-tone="4">Ca</span><span class="ui-win__who">Carcassonne</span><span class="ui-win__sub">Red won · 112 points</span><span class="ui-win__st is-done">Final</span><span class="ui-win__age">2d</span></li>
+                  <li class="ui-win__row"><span class="ui-avatar" data-tone="2">Wi</span><span class="ui-win__who">Wingspan</span><span class="ui-win__sub">Green won · 6 categories</span><span class="ui-win__st is-done">Final</span><span class="ui-win__age">5d</span></li>
+                  <li class="ui-win__row"><span class="ui-avatar" data-tone="5">Co</span><span class="ui-win__who">Codenames</span><span class="ui-win__sub">Team Blue won · 2 teams</span><span class="ui-win__st is-done">Final</span><span class="ui-win__age">1w</span></li>
+                  <li class="ui-win__row"><span class="ui-avatar" data-tone="3">Az</span><span class="ui-win__who">Azul</span><span class="ui-win__sub">Yellow won · 91 points</span><span class="ui-win__st is-done">Final</span><span class="ui-win__age">1w</span></li>
+                  <li class="ui-win__row"><span class="ui-avatar" data-tone="1">Ki</span><span class="ui-win__who">King of Tokyo</span><span class="ui-win__sub">Blue won · first to 20</span><span class="ui-win__st is-done">Final</span><span class="ui-win__age">2w</span></li>
+                  <li class="ui-win__row"><span class="ui-avatar" data-tone="4">Ca</span><span class="ui-win__who">Carcassonne</span><span class="ui-win__sub">Blue won · 98 points</span><span class="ui-win__st is-done">Final</span><span class="ui-win__age">2w</span></li>
+                  <li class="ui-win__row"><span class="ui-avatar" data-tone="2">Wi</span><span class="ui-win__who">Wingspan</span><span class="ui-win__sub">Red won · 6 categories</span><span class="ui-win__st is-done">Final</span><span class="ui-win__age">3w</span></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="app__pane app__pane--open">
+          <div class="sk sk-pane">
+            <div class="sk-main">
+              <div class="sk-head"><div><h4>Azul · Friday night</h4><small>Round 6 of 8 · highest total wins</small></div><span class="sk-btn">Next round</span></div>
+              <table class="sk-grid">
+                <thead><tr><th>Round</th><th><span class="c-blue"></span>Blue</th><th><span class="c-red"></span>Red</th><th><span class="c-yellow"></span>Yellow</th><th><span class="c-green"></span>Green</th></tr></thead>
+                <tbody>
+                  <tr><td>Round 1</td><td>8</td><td>11</td><td>9</td><td>6</td></tr>
+                  <tr><td>Round 2</td><td>10</td><td>7</td><td>12</td><td>9</td></tr>
+                  <tr><td>Round 3</td><td>13</td><td>9</td><td>8</td><td>7</td></tr>
+                  <tr><td>Round 4</td><td>9</td><td>14</td><td>10</td><td>11</td></tr>
+                  <tr><td>Round 5</td><td>12</td><td>8</td><td>8</td><td>7</td></tr>
+                  <tr class="is-now"><td>Round 6</td><td>12</td><td>9</td><td>4</td><td>7</td></tr>
+                  <tr class="sk-total"><td>Total</td><td>64</td><td>58</td><td>51</td><td>47</td></tr>
+                  <tr><td>Round 7</td><td></td><td></td><td></td><td></td></tr>
+                  <tr><td>Round 8</td><td></td><td></td><td></td><td></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section statement" id="record" aria-labelledby="record-h">
+    <div class="wrap">
+      <div data-moment="liquid-type" class="section-head" style="max-width:none">
+        <h2 class="mo-lt__type" id="record-h">Every win on the record</h2>
+        <p>The hall of fame ranks your group by wins, win rate and average finish, across every game you finish.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section g2" id="scoring" aria-labelledby="scoring-h">
+    <div class="wrap">
+      <div class="group">
+        <div class="section-head">
+          <h2 id="scoring-h">Scores the way your game counts. <span class="muted">Set once for each game.</span></h2>
+        </div>
+        <div class="grid">
+          <article class="card card--row card--open span-6">
+            <h3>Adds up a running tally</h3>
+            <p>Tap −1, +1 or +10 for each player, round by round. Next round closes the round and shows who leads.</p>
+            <div class="panel frame--lit">
+              <div class="stage stage--fade-b"><div class="at-rise fit" style="--fit-max:360px;--ax:max(24px, 50% - 180px);--ay:48px;--ay-sm:16px">
+                <div class="sk sk-piece">
+                  <div class="sk-rows">
+                    <div class="sk-row"><span class="sk-dot c-red"></span><div><b>Red</b><small>+9 this round</small></div><span class="sk-step"><span>+1</span><span>+10</span></span><span class="sk-num">58</span></div>
+                    <div class="sk-row"><span class="sk-dot c-green"></span><div><b>Green</b><small>+7 this round</small></div><span class="sk-step"><span>+1</span><span>+10</span></span><span class="sk-num">47</span></div>
+                    <div class="sk-row"><span class="sk-dot c-yellow"></span><div><b>Yellow</b><small>+4 this round</small></div><span class="sk-step"><span>+1</span><span>+10</span></span><span class="sk-num">51</span></div>
+                  </div>
+                </div>
+              </div></div>
+            </div>
+          </article>
+          <article class="card card--row card--open span-6">
+            <h3>Totals end-of-game scores</h3>
+            <p>Type each player's final score once the last tile is placed, or split it into categories such as birds, eggs and cards.</p>
+            <div class="panel"><img class="frame__img" src="/assets/img/photo-f178342135-960.jpg" srcset="/assets/img/photo-f178342135-500.jpg 500w, /assets/img/photo-f178342135-960.jpg 960w" sizes="(max-width: 639px) 100vw, 50vw" width="960" height="722" alt="Coloured tiles placed on a player board, with the score track along its top" loading="lazy" decoding="async" data-source="stand-in" data-subject="board game tiles and score track"></div>
+          </article>
+        </div>
+      </div>
+      <div class="grid">
+        <article class="card card--row card--open span-6">
+          <h3>Ends at the target score</h3>
+          <p>Set first to 100 points and the game ends on the round someone gets there, with a fanfare for the winner.</p>
+          <div class="panel frame--lit">
+            <div class="stage stage--fade-b"><div class="at-rise fit" style="--fit-max:360px;--ax:max(24px, 50% - 180px);--ay:48px;--ay-sm:16px">
+              <div class="sk sk-piece">
+                <div class="sk-head" style="margin-bottom:14px"><div><h4>First to 100</h4><small>Round 9</small></div><span class="sk-lead">Blue 96</span></div>
+                <div class="sk-bars">
+                  <div><span>Blue</span><em><i class="c-blue" style="width:96%"></i></em><b>96</b></div>
+                  <div><span>Red</span><em><i class="c-red" style="width:88%"></i></em><b>88</b></div>
+                  <div><span>Yellow</span><em><i class="c-yellow" style="width:71%"></i></em><b>71</b></div>
+                  <div><span>Green</span><em><i class="c-green" style="width:64%"></i></em><b>64</b></div>
+                </div>
+              </div>
+            </div></div>
+          </div>
+        </article>
+        <article class="card card--row card--open span-6">
+          <h3>Names rounds and points your way</h3>
+          <p>A racing game can count races and laps instead of rounds and points, and the labels follow on every screen.</p>
+          <div class="panel frame--lit">
+            <div class="stage stage--fade-b"><div class="at-rise fit" style="--fit-max:360px;--ax:max(24px, 50% - 180px);--ay:48px;--ay-sm:16px">
+              <div class="sk sk-piece">
+                <label class="sk-field">A round is called<span>race</span></label>
+                <label class="sk-field">A point is called<span>lap</span></label>
+                <label class="sk-field">Planned rounds<span>6</span></label>
+              </div>
+            </div></div>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="section ground-inverse" id="table" style="--hm: 2" aria-labelledby="table-h">
+    <div class="wrap">
+      <div class="grid">
+        <div class="span-5 stack-6">
+          <h2 id="table-h">Every phone at the table sees the same scores</h2>
+          <p class="t-lead">Open the game on a second phone or a tablet signed in to your account, and scores entered on one show up on the others as they are typed.</p>
+          <ul class="stack-3">
+            <li>Speak a score instead of typing it, in browsers with voice input.</li>
+            <li>Add photos of the table, with captions and who is in each.</li>
+            <li>A QR code opens the app on the next person's phone.</li>
+          </ul>
+          <a class="link" href="#faq">Read the questions</a>
+        </div>
+        <div class="frame frame--photo frame--split span-6 start-7">
+          <img class="frame__img" src="/assets/img/photo-f24029775-960.jpg" srcset="/assets/img/photo-f24029775-500.jpg 500w, /assets/img/photo-f24029775-960.jpg 960w, /assets/img/photo-f24029775.jpg 1280w" sizes="(max-width: 639px) 100vw, 50vw" width="1280" height="848" alt="A family of four playing a board game around a coffee table" loading="lazy" decoding="async" data-source="stand-in" data-subject="a family playing a board game">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="faq" style="--hm: 2" aria-labelledby="faq-h">
+    <div class="wrap">
+      <div class="grid">
+        <div class="span-5 stack-4">
+          <h2 id="faq-h">Questions</h2>
+          <p class="muted">What people ask before their first game night with Board Game Score Keep.</p>
+          <a class="link" href="/auth/register">Create an account</a>
+        </div>
+        <div class="faq span-6 start-7">
+          <div class="faq__item"><h3>Which games does it work with?</h3><p>Any game that ends in points. Add the game once, pick how it scores, and reuse it every session.</p></div>
+          <div class="faq__item"><h3>Can the lowest score win?</h3><p>Not yet. Every game ranks the highest total first, so golf-style games such as Hearts read backwards for now.</p></div>
+          <div class="faq__item"><h3>Do the other players need an account?</h3><p>No. Players are names you add to a session; only the person keeping score signs in.</p></div>
+          <div class="faq__item"><h3>Does it remember past games?</h3><p>Yes. Each finished session keeps its scores, photos and notes, and counts toward the standings.</p></div>
+          <div class="faq__item"><h3>Is there an app to download?</h3><p>No. It runs in the phone's browser: open the address and sign in.</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="footer closing footer--statement g2m" id="contact" aria-labelledby="close-h">
+  <div class="wrap">
+    <div class="closing__cta close--type">
+      <div class="section-head">
+        <h2 id="close-h">Keep score at your next game night</h2>
+        <p class="t-small muted">Sign up with an email and a password, then add your first game.</p>
+      </div>
+      <a class="btn btn--primary btn--xl btn--wide" href="/auth/register">Create an account<svg class="m-arrow" viewBox="0 0 12 12" aria-hidden="true"><path class="m-arrow__stem" d="M1 6h8"/><path class="m-arrow__head" d="M4.5 2.5 8 6l-3.5 3.5"/></svg></a>
+    </div>
+    <div class="closing__links">
+      <div class="grid">
+        <div class="span-4 stack-4">
+          <a class="nav__logo" href="#top"><svg class="logo-keep" width="22" height="24" viewBox="0 0 256 283" aria-hidden="true" focusable="false"><path fill="currentColor" d="M234.667 54.84L149.333 5.646a43.6 43.6 0 0 0-42.917 0L21.082 54.84C5.522 63.624 0 76.675 0 91.984v98.636c0 15.31 8.031 29.364 21.333 37.145l85.334 49.192a43.6 43.6 0 0 0 42.917 0l85.083-49.192C247.969 220.235 256 205.929 256 190.62V91.984c0-15.31-8.031-29.364-21.333-37.145m-57.224 158.368c0 2.510-1.757 4.267-4.016 4.267H82.824c-2.51 0-4.267-1.757-4.267-4.267v-18.573c0-2.259.753-4.266 2.51-6.023l10.792-10.541l6.525-60.738c.251-1.757-.502-3.262-1.757-4.266l-8.784-7.78c-1.757-1.507-2.51-3.765-2.51-6.024V69.647c0-2.51 1.757-4.518 4.267-4.518h13.302c2.259 0 4.518 2.008 4.518 4.267v6.777h11.043v-6.526a4.5 4.5 0 0 1 4.517-4.518h10.793c2.258 0 4.015 2.008 4.015 4.267v6.777h11.043v-6.275c0-2.51 2.51-4.769 5.020-4.769h13.051c2.259 0 4.769 2.008 4.769 4.267v30.62c0 2.008-1.004 3.764-2.26 5.27l-9.536 7.78c-1.255 1.005-1.757 2.51-1.757 4.016l6.776 60.989l10.792 11.043c1.255 1.255 1.757 2.76 1.757 4.517zm-49.192-63.75c-7.027-.25-12.549 6.024-12.549 12.8v26.103c0 1.506 1.255 2.76 2.76 2.76h18.824c1.506 0 3.012-1.505 3.012-3.011v-25.851c-.25-6.777-5.02-12.55-12.047-12.8"/></svg>Board Game Score Keep</a>
+          <p class="footer__lede">Score keeping for board game groups: rounds, totals, winners and standings.</p>
+        </div>
+        <div class="span-2 start-7 footer__col"><h3>App</h3><ul><li><a href="#scoreboard">Scoreboard</a></li><li><a href="#scoring">Scoring</a></li><li><a href="#table">Sync</a></li></ul></div>
+        <div class="span-2 footer__col"><h3>Help</h3><ul><li><a href="#faq">Questions</a></li><li><a href="/auth/login">Sign in</a></li></ul></div>
+      </div>
+      <div class="footer__legal">
+        <span>&copy; 2026 Board Game Score Keep · Game names are trademarks of their owners</span>
+        <div class="socials"></div>
+        <a class="credits" href="/assets/img/credits.json">Photographs via Wikimedia Commons</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<nav class="actionbar" aria-label="Quick actions">
+  <a class="btn btn--primary" href="/auth/register">Create an account</a>
+</nav>
+
+<script type="module" src="/assets/system.js"></script>
+<script type="module" src="/assets/motion/motion.js"></script>
+<script type="module" src="/assets/layout/layout.js"></script>
+</body>
+</html>

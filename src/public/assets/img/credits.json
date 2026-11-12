@@ -1,0 +1,34 @@
+{
+  "note": "Credits for the photographs in this folder: photos.mjs credits prints the footer block for the ones the pages use.",
+  "photos": [
+    {
+      "file": "photo-f24029775.jpg",
+      "files": [
+        "photo-f24029775-500.jpg",
+        "photo-f24029775-960.jpg",
+        "photo-f24029775.jpg"
+      ],
+      "id": "f24029775",
+      "alt": "Family playing a board game (1)",
+      "by": "Bill Branson (Photographer)",
+      "licence": "Public domain",
+      "licenceUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
+      "page": "https://commons.wikimedia.org/wiki/File:Family_playing_a_board_game_(1).jpg",
+      "source": "Wikimedia Commons"
+    },
+    {
+      "file": "photo-f178342135-960.jpg",
+      "files": [
+        "photo-f178342135-500.jpg",
+        "photo-f178342135-960.jpg"
+      ],
+      "id": "f178342135",
+      "alt": "Azul board game",
+      "by": "Gepsimos",
+      "licence": "CC0",
+      "licenceUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+      "page": "https://commons.wikimedia.org/wiki/File:Azul_board_game.jpg",
+      "source": "Wikimedia Commons"
+    }
+  ]
+}
