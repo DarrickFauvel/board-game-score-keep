@@ -38,31 +38,57 @@ export const playerService = {
     return { ...row, win_rate: winRate };
   },
 
+  /**
+   * The player's latest 50 sessions with their total, their finishing
+   * position among everyone in that session (1 = best, ties share a rank,
+   * by the game's win rule) and whether they won: the session is complete
+   * and decided by the scoreboard's trophy rule (see winRule).
+   */
   async getGameHistory(playerId: string) {
     const result = await db.execute({
-      sql: `SELECT
+      // Rank everyone in the player's sessions first, then keep the player's
+      // rows: filtering first would leave one row per session, always rank 1.
+      sql: `WITH totals AS (
+              SELECT sp.id AS participant_id, sp.session_id, sp.player_id, sp.display_name,
+                     COALESCE(SUM(se.value), 0) AS total
+              FROM session_participants sp
+              LEFT JOIN score_entries se ON se.participant_id = sp.id
+              WHERE sp.session_id IN (SELECT session_id FROM session_participants WHERE player_id = ?)
+              GROUP BY sp.id
+            ),
+            ranked AS (
+              SELECT t.*,
+                     RANK() OVER (
+                       PARTITION BY t.session_id
+                       ORDER BY CASE WHEN g.lowest_wins = 1 THEN t.total ELSE -t.total END
+                     ) AS rank,
+                     MAX(ABS(t.total)) OVER (PARTITION BY t.session_id) AS largest_total
+              FROM totals t
+              JOIN sessions s ON s.id = t.session_id
+              JOIN games g ON g.id = s.game_id
+            )
+            SELECT
               s.id AS session_id,
               g.id AS game_id,
               g.name AS game_name,
               g.image_url,
               s.started_at,
               s.status,
-              sp.display_name,
-              SUM(se.value) AS total_score,
-              -- 1 = won: highest total, or lowest in lowest-wins games
-              RANK() OVER (
-                PARTITION BY s.id
-                ORDER BY CASE WHEN g.lowest_wins = 1 THEN COALESCE(SUM(se.value), 0) ELSE -COALESCE(SUM(se.value), 0) END
-              ) AS rank
-            FROM session_participants sp
-            JOIN sessions s ON s.id = sp.session_id
+              r.display_name,
+              r.total AS total_score,
+              r.rank,
+              -- Decided as in winRule: highest wins needs a total above 0,
+              -- lowest wins needs someone off 0
+              CASE WHEN s.status = 'completed' AND r.rank = 1
+                        AND (CASE WHEN g.lowest_wins = 1 THEN r.largest_total > 0 ELSE r.total > 0 END)
+                   THEN 1 ELSE 0 END AS won
+            FROM ranked r
+            JOIN sessions s ON s.id = r.session_id
             JOIN games g ON g.id = s.game_id
-            LEFT JOIN score_entries se ON se.participant_id = sp.id
-            WHERE sp.player_id = ?
-            GROUP BY sp.id, s.id
+            WHERE r.player_id = ?
             ORDER BY s.started_at DESC
             LIMIT 50`,
-      args: [playerId],
+      args: [playerId, playerId],
     });
     return result.rows;
   },

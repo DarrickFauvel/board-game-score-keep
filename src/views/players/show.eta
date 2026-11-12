@@ -61,7 +61,7 @@
           &bull; Score: <%= entry.total_score || 0 %>
         </div>
       </div>
-      <% if (entry.rank === 1 && entry.status === 'completed') { %>
+      <% if (Number(entry.won) === 1) { %>
       <span class="badge badge--gold" aria-label="Winner">🏆 Winner</span>
       <% } else { %>
       <span style="font-size:var(--text-sm);color:var(--color-text-muted)">Rank #<%= entry.rank %></span>
