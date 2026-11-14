@@ -25,11 +25,7 @@
     <% it.hall.podium.forEach(function(s, i) { %>
     <li class="podium__place podium__place--<%= i + 1 %>">
       <span class="podium__medal" aria-hidden="true"><%= ['🥇', '🥈', '🥉'][s.rank - 1] || '🏅' %></span>
-      <% if (s.avatarUrl) { %>
-      <img class="avatar podium__avatar" src="<%= it.imgUrl(s.avatarUrl) %>" alt="" aria-hidden="true">
-      <% } else { %>
-      <div class="avatar podium__avatar" style="background:<%= s.color || 'var(--color-surface)' %>" aria-hidden="true"><%= s.name.charAt(0).toUpperCase() %></div>
-      <% } %>
+      <%~ it.avatar(s.avatarUrl, s.name, s.color, 'podium__avatar') %>
       <span class="podium__name"><span class="visually-hidden">Rank <%= s.rank %>: </span><%= s.name %></span>
       <span class="podium__wins"><%= s.wins %> <%= s.wins === 1 ? 'win' : 'wins' %></span>
       <span class="podium__step<%= s.rank === 1 ? ' podium__step--gold' : '' %>" aria-hidden="true"><%= s.rank %></span>
@@ -45,7 +41,10 @@
         <% it.hall.champions.forEach(function(c) { %>
         <li>
           <a href="/standings?game=<%= c.gameId %>" class="hall__game"><%= c.gameName %></a>
-          <span class="hall__who">👑 <%= c.leaders.map(l => l.name).join(' & ') %> · <%= c.leaders[0].wins %> <%= c.leaders[0].wins === 1 ? 'win' : 'wins' %></span>
+          <span class="hall__who">
+            <span class="avatar-stack"><% c.leaders.forEach(function(l) { %><%~ it.avatar(l.avatarUrl, l.name, l.color, 'avatar--xs') %><% }) %></span>
+            👑 <%= c.leaders.map(l => l.name).join(' & ') %> · <%= c.leaders[0].wins %> <%= c.leaders[0].wins === 1 ? 'win' : 'wins' %>
+          </span>
         </li>
         <% }) %>
       </ul>
@@ -58,7 +57,10 @@
       <ul class="hall__list" role="list">
         <% it.hall.victories.forEach(function(v) { %>
         <li>
-          <a href="/games/<%= v.gameId %>/sessions/<%= v.sessionId %>" class="hall__game">🏆 <%= v.winners.join(' & ') %> <%= v.winners.length > 1 ? 'tied' : 'won' %> <%= v.gameName %></a>
+          <a href="/games/<%= v.gameId %>/sessions/<%= v.sessionId %>" class="hall__game hall__game--with-avatars">
+            <span class="avatar-stack"><% v.winners.forEach(function(w) { %><%~ it.avatar(w.avatarUrl, w.name, w.color, 'avatar--xs') %><% }) %></span>
+            <span>🏆 <%= v.winners.map(w => w.name).join(' & ') %> <%= v.winners.length > 1 ? 'tied' : 'won' %> <%= v.gameName %></span>
+          </a>
           <span class="hall__who"><%= new Date(v.completedAt).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) %></span>
         </li>
         <% }) %>

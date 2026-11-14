@@ -1,5 +1,5 @@
 import { db } from '../db/client.js';
-import { processUploadedImage } from './imageService.js';
+import { processUploadedImage, parseCrop, splitImageRef, withCrop } from './imageService.js';
 
 export const playerService = {
   async listAll() {
@@ -93,10 +93,8 @@ export const playerService = {
     return result.rows;
   },
 
-  async update(id: string, body: Record<string, unknown>, file?: Express.Multer.File) {
-    const avatarUrl = file
-      ? await processUploadedImage(file.buffer, 'avatars')
-      : ((body.avatar_url as string | undefined)?.trim() || undefined);
+  async update(id: string, body: Record<string, unknown>, file?: Express.Multer.File, currentAvatar?: string | null) {
+    const avatarUrl = await resolveAvatar(body, file, currentAvatar ?? null);
     await db.execute({
       sql: `UPDATE players SET
               display_name = ?,
@@ -111,3 +109,37 @@ export const playerService = {
     });
   },
 };
+
+/**
+ * Work out the new avatar from what the avatar picker sent: an uploaded file,
+ * a camera capture (data URL), or a pasted image URL, in that order. Every
+ * source goes through Cloudinary untouched; the framing from the crop editor
+ * is stored beside it, so re-cropping never needs a new upload.
+ * Returns null to clear the avatar, or undefined to leave it unchanged.
+ */
+async function resolveAvatar(body: Record<string, unknown>, file: Express.Multer.File | undefined, current: string | null): Promise<string | null | undefined> {
+  const crop = parseCrop(body.avatar_crop);
+
+  if (file) return withCrop(await processUploadedImage(file.buffer, 'avatars'), crop);
+
+  const camera = (body.avatar_camera_data as string | undefined)?.trim();
+  if (camera?.startsWith('data:image/')) return withCrop(await processUploadedImage(camera, 'avatars'), crop);
+
+  const url = (body.image_url as string | undefined)?.trim();
+  if (url) {
+    if (!/^https?:\/\//i.test(url)) throw new AvatarError('The image link must start with http:// or https://.');
+    return withCrop(await processUploadedImage(url, 'avatars'), crop);
+  }
+
+  if (body.remove_avatar === '1') return null;
+
+  // No new picture: re-frame the current one if the crop changed
+  if (current && crop) {
+    const next = withCrop(splitImageRef(current).ref, crop);
+    return next === current ? undefined : next;
+  }
+  return undefined;
+}
+
+/** A problem with the avatar the person chose, safe to show them. */
+export class AvatarError extends Error {}

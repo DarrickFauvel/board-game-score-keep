@@ -113,6 +113,7 @@ class AvatarPicker extends HTMLElement {
       if (file && preview) {
         preview.src = URL.createObjectURL(file);
         preview.style.display = 'block';
+        this.#announce(preview.src);
         preview.addEventListener('load', () => {
           document.dispatchEvent(new CustomEvent('image-loaded', { detail: { img: preview } }));
         }, { once: true });
@@ -127,6 +128,7 @@ class AvatarPicker extends HTMLElement {
       urlPreview.style.display = 'none';
       urlPreview.onload = () => {
         urlPreview.style.display = 'block';
+        this.#announce(urlPreview.src);
         document.dispatchEvent(new CustomEvent('image-loaded', { detail: { img: urlPreview } }));
       };
       urlPreview.onerror = () => { urlPreview.style.display = 'none'; };
@@ -135,6 +137,11 @@ class AvatarPicker extends HTMLElement {
 
     this.querySelector(`#ap-cam-start-${name}`)?.addEventListener('click', () => this.#startCamera(name));
     this.querySelector(`#ap-cam-capture-${name}`)?.addEventListener('click', () => this.#capture(name));
+  }
+
+  /** Tell a crop editor in the same form which picture to frame. */
+  #announce(src) {
+    this.dispatchEvent(new CustomEvent('avatar-image-selected', { bubbles: true, detail: { src } }));
   }
 
   #switchTab(tab, name) {
@@ -152,7 +159,9 @@ class AvatarPicker extends HTMLElement {
 
   async #startCamera(name) {
     try {
-      this.#stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+      // facing="user" opens the front camera for selfies; the default is the back camera
+      const facingMode = this.getAttribute('facing') === 'user' ? 'user' : 'environment';
+      this.#stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode } });
       const video = this.querySelector('video');
       video.srcObject = this.#stream;
       this.querySelector(`#ap-cam-start-${name}`).style.display = 'none';
@@ -178,6 +187,7 @@ class AvatarPicker extends HTMLElement {
       preview.src = dataUrl;
       preview.style.display = 'block';
     }
+    this.#announce(dataUrl);
   }
 
   #stopCamera(name) {

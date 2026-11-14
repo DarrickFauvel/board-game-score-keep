@@ -128,7 +128,10 @@ for (const p of it.participants) {
         <div class="photo-tile__details">
           <% if (photo.caption) { %><p class="photo-tile__caption"><%= photo.caption %></p><% } %>
           <% if (tagged.length) { %>
-          <p class="photo-tile__people"><span class="visually-hidden">Playing: </span><%= tagged.map(p => p.display_name).join(', ') %></p>
+          <p class="photo-tile__people">
+            <span class="avatar-stack"><% tagged.forEach(function(p) { %><%~ it.avatar(p.avatar_url, p.display_name, p.color || p.preferred_color, 'avatar--xs') %><% }) %></span>
+            <span><span class="visually-hidden">Playing: </span><%= tagged.map(p => p.display_name).join(', ') %></span>
+          </p>
           <% } %>
         </div>
         <% } %>
@@ -155,6 +158,7 @@ for (const p of it.participants) {
             <% it.participants.forEach(function(p) { %>
             <label class="chip-option">
               <input type="checkbox" name="participant_ids" value="<%= p.id %>">
+              <%~ it.avatar(p.avatar_url, p.display_name, p.color || p.preferred_color, 'avatar--xs') %>
               <span><%= p.display_name %></span>
             </label>
             <% }) %>

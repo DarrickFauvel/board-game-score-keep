@@ -90,14 +90,20 @@
 </div>
 
 <script>
-const playersData = <%~ JSON.stringify(it.players) %>;
+<%/* Only what the picker needs, with each picture already resolved; "<" escaped so a name can't close this script */%>
+const playersData = <%~ JSON.stringify(it.players.map(p => ({
+  id: p.id, display_name: p.display_name, preferred_color: p.preferred_color,
+  avatar: p.avatar_url ? it.imgUrl(p.avatar_url) : '',
+}))).replace(/</g, '\\u003c') %>;
 
 function addPlayerFromSearch() {
   const search = document.getElementById('player-search');
   const val = search.value.trim();
   if (!val) return;
-  const player = playersData.find(p => p.display_name === val);
-  addParticipantRow(player ? player.display_name : val, player?.id ?? '', player?.preferred_color ?? '');
+  // Ignore capitals and extra spaces, so "sam" still links to Sam and brings their picture
+  const norm = (s) => s.trim().toLowerCase().replace(/\s+/g, ' ');
+  const player = playersData.find(p => norm(p.display_name) === norm(val));
+  addParticipantRow(player ? player.display_name : val, player?.id ?? '', player?.preferred_color ?? '', player?.avatar ?? '');
   search.value = '';
 }
 
@@ -108,21 +114,34 @@ function addGuest() {
   document.getElementById('guest-name').value = '';
 }
 
-function addParticipantRow(name, playerId, color) {
-  const list = document.getElementById('participant-list');
-  const div = document.createElement('div');
-  div.className = 'card';
-  div.style.padding = 'var(--space-2)';
-  div.innerHTML = `
-    <div style="display:flex;align-items:center;gap:var(--space-2);flex-wrap:wrap">
-      <div class="avatar" style="background:${color || 'var(--color-surface)'}">${name.charAt(0).toUpperCase()}</div>
-      <span style="font-weight:600;flex:1">${name}</span>
-      <input type="hidden" name="player_id" value="${playerId}">
-      <input type="hidden" name="display_name" value="${name}">
-      <input type="hidden" name="color" value="${color}">
-      <button type="button" onclick="this.closest('.card').remove()" class="btn btn--ghost btn--sm" aria-label="Remove ${name}">✕</button>
-    </div>`;
-  list.appendChild(div);
+/* Built with DOM calls, not an HTML string, so names show as typed and never run as markup */
+function addParticipantRow(name, playerId, color, avatarSrc = '') {
+  const el = (tag, props = {}) => Object.assign(document.createElement(tag), props);
+  const hidden = (n, v) => el('input', { type: 'hidden', name: n, value: v });
+
+  let pic;
+  if (avatarSrc) {
+    pic = el('img', { className: 'avatar', src: avatarSrc, alt: '' });
+  } else {
+    pic = el('span', { className: 'avatar', textContent: ([...name][0] ?? '?').toUpperCase() });
+    pic.style.background = color || 'var(--color-surface)';
+  }
+  pic.setAttribute('aria-hidden', 'true');
+
+  const remove = el('button', { type: 'button', className: 'btn btn--ghost btn--sm', textContent: '✕' });
+  remove.setAttribute('aria-label', `Remove ${name}`);
+  remove.addEventListener('click', () => card.remove());
+
+  const row = el('div');
+  row.style.cssText = 'display:flex;align-items:center;gap:var(--space-2);flex-wrap:wrap';
+  const label = el('span', { textContent: name });
+  label.style.cssText = 'font-weight:600;flex:1';
+  row.append(pic, label, hidden('player_id', playerId), hidden('display_name', name), hidden('color', color), remove);
+
+  const card = el('div', { className: 'card' });
+  card.style.padding = 'var(--space-2)';
+  card.append(row);
+  document.getElementById('participant-list').appendChild(card);
 }
 
 function addTeam() {
