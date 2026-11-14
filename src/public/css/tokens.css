@@ -16,11 +16,15 @@
   --text-2xl:  clamp(2.5rem, 2rem + 2.5vw, 4rem);
 
   /* ─── Type: the landing page's pairing ───────────
-     Funnel Display for headings, the wordmark and big numbers; Funnel Sans
+     DM Serif Display for headings, the wordmark and big numbers; Funnel Sans
      for everything else; DM Mono for small labels. */
-  --font-display: 'Funnel Display', system-ui, sans-serif;
+  --font-display: 'DM Serif Display', Georgia, serif;
   --font-text:    'Funnel Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   --font-mono:    'DM Mono', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+
+  /* DM Serif Display ships one weight; stop browsers faking a bold on the
+     600/700 headings. Funnel Sans has real weights, so it is unaffected. */
+  font-synthesis-weight: none;
 
   /* ─── Touch targets ──────────────────────────── */
   --tap-min: 3rem; /* 48px — exceeds WCAG 2.1 AA */
