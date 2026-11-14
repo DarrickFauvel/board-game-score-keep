@@ -29,11 +29,7 @@
   <% it.standings.forEach(function(s) { %>
   <li class="leaderboard__row<%= s.rank <= 3 ? ' leaderboard__row--top' : '' %>">
     <span class="leaderboard__rank leaderboard__rank--<%= s.rank %>"><span class="visually-hidden">Rank </span><%= s.rank %></span>
-    <% if (s.avatarUrl) { %>
-    <img class="avatar" src="<%= it.imgUrl(s.avatarUrl) %>" alt="" aria-hidden="true">
-    <% } else { %>
-    <div class="avatar" style="background:<%= s.color || 'var(--color-surface)' %>" aria-hidden="true"><%= s.name.charAt(0).toUpperCase() %></div>
-    <% } %>
+    <%~ it.avatar(s.avatarUrl, s.name, s.color) %>
     <div class="leaderboard__who">
       <% if (s.playerId) { %>
       <a class="leaderboard__name" href="/players/<%= s.playerId %>"><%= s.name %></a>

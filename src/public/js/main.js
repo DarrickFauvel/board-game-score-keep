@@ -2,6 +2,7 @@ import './components/theme-toggle.js';
 import './components/score-input.js';
 import './components/voice-input.js';
 import './components/avatar-picker.js';
+import './components/avatar-cropper.js';
 import './components/color-thief-picker.js';
 import './components/game-image.js';
 import './components/confirm-dialog.js';

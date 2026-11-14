@@ -61,6 +61,9 @@
       <a href="/games"<%~ here('/games') %>>My Games</a>
       <a href="/players"<%~ here('/players') %>>Players</a>
       <a href="/standings"<%~ here('/standings') %>>Standings</a>
+      <a href="/players/me" class="site-header__me"<%~ here('/players/' + (it.me ? it.me.id : 'me')) %>>
+        <% if (it.me) { %><%~ it.avatar(it.me.avatar_url, it.me.display_name, it.me.preferred_color, 'avatar--xs') %><% } %>My Profile
+      </a>
       <qr-share></qr-share>
       <theme-toggle aria-label="Toggle dark mode"></theme-toggle>
       <form action="/auth/logout" method="POST" style="margin:0">
@@ -80,6 +83,9 @@
       <a href="/games" class="site-header__mobile-link">My Games</a>
       <a href="/players" class="site-header__mobile-link">Players</a>
       <a href="/standings" class="site-header__mobile-link">Standings</a>
+      <a href="/players/me" class="site-header__mobile-link site-header__me">
+        <% if (it.me) { %><%~ it.avatar(it.me.avatar_url, it.me.display_name, it.me.preferred_color, 'avatar--xs') %><% } %>My Profile
+      </a>
       <div style="display:flex;align-items:center;gap:var(--space-2);padding:var(--space-1) var(--space-2)">
         <theme-toggle aria-label="Toggle dark mode"></theme-toggle>
       </div>

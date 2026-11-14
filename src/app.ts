@@ -9,9 +9,11 @@ import { fileURLToPath } from 'node:url';
 import { router } from './routes/index.js';
 import { errorHandler, notFound } from './middleware/error.js';
 import { config } from './config.js';
-import { resolveImageUrl } from './services/imageService.js';
+import { resolveImageUrl, resolveOriginalUrl, cropOf } from './services/imageService.js';
 import { gameUnits } from './services/units.js';
 import { winRule } from './services/winRule.js';
+import { avatar } from './viewHelpers.js';
+import { playerService } from './services/playerService.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -49,11 +51,22 @@ export function createApp() {
   const eta = new Eta({ views: join(__dirname, 'views'), cache: !config.isDev });
   app.use((req: Request, res: Response, next: NextFunction) => {
     res.renderEta = (template: string, data: Record<string, unknown> = {}) => {
-      try {
-        // currentPath lets the layout mark the nav link for the section you're in
-        const html = eta.render(template, { ...data, config, imgUrl: resolveImageUrl, units: gameUnits, winRule, currentPath: req.originalUrl.split('?')[0] });
-        res.send(html);
-      } catch (err) { next(err); }
+      void (async () => {
+        try {
+          // Full pages show the signed-in person's own picture in the header;
+          // partials (live scoreboard refreshes) don't need the lookup
+          const user = data.user as { sub?: string } | undefined;
+          const me = user?.sub && !template.startsWith('partials/')
+            ? await playerService.findByUserId(user.sub)
+            : null;
+          // currentPath lets the layout mark the nav link for the section you're in
+          const html = eta.render(template, {
+            ...data, me, config, imgUrl: resolveImageUrl, imgOriginal: resolveOriginalUrl, imgCrop: cropOf,
+            avatar, units: gameUnits, winRule, currentPath: req.originalUrl.split('?')[0],
+          });
+          res.send(html);
+        } catch (err) { next(err); }
+      })();
     };
     next();
   });

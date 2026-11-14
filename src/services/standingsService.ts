@@ -21,7 +21,7 @@ export interface Victory {
   gameId: string;
   gameName: string;
   completedAt: string;
-  winners: string[];
+  winners: { name: string; avatarUrl: string | null; color: string | null }[];
 }
 
 interface ParticipantResult {
@@ -201,8 +201,8 @@ export const standingsService = {
     const rows = await fetchResults(userId);
     const overall = rank(rows).standings;
     const podium = overall.filter((s) => s.wins > 0).slice(0, 3);
-    // Show each person by the same name everywhere (guests' latest spelling)
-    const nameOf = new Map(overall.map((s) => [s.key, s.name]));
+    // Show each person the same way everywhere (guests' latest spelling and colour)
+    const personOf = new Map(overall.map((s) => [s.key, s]));
 
     const games = new Map<string, ParticipantResult[]>();
     for (const r of rows) games.set(r.game_id, [...(games.get(r.game_id) ?? []), r]);
@@ -225,7 +225,12 @@ export const standingsService = {
         gameId: participants[0].game_id,
         gameName: participants[0].game_name,
         completedAt: participants[0].completed_at,
-        winners: winners.map((w) => nameOf.get(personKey(w)) ?? w.display_name.trim()),
+        winners: winners.map((w) => {
+          const s = personOf.get(personKey(w));
+          return s
+            ? { name: s.name, avatarUrl: s.avatarUrl, color: s.color }
+            : { name: w.display_name.trim(), avatarUrl: w.avatar_url, color: w.preferred_color ?? w.color };
+        }),
       }));
 
     return { podium, champions, victories };

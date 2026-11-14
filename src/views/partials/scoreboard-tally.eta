@@ -52,8 +52,7 @@ const roundLabel = (r) => planned && r <= planned ? u.Round + ' ' + r + ' of ' +
     %>
     <li id="participant-<%= p.id %>" class="standings__row <%= isWinner ? 'score-winner' : '' %>">
       <span class="standings__rank"><%= i + 1 %></span>
-      <div class="avatar avatar--sm" style="background:<%= p.color || p.preferred_color || 'var(--color-surface)' %>"
-           aria-hidden="true"><%= p.display_name.charAt(0) %></div>
+      <%~ it.avatar(p.avatar_url, p.display_name, p.color || p.preferred_color, 'avatar--sm') %>
       <span class="standings__name"><%= p.display_name %><%= isWinner ? ' 🏆' : '' %></span>
       <strong class="standings__total"><%= total %></strong>
     </li>

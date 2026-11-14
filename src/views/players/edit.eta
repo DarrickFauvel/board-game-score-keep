@@ -12,14 +12,29 @@
 
   <form action="/players/<%= it.player.id %>" method="POST" enctype="multipart/form-data" novalidate>
 
-    <div class="form-group">
-      <label class="form-label">Avatar</label>
-      <% if (it.player.avatar_url) { %>
-      <img src="<%= it.imgUrl(it.player.avatar_url) %>" class="avatar avatar--lg" alt="Current avatar"
-           style="margin-bottom:var(--space-2)">
-      <% } %>
-      <avatar-picker name="avatar" folder="avatars" aria-label="Upload or capture your avatar photo"></avatar-picker>
-    </div>
+    <fieldset class="form-group" style="border:0;padding:0;margin-inline:0">
+      <legend class="form-label">Profile picture</legend>
+      <div style="display:flex;align-items:center;gap:var(--space-3);margin-bottom:var(--space-3)">
+        <%~ it.avatar(it.player.avatar_url, it.player.display_name, it.player.preferred_color, 'avatar--lg', it.player.avatar_url ? 'Your current profile picture' : '') %>
+        <% if (it.player.avatar_url) { %>
+        <label style="display:inline-flex;align-items:center;gap:var(--space-2);min-height:3rem;cursor:pointer">
+          <input type="checkbox" name="remove_avatar" value="1"> Remove picture
+        </label>
+        <% } else { %>
+        <span class="form-hint" style="margin:0">No picture yet. Others see your initial until you add one.</span>
+        <% } %>
+      </div>
+      <avatar-picker name="avatar" facing="user" aria-label="Upload, link or take a new profile picture"></avatar-picker>
+      <span class="form-hint">JPEG, PNG, WebP, GIF or AVIF, up to 10 MB.</span>
+
+      <%/* The cropper shows the picture being framed, so the picker's own thumbnails would repeat it */%>
+      <style>avatar-picker .ap-preview { display: none !important; }</style>
+      <div style="margin-top:var(--space-4)">
+        <span class="form-label" style="display:block">Framing</span>
+        <avatar-cropper name="avatar_crop"
+          <% if (it.player.avatar_url) { %>src="<%= it.imgOriginal(it.player.avatar_url) %>" crop="<%= it.imgCrop(it.player.avatar_url) %>"<% } %>></avatar-cropper>
+      </div>
+    </fieldset>
 
     <div class="form-group">
       <label class="form-label" for="display_name">

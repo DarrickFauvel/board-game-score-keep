@@ -2,13 +2,7 @@
 
 <div class="page-header">
   <div style="display:flex;align-items:center;gap:var(--space-3)">
-    <% if (it.player.avatar_url) { %>
-    <img class="avatar avatar--lg" src="<%= it.imgUrl(it.player.avatar_url) %>" alt="<%= it.player.display_name %>'s avatar">
-    <% } else { %>
-    <div class="avatar avatar--lg" style="background:<%= it.player.preferred_color || 'var(--color-surface)' %>" aria-hidden="true">
-      <%= it.player.display_name.charAt(0).toUpperCase() %>
-    </div>
-    <% } %>
+    <%~ it.avatar(it.player.avatar_url, it.player.display_name, it.player.preferred_color, 'avatar--lg') %>
     <div>
       <h1 style="font-size:var(--text-xl)"><%= it.player.display_name %></h1>
       <% if (it.player.preferred_token) { %>

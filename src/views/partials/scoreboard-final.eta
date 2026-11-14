@@ -23,8 +23,7 @@ const isActive = it.session.status === 'active';
        const isWinner = it.session.status === 'completed' && total === winTotal;
     %>
     <li id="participant-<%= p.id %>" class="round-row<%= isWinner ? ' score-winner' : '' %>">
-      <div class="avatar avatar--sm" style="background:<%= p.color || p.preferred_color || 'var(--color-surface)' %>"
-           aria-hidden="true"><%= p.display_name.charAt(0) %></div>
+      <%~ it.avatar(p.avatar_url, p.display_name, p.color || p.preferred_color, 'avatar--sm') %>
       <span class="round-row__name"><%= p.display_name %><%= isWinner ? ' 🏆' : '' %></span>
       <% if (isActive) { %>
       <score-input
