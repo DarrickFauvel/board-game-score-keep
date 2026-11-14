@@ -2,9 +2,14 @@
  * <qr-share> — nav button that opens a modal with a QR code for the site root.
  *
  * Attributes:
- *   label — optional visible text next to the icon (used in the mobile menu)
+ *   label        — optional visible text next to the icon (used in the mobile menu)
+ *   url          — what the code opens; defaults to the site root (location.origin)
+ *   heading      — dialog title; defaults to "Scan to open"
+ *   hint         — line under the title
+ *   button-class — classes for the opening button instead of the header style
+ *                  (e.g. "btn btn--secondary" for a session's Invite button)
  *
- * The URL is location.origin, which never has a trailing slash.
+ * The dialog also has a Copy link button for sharing the URL by message.
  * The QR library is loaded on first open so it costs nothing until used.
  */
 const ICON = `
@@ -157,6 +162,7 @@ function injectStyles() {
       line-height: 1;
     }
     .qr-share__close:hover { background: var(--color-surface); color: var(--color-text); }
+    .qr-share__copy { margin-top: var(--space-2); }
 
     /* Short landscape screens: code beside the text instead of above it */
     @media (orientation: landscape) and (max-height: 32rem) {
@@ -179,6 +185,7 @@ function injectStyles() {
 }
 
 class QrShare extends HTMLElement {
+  #url;
   #dialog;
   #code;
   #rendered = false;
@@ -186,14 +193,19 @@ class QrShare extends HTMLElement {
   connectedCallback() {
     injectStyles();
     const label = this.getAttribute('label');
-    const url = location.origin;
+    const url = this.getAttribute('url') || location.origin;
+    const heading = this.getAttribute('heading') || 'Scan to open';
+    const hint = this.getAttribute('hint') || 'Point a phone camera here to open The Keep.';
+    const btnClass = this.getAttribute('button-class') || 'qr-share__btn';
+    this.#url = url;
+    const esc = (v) => v.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 
     const titleId = `qr-share-title-${++instances}`;
 
     this.innerHTML = `
-      <button type="button" class="qr-share__btn" aria-haspopup="dialog"
+      <button type="button" class="${esc(btnClass)}" data-qr-open aria-haspopup="dialog"
               ${label ? '' : 'aria-label="Show QR code for this site"'}>
-        ${ICON}${label ? `<span>${label}</span>` : ''}
+        ${ICON}${label ? `<span>${esc(label)}</span>` : ''}
       </button>`;
 
     // The dialog lives on <body> so header/nav styles don't leak into it and
@@ -202,16 +214,18 @@ class QrShare extends HTMLElement {
     this.#dialog.className = 'qr-share__dialog';
     this.#dialog.setAttribute('aria-labelledby', titleId);
     this.#dialog.innerHTML = `
-      <h2 class="qr-share__title" id="${titleId}">Scan to open</h2>
-      <p class="qr-share__hint">Point a phone camera here to open The Keep.</p>
-      <div class="qr-share__code" role="img" aria-label="QR code linking to ${url}"></div>
-      <a class="qr-share__url" href="${url}">${url}</a>
+      <h2 class="qr-share__title" id="${titleId}">${esc(heading)}</h2>
+      <p class="qr-share__hint">${esc(hint)}</p>
+      <div class="qr-share__code" role="img" aria-label="QR code linking to ${esc(url)}"></div>
+      <a class="qr-share__url" href="${esc(url)}">${esc(url)}</a>
+      <button type="button" class="btn btn--secondary btn--sm qr-share__copy">Copy link</button>
       <button type="button" class="qr-share__close" aria-label="Close"><span aria-hidden="true">×</span></button>`;
     document.body.appendChild(this.#dialog);
     this.#code = this.#dialog.querySelector('.qr-share__code');
 
-    this.querySelector('.qr-share__btn').addEventListener('click', () => this.#open());
+    this.querySelector('[data-qr-open]').addEventListener('click', () => this.#open());
     this.#dialog.querySelector('.qr-share__close').addEventListener('click', () => this.#dialog.close());
+    this.#dialog.querySelector('.qr-share__copy').addEventListener('click', (e) => this.#copy(e.currentTarget));
     // Click on the backdrop (outside the dialog box) closes it
     this.#dialog.addEventListener('click', (e) => {
       const r = this.#dialog.getBoundingClientRect();
@@ -225,6 +239,24 @@ class QrShare extends HTMLElement {
     this.#dialog?.remove();
   }
 
+  async #copy(btn) {
+    const done = (text) => {
+      btn.textContent = text;
+      setTimeout(() => { btn.textContent = 'Copy link'; }, 2000);
+    };
+    try {
+      await navigator.clipboard.writeText(this.#url);
+      done('Copied');
+    } catch {
+      // Clipboard refused (older browsers, some in-app views): select the link to copy by hand
+      const range = document.createRange();
+      range.selectNodeContents(this.#dialog.querySelector('.qr-share__url'));
+      getSelection().removeAllRanges();
+      getSelection().addRange(range);
+      done('Link selected, copy it');
+    }
+  }
+
   async #open() {
     this.#dialog.showModal();
     if (this.#rendered) return;
@@ -232,7 +264,7 @@ class QrShare extends HTMLElement {
     try {
       const { default: qrcode } = await import('/vendor/qrcode-generator/qrcode.mjs');
       const qr = qrcode(0, 'M');
-      qr.addData(location.origin);
+      qr.addData(this.#url);
       qr.make();
       this.#code.innerHTML = qr.createSvgTag({ cellSize: 8, margin: 2, scalable: true });
     } catch {

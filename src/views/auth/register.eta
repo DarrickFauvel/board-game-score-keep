@@ -13,6 +13,7 @@
       <% } %>
 
       <form action="/auth/register" method="POST" novalidate>
+        <% if (it.next && it.next !== '/') { %><input type="hidden" name="next" value="<%= it.next %>"><% } %>
         <div class="form-group">
           <label class="form-label" for="display_name">
             Your name <span class="required" aria-hidden="true">*</span>
@@ -62,7 +63,7 @@
       </form>
 
       <p style="text-align:center; margin-top:var(--space-3); font-size:var(--text-sm);">
-        Already have an account? <a href="/auth/login" style="color:var(--color-border-focus); font-weight:600;">Sign in</a>
+        Already have an account? <a href="/auth/login<%= it.next && it.next !== '/' ? '?next=' + encodeURIComponent(it.next) : '' %>" style="color:var(--color-border-focus); font-weight:600;">Sign in</a>
       </p>
     </div>
   </div>

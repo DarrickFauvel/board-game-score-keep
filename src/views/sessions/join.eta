@@ -1,0 +1,67 @@
+<% layout('../layouts/base') %>
+<%
+const s = it.session;
+const isOver = s.status !== 'active';
+const host = s.host_name || 'The host';
+%>
+
+<div style="max-width:32rem;margin:var(--space-6) auto">
+  <div class="card">
+    <div class="card__body" style="display:grid;gap:var(--space-4)">
+
+      <div style="text-align:center;display:grid;gap:var(--space-2);justify-items:center">
+        <%~ it.avatar(it.me.avatar_url, it.me.display_name, it.me.preferred_color, 'avatar--lg') %>
+        <h1 style="font-size:var(--text-xl);text-wrap:balance">
+          <%= isOver ? `This game of ${s.game_name} has finished` : `Join ${s.game_name}` %>
+        </h1>
+        <p style="color:var(--color-text-muted)">
+          <% if (isOver) { %>
+          <%= host %>'s game is over, so it isn't taking new players. Ask them for a link to their next one.
+          <% } else { %>
+          <%= host %> invited you to play. You'll see the scores live and can enter them from your phone.
+          <% } %>
+        </p>
+      </div>
+
+      <% if (it.error) { %>
+      <div class="flash flash--error" role="alert"><%= it.error %></div>
+      <% } %>
+
+      <% if (it.participants.length) { %>
+      <div>
+        <h2 class="form-label">Playing</h2>
+        <ul role="list" style="list-style:none;display:flex;flex-wrap:wrap;gap:var(--space-2) var(--space-3)">
+          <% it.participants.forEach(function(p) { %>
+          <li style="display:inline-flex;align-items:center;gap:var(--space-1)">
+            <%~ it.avatar(p.avatar_url, p.display_name, p.color || p.preferred_color, 'avatar--sm') %>
+            <span><%= p.display_name %></span>
+          </li>
+          <% }) %>
+        </ul>
+      </div>
+      <% } %>
+
+      <% if (!isOver) { %>
+      <form action="/join/<%= it.code %>" method="POST" style="display:grid;gap:var(--space-2)">
+        <% if (it.guestMatches.length) { %>
+        <%/* A guest with their name is probably them: let them take over that spot and its scores */%>
+        <p style="font-size:var(--text-sm);color:var(--color-text-muted)">
+          <%= host %> already added a "<%= it.guestMatches[0].display_name %>". Is that you?
+        </p>
+        <% it.guestMatches.forEach(function(g) { %>
+        <button type="submit" name="claim" value="<%= g.id %>" class="btn btn--gold">
+          I'm <%= g.display_name %>, already in this game
+        </button>
+        <% }) %>
+        <button type="submit" name="claim" value="new" class="btn btn--secondary">Join as a new player</button>
+        <% } else { %>
+        <button type="submit" name="claim" value="new" class="btn btn--gold">Join as <%= it.me.display_name %></button>
+        <% } %>
+      </form>
+      <% } else { %>
+      <a href="/" class="btn btn--secondary">Go to The Keep</a>
+      <% } %>
+
+    </div>
+  </div>
+</div>
