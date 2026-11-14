@@ -20,7 +20,7 @@
 <meta name="page-type" content="software">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Funnel+Display:wght@400..700&family=Funnel+Sans:wght@400..600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Funnel+Sans:wght@400..600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/assets/system.css">
 <link rel="stylesheet" href="/assets/ui/cards.css">
 <link rel="stylesheet" href="/assets/motion/motion.css">
@@ -33,11 +33,11 @@
   --p-accent: #c9a45a; --p-accent-ink: #0c0a08; --p-action: #c9a45a; --p-action-ink: #0c0a08;
   --p-inv-bg: #ffffff; --p-inv-surface: #ebebeb; --p-inv-ink: #0c0a08; --p-inv-muted: #5c5b59;
   --p-inv-accent: #0c0a08; --p-inv-accent-ink: #ffffff; --p-inv-action: #0c0a08; --p-inv-action-ink: #ffffff;
-  --font-display: "Funnel Display", system-ui, sans-serif;
+  --font-display: "DM Serif Display", Georgia, serif;
   --font-text: "Funnel Sans", system-ui, sans-serif;
   --font-mono: "DM Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
   --display-weight: 400;
-  --display-tracking: -0.03em;
+  --display-tracking: -0.01em;
   --display-tracking-xl: -0.04em;
   --ly-scale: 0.98;
 }
@@ -139,7 +139,7 @@
      deal: hero collage, nav nav-centre, close close-type, footer footer-statement, rhythm dark-band,
      buttons tonal, mark: the app's own keep logo (replaces the dealt ring), grounds none, lit ground sage
      palette warm-black-gold (dealt third: the first, plum and pink, clashed with the app's own gold keep logo;
-     gold on warm black matches the app's gold buttons and the felt-and-brass of a game table), type funnel
+     gold on warm black matches the app's gold buttons and the felt-and-brass of a game table), type dm serif display + funnel sans
      moments: liquid-type in #record (the one line the page wants remembered: wins are kept)
      screens: hero 1, scoreboard 1, record 1, scoring 2, table 1, faq 1, footer 1 -->
 <header class="nav nav--centre">
