@@ -1,13 +1,16 @@
 import { db } from '../db/client.js';
 import type { Row } from '@libsql/client';
+import { can, isRole, type GroupRole } from './groupAccess.js';
 
 /**
  * Who may do what in a session:
- * - host: owns the session's game. Can do everything, including completing
- *   and deleting the session.
- * - player: joined the session as a linked player (through an invite, or
- *   added by the host). Can view it, enter anyone's scores, and add photos
- *   and notes.
+ * - host: an organizer or owner of the game's group. Can do everything,
+ *   including deleting the session and its photos.
+ * - player: a group Player, or someone who joined this one session through
+ *   an invite. Can view it, enter anyone's scores, and add photos and notes.
+ *
+ * Whoever started a session may also complete it (canComplete), so a Player
+ * running game night can finish their own game.
  */
 export type SessionRole = 'host' | 'player';
 
@@ -15,6 +18,9 @@ export interface SessionAccess {
   session: Row;
   game: Row;
   role: SessionRole;
+  /** The user's role in the game's group; null for invited outsiders */
+  groupRole: GroupRole | null;
+  canComplete: boolean;
 }
 
 /**
@@ -24,7 +30,8 @@ export interface SessionAccess {
  */
 export async function sessionAccess(sessionId: string, userId: string, gameId?: string): Promise<SessionAccess | null> {
   const result = await db.execute({
-    sql: `SELECT s.*, g.owner_id AS game_owner_id,
+    sql: `SELECT s.*,
+                 (SELECT role FROM group_members gm WHERE gm.group_id = g.group_id AND gm.user_id = ?) AS group_role,
                  EXISTS (
                    SELECT 1 FROM session_participants sp
                    JOIN players p ON p.id = sp.player_id
@@ -33,18 +40,20 @@ export async function sessionAccess(sessionId: string, userId: string, gameId?: 
           FROM sessions s
           JOIN games g ON g.id = s.game_id
           WHERE s.id = ?`,
-    args: [userId, sessionId],
+    args: [userId, userId, sessionId],
   });
   const session = result.rows[0];
   if (!session) return null;
   if (gameId && session.game_id !== gameId) return null;
 
-  const role: SessionRole | null =
-    session.game_owner_id === userId ? 'host' : Number(session.is_player) ? 'player' : null;
+  const groupRole = isRole(session.group_role) ? session.group_role : null;
+  const role: SessionRole | null = can(groupRole, 'manageSessions')
+    ? 'host'
+    : groupRole || Number(session.is_player) ? 'player' : null;
   if (!role) return null;
 
   const game = (await db.execute({ sql: 'SELECT * FROM games WHERE id = ?', args: [session.game_id] })).rows[0];
-  return { session, game, role };
+  return { session, game, role, groupRole, canComplete: role === 'host' || session.created_by === userId };
 }
 
 /** Same as sessionAccess, but only the host gets through. */

@@ -61,6 +61,8 @@ export function createApp() {
             : null;
           // currentPath lets the layout mark the nav link for the section you're in
           const html = eta.render(template, {
+            // The group being viewed and the person's groups, for the header switcher
+            group: req.group ?? null, groups: req.groups ?? [],
             ...data, me, config, imgUrl: resolveImageUrl, imgOriginal: resolveOriginalUrl, imgCrop: cropOf,
             avatar, units: gameUnits, winRule, currentPath: req.originalUrl.split('?')[0],
           });

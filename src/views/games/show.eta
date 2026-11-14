@@ -5,7 +5,9 @@
   <div style="display:flex;gap:var(--space-2);flex-wrap:wrap">
     <a href="/games/<%= it.game.id %>/sessions/new" class="btn btn--gold">+ New Session</a>
     <a href="/standings?game=<%= it.game.id %>" class="btn btn--secondary">Standings</a>
+    <% if (it.canManageGames) { %>
     <a href="/games/<%= it.game.id %>/edit" class="btn btn--secondary">Edit Game</a>
+    <% } %>
   </div>
 </div>
 

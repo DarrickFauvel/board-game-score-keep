@@ -49,22 +49,22 @@ function personKey(r: ParticipantResult) {
   return r.player_id ? `p:${r.player_id}` : `n:${r.display_name.trim().toLowerCase().replace(/\s+/g, ' ')}`;
 }
 
-/** Every participant's total in the user's completed sessions, oldest session first. */
-async function fetchResults(userId: string, gameId?: string): Promise<ParticipantResult[]> {
+/** Every participant's total in the group's completed sessions, oldest session first. */
+async function fetchResults(groupId: string, gameId?: string): Promise<ParticipantResult[]> {
   const result = await db.execute({
     sql: `SELECT s.id AS session_id, s.game_id, g.name AS game_name, g.lowest_wins, s.completed_at,
                  sp.id AS participant_id, sp.player_id, sp.display_name, sp.color,
                  p.display_name AS player_name, p.avatar_url, p.preferred_color,
                  COALESCE(SUM(se.value), 0) AS total
           FROM sessions s
-          JOIN games g ON g.id = s.game_id AND g.owner_id = ?
+          JOIN games g ON g.id = s.game_id AND g.group_id = ?
           JOIN session_participants sp ON sp.session_id = s.id
           LEFT JOIN players p ON p.id = sp.player_id
           LEFT JOIN score_entries se ON se.participant_id = sp.id
           WHERE s.status = 'completed' ${gameId ? 'AND s.game_id = ?' : ''}
           GROUP BY sp.id
           ORDER BY s.completed_at, sp.sort_order`,
-    args: gameId ? [userId, gameId] : [userId],
+    args: gameId ? [groupId, gameId] : [groupId],
   });
   return (result.rows as unknown as ParticipantResult[]).map((r) => ({ ...r, total: Number(r.total) }));
 }
@@ -151,9 +151,9 @@ export const standingsService = {
    * celebrating an old session again tells its story as it was then. Empty for
    * solo or undecided sessions.
    */
-  async winnerFacts(userId: string, gameId: string, sessionId: string): Promise<Map<string, WinnerFacts>> {
+  async winnerFacts(groupId: string, gameId: string, sessionId: string): Promise<Map<string, WinnerFacts>> {
     const facts = new Map<string, WinnerFacts>();
-    const sessions = bySession(await fetchResults(userId, gameId));
+    const sessions = bySession(await fetchResults(groupId, gameId));
     const at = sessions.findIndex((participants) => participants[0].session_id === sessionId);
     if (at < 0) return facts;
     const before = sessions.slice(0, at);
@@ -188,17 +188,17 @@ export const standingsService = {
     return facts;
   },
 
-  /** Rankings across the user's completed sessions, optionally for one game. */
-  async forUser(userId: string, gameId?: string) {
-    return rank(await fetchResults(userId, gameId));
+  /** Rankings across the group's completed sessions, optionally for one game. */
+  async forGroup(groupId: string, gameId?: string) {
+    return rank(await fetchResults(groupId, gameId));
   },
 
   /**
    * The home page's hall of fame, from one query: the overall top three (with
    * at least one win), each game's leaders, and the latest decided sessions.
    */
-  async hallOfFame(userId: string) {
-    const rows = await fetchResults(userId);
+  async hallOfFame(groupId: string) {
+    const rows = await fetchResults(groupId);
     const overall = rank(rows).standings;
     const podium = overall.filter((s) => s.wins > 0).slice(0, 3);
     // Show each person the same way everywhere (guests' latest spelling and colour)

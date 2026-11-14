@@ -1,0 +1,116 @@
+<% layout('../layouts/base') %>
+<%
+const roles = ['owner', 'organizer', 'player'];
+const roleHelp = {
+  owner: 'Everything, including members, roles and deleting the group',
+  organizer: 'Add and edit games, manage guests, finish or delete any session, invite people',
+  player: 'Start sessions, enter scores, add photos and notes, finish games they started',
+};
+%>
+
+<div class="page-header">
+  <div>
+    <h1 class="page-header__title"><%= it.group.name %></h1>
+    <div style="font-size:var(--text-sm);color:var(--color-text-muted)">You're <%= it.role === 'player' ? 'a' : 'an' %> <%= it.roleLabel[it.role].toLowerCase() %> here</div>
+  </div>
+  <div style="display:flex;gap:var(--space-2);flex-wrap:wrap;align-items:center">
+    <% if (!it.isCurrent) { %>
+    <form action="/groups/switch" method="POST" style="margin:0">
+      <input type="hidden" name="group_id" value="<%= it.group.id %>">
+      <input type="hidden" name="next" value="/games">
+      <button type="submit" class="btn btn--gold">View this group's games</button>
+    </form>
+    <% } else { %>
+    <a href="/games" class="btn btn--gold">Games</a>
+    <% } %>
+    <% if (it.inviteUrl) { %>
+    <qr-share url="<%= it.inviteUrl %>" label="Invite people" button-class="btn btn--secondary"
+              heading="Join <%= it.group.name %>" hint="Scan with a phone camera to join the group. New members start as Players."></qr-share>
+    <% } %>
+    <a href="/groups" class="btn btn--secondary">All groups</a>
+  </div>
+</div>
+
+<% if (it.error) { %>
+<div class="flash flash--error" role="alert"><%= it.error %></div>
+<% } %>
+
+<section aria-labelledby="members-heading" class="section">
+  <h2 id="members-heading" style="margin-bottom:var(--space-3)">Members</h2>
+  <ul role="list" class="card" style="list-style:none;padding:0">
+    <% it.members.forEach(function(m, i) { const isMe = m.user_id === it.user.sub; %>
+    <li style="display:flex;align-items:center;flex-wrap:wrap;gap:var(--space-2) var(--space-3);padding:var(--space-2) var(--space-3);<%= i ? 'border-top:1px solid var(--color-border)' : '' %>">
+      <%~ it.avatar(m.avatar_url, m.display_name || '?', m.preferred_color) %>
+      <span style="flex:1;min-width:8rem">
+        <span style="display:block;font-weight:600"><%= m.display_name || 'Unnamed player' %><%= isMe ? ' (you)' : '' %></span>
+        <span style="font-size:var(--text-xs);color:var(--color-text-muted)"><%= roleHelp[m.role] %></span>
+      </span>
+      <% if (it.canManageMembers) { %>
+      <form action="/groups/<%= it.group.id %>/members/<%= m.user_id %>/role" method="POST" style="margin:0;display:flex;gap:var(--space-1);align-items:center">
+        <label class="visually-hidden" for="role-<%= m.user_id %>">Role for <%= m.display_name %></label>
+        <select class="form-control" id="role-<%= m.user_id %>" name="role" style="min-height:2.5rem;width:auto" onchange="this.form.requestSubmit()">
+          <% roles.forEach(function(r) { %><option value="<%= r %>"<%= m.role === r ? ' selected' : '' %>><%= it.roleLabel[r] %></option><% }) %>
+        </select>
+        <noscript><button type="submit" class="btn btn--secondary btn--sm">Save</button></noscript>
+      </form>
+      <% if (!isMe) { %>
+      <form action="/groups/<%= it.group.id %>/members/<%= m.user_id %>/remove" method="POST" style="margin:0"
+            data-confirm="Remove <%= m.display_name %> from <%= it.group.name %>? Their past games stay in the group's history."
+            data-confirm-title="Remove member" data-confirm-label="Remove">
+        <button type="submit" class="btn btn--ghost btn--sm" aria-label="Remove <%= m.display_name %>">Remove</button>
+      </form>
+      <% } %>
+      <% } else { %>
+      <span class="badge"><%= it.roleLabel[m.role] %></span>
+      <% } %>
+    </li>
+    <% }) %>
+  </ul>
+</section>
+
+<% if (it.inviteUrl) { %>
+<section aria-labelledby="invite-heading" class="section" id="invite" style="margin-top:var(--space-8)">
+  <h2 id="invite-heading" style="margin-bottom:var(--space-2)">Invite link</h2>
+  <p style="color:var(--color-text-muted);font-size:var(--text-sm);margin-bottom:var(--space-2);max-width:60ch">
+    Anyone with this link can join as a Player once they sign in. Make a new one if it got shared too widely; the old link stops working.
+  </p>
+  <form action="/groups/<%= it.group.id %>/invite/reset" method="POST" style="margin:0"
+        data-confirm="Make a new invite link? The current one will stop working." data-confirm-title="New invite link" data-confirm-label="Make new link">
+    <button type="submit" class="btn btn--secondary btn--sm">Make a new link</button>
+  </form>
+</section>
+<% } %>
+
+<% if (it.canManageGroup) { %>
+<section aria-labelledby="settings-heading" class="section" style="margin-top:var(--space-8)">
+  <h2 id="settings-heading" style="margin-bottom:var(--space-2)">Name</h2>
+  <form action="/groups/<%= it.group.id %>/rename" method="POST" class="input-row" style="max-width:32rem">
+    <label class="visually-hidden" for="rename">Group name</label>
+    <input class="form-control" id="rename" name="name" maxlength="60" required value="<%= it.group.name %>">
+    <button type="submit" class="btn btn--secondary">Rename</button>
+  </form>
+</section>
+<% } %>
+
+<section aria-labelledby="leave-heading" class="section" style="margin-top:var(--space-6)">
+  <h2 id="leave-heading" class="visually-hidden">Leave or delete</h2>
+  <form action="/groups/<%= it.group.id %>/members/<%= it.user.sub %>/remove" method="POST" style="margin:0"
+        data-confirm="Leave <%= it.group.name %>? You'll lose access to its games until someone invites you back."
+        data-confirm-title="Leave group" data-confirm-label="Leave">
+    <button type="submit" class="btn btn--ghost">Leave this group</button>
+  </form>
+</section>
+
+<% if (it.canManageGroup) { %>
+<fieldset style="border:1px solid var(--color-danger);border-radius:var(--radius-md);padding:var(--space-3);margin-top:var(--space-4)">
+  <legend style="color:var(--color-danger);font-weight:600;padding:0 var(--space-1)">Danger Zone</legend>
+  <p style="font-size:var(--text-sm);color:var(--color-text-muted);margin-bottom:var(--space-2)">
+    Deleting <%= it.group.name %> permanently removes its games, sessions, scores and photos for everyone.
+  </p>
+  <form action="/groups/<%= it.group.id %>/delete" method="POST" style="display:grid;gap:var(--space-2);max-width:28rem">
+    <label class="form-label" for="confirm-name">Type the group's name to confirm</label>
+    <input class="form-control" id="confirm-name" name="confirm_name" autocomplete="off" placeholder="<%= it.group.name %>">
+    <button type="submit" class="btn btn--danger">Delete group</button>
+  </form>
+</fieldset>
+<% } %>

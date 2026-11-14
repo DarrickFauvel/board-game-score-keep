@@ -6,11 +6,11 @@ const router = Router();
 
 router.get('/', async (req, res, next) => {
   try {
-    const games = await gameService.listByOwner(req.user.sub);
+    const games = await gameService.listForGroup(req.group.id);
     const requested = typeof req.query.game === 'string' ? req.query.game : '';
-    // Only filter by a game the user owns; anything else falls back to all games
+    // Only filter by one of the group's games; anything else falls back to all of them
     const game = games.find((g) => g.id === requested) ?? null;
-    const { standings, sessionCount } = await standingsService.forUser(req.user.sub, game ? String(game.id) : undefined);
+    const { standings, sessionCount } = await standingsService.forGroup(req.group.id, game ? String(game.id) : undefined);
     res.renderEta('standings/index', {
       title: game ? `${game.name} Standings` : 'Standings',
       user: req.user,

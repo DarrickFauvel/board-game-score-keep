@@ -1,0 +1,43 @@
+<% layout('../layouts/base') %>
+
+<div class="page-header">
+  <h1 class="page-header__title">Your groups</h1>
+</div>
+
+<p style="color:var(--color-text-muted);max-width:60ch;margin-bottom:var(--space-4)">
+  A group shares its games, guests and history: your family, your Friday night crew, your club.
+  Everyone in it sees the same scoreboards and Hall of Fame.
+</p>
+
+<ul role="list" style="list-style:none;display:grid;gap:var(--space-2);margin-bottom:var(--space-6)">
+  <% it.groups.forEach(function(g) { %>
+  <li>
+    <a href="/groups/<%= g.id %>" class="card session-card"
+       style="display:flex;align-items:center;gap:var(--space-3);text-decoration:none;padding:var(--space-3)">
+      <span style="flex:1;min-width:0">
+        <span style="display:block;font-weight:600"><%= g.name %></span>
+        <span style="font-size:var(--text-sm);color:var(--color-text-muted)">
+          <%= g.member_count %> <%= g.member_count === 1 ? 'member' : 'members' %> · <%= g.game_count %> <%= g.game_count === 1 ? 'game' : 'games' %>
+        </span>
+      </span>
+      <% if (it.group && it.group.id === g.id) { %><span class="badge badge--active">Viewing</span><% } %>
+      <span class="badge"><%= it.roleLabel[g.role] %></span>
+    </a>
+  </li>
+  <% }) %>
+</ul>
+
+<section aria-labelledby="new-group-heading" class="card" style="max-width:32rem">
+  <div class="card__body">
+    <h2 id="new-group-heading" style="font-size:var(--text-lg);margin-bottom:var(--space-2)">New group</h2>
+    <% if (it.error) { %><div class="flash flash--error" role="alert"><%= it.error %></div><% } %>
+    <form action="/groups" method="POST" style="display:grid;gap:var(--space-2)">
+      <label class="form-label" for="group-name">Name</label>
+      <div class="input-row">
+        <input class="form-control" id="group-name" name="name" maxlength="60" required placeholder="e.g. The Fauvels or Friday Night Crew">
+        <button type="submit" class="btn btn--gold">Create</button>
+      </div>
+      <span class="form-hint">You'll be its owner. Invite people from the group's page.</span>
+    </form>
+  </div>
+</section>
