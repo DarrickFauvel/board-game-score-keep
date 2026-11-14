@@ -21,7 +21,7 @@ const hasWinner = it.winRule(it.game).winningTotal(Object.values(sessionTotals))
     <qr-share url="<%= it.inviteUrl %>" label="Invite players" button-class="btn btn--secondary"
               heading="Join this game" hint="Scan with a phone camera to join <%= it.game.name %>. They sign in, then play along."></qr-share>
     <% } %>
-    <% if (it.session.status === 'active' && it.role === 'host') { %>
+    <% if (it.session.status === 'active' && it.canComplete) { %>
     <form action="/games/<%= it.game.id %>/sessions/<%= it.session.id %>/complete" method="POST" style="margin:0"
           data-confirm="Mark this session as complete? Scores will be locked."
           data-confirm-title="Complete Session"
@@ -38,8 +38,8 @@ const hasWinner = it.winRule(it.game).winningTotal(Object.values(sessionTotals))
     <% if (it.game.rules_video_url) { %>
     <a href="<%= it.game.rules_video_url %>" class="btn btn--secondary" target="_blank" rel="noopener noreferrer external">Rules video<span aria-hidden="true"> ↗</span><span class="visually-hidden"> (opens in a new tab)</span></a>
     <% } %>
-    <%/* The game page is the host's; players go back to their list of games */%>
-    <a href="<%= it.role === 'host' ? '/games/' + it.game.id : '/games' %>" class="btn btn--secondary">Back</a>
+    <%/* Group members go back to the game; players invited to just this session, to their games */%>
+    <a href="<%= it.groupRole ? '/games/' + it.game.id : '/games' %>" class="btn btn--secondary">Back</a>
   </div>
 </div>
 

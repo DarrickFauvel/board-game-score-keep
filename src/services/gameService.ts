@@ -19,31 +19,41 @@ function lowestWins(body: Record<string, unknown>) {
 }
 
 export const gameService = {
-  async listByOwner(userId: string) {
+  /** The group's games, newest first. */
+  async listForGroup(groupId: string) {
     const result = await db.execute({
-      sql: 'SELECT * FROM games WHERE owner_id = ? ORDER BY created_at DESC',
-      args: [userId],
+      sql: 'SELECT * FROM games WHERE group_id = ? ORDER BY created_at DESC',
+      args: [groupId],
     });
     return result.rows;
   },
 
+  /**
+   * The game, if the user is a member of its group, with their role there as
+   * `member_role` (see groupAccess: which roles may do what). Null otherwise,
+   * which routes answer with a 404.
+   */
   async findById(id: string, userId: string) {
     const result = await db.execute({
-      sql: 'SELECT * FROM games WHERE id = ? AND owner_id = ?',
-      args: [id, userId],
+      sql: `SELECT g.*, gm.role AS member_role
+            FROM games g
+            JOIN group_members gm ON gm.group_id = g.group_id AND gm.user_id = ?
+            WHERE g.id = ?`,
+      args: [userId, id],
     });
     return result.rows[0] ?? null;
   },
 
-  async create(userId: string, body: Record<string, unknown>, file?: Express.Multer.File) {
+  async create(userId: string, groupId: string, body: Record<string, unknown>, file?: Express.Multer.File) {
     const imageUrl = await resolveImageUrl(file, body.image_url as string | undefined, 'games');
     const result = await db.execute({
       sql: `INSERT INTO games
-              (owner_id, name, image_url, scoring_mode, teams_mode, color_primary, color_secondary, color_accent, suggested_rounds, target_score, bgg_url, rules_url, rules_video_url, round_name, point_name, lowest_wins)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+              (owner_id, group_id, name, image_url, scoring_mode, teams_mode, color_primary, color_secondary, color_accent, suggested_rounds, target_score, bgg_url, rules_url, rules_video_url, round_name, point_name, lowest_wins)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             RETURNING *`,
       args: [
         userId,
+        groupId,
         body.name as string,
         imageUrl ?? null,
         body.scoring_mode as string,

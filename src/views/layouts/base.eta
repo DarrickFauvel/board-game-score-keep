@@ -58,6 +58,20 @@
     <nav class="site-header__nav" aria-label="Main navigation">
       <% if (it.user) { %>
       <% const here = (href) => (it.currentPath || '').startsWith(href) ? ' aria-current="page"' : '' %>
+      <%/* Which group you're looking at; a menu to switch when you're in more than one */%>
+      <% if (it.group) { %>
+      <% if (it.groups.length > 1) { %>
+      <form action="/groups/switch" method="POST" class="group-switch">
+        <input type="hidden" name="next" value="<%= it.currentPath || '/' %>">
+        <label class="visually-hidden" for="group-switch-nav">Group</label>
+        <select id="group-switch-nav" name="group_id" onchange="this.form.requestSubmit()">
+          <% it.groups.forEach(function(g) { %><option value="<%= g.id %>"<%= g.id === it.group.id ? ' selected' : '' %>><%= g.name %></option><% }) %>
+        </select>
+        <noscript><button type="submit">Go</button></noscript>
+      </form>
+      <% } %>
+      <a href="/groups/<%= it.group.id %>" class="group-switch__link"<%~ here('/groups') %>><%= it.groups.length > 1 ? 'Group' : it.group.name %></a>
+      <% } %>
       <a href="/games"<%~ here('/games') %>>My Games</a>
       <a href="/players"<%~ here('/players') %>>Players</a>
       <a href="/standings"<%~ here('/standings') %>>Standings</a>
@@ -80,6 +94,20 @@
          data-show="$menuOpen"
          aria-label="Navigation menu">
       <% if (it.user) { %>
+      <%/* Which group you're looking at; a menu to switch when you're in more than one */%>
+      <% if (it.group) { %>
+      <% if (it.groups.length > 1) { %>
+      <form action="/groups/switch" method="POST" class="group-switch">
+        <input type="hidden" name="next" value="<%= it.currentPath || '/' %>">
+        <label class="visually-hidden" for="group-switch-menu">Group</label>
+        <select id="group-switch-menu" name="group_id" onchange="this.form.requestSubmit()">
+          <% it.groups.forEach(function(g) { %><option value="<%= g.id %>"<%= g.id === it.group.id ? ' selected' : '' %>><%= g.name %></option><% }) %>
+        </select>
+        <noscript><button type="submit">Go</button></noscript>
+      </form>
+      <% } %>
+      <a href="/groups/<%= it.group.id %>" class="group-switch__link site-header__mobile-link"><%= it.groups.length > 1 ? 'Group' : it.group.name %></a>
+      <% } %>
       <a href="/games" class="site-header__mobile-link">My Games</a>
       <a href="/players" class="site-header__mobile-link">Players</a>
       <a href="/standings" class="site-header__mobile-link">Standings</a>

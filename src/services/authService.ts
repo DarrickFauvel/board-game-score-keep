@@ -2,6 +2,7 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { db } from '../db/client.js';
 import { config } from '../config.js';
+import { groupService } from './groupService.js';
 
 type AuthResult = { ok: true; token: string } | { ok: false; error: string };
 
@@ -26,6 +27,8 @@ export const authService = {
       sql: 'INSERT INTO players (user_id, display_name) VALUES (?, ?)',
       args: [userId, displayName],
     });
+    // Everyone starts with their own group to hold their games
+    await groupService.ensureOwnGroup(userId, displayName);
 
     const token = jwt.sign({ sub: userId, email }, config.jwtSecret, { expiresIn: '7d' });
     return { ok: true, token };

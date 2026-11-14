@@ -5,6 +5,14 @@ import { upload } from '../middleware/upload.js';
 import { sessionAccess, hostAccess } from '../services/sessionAccess.js';
 import { playerService } from '../services/playerService.js';
 import { config } from '../config.js';
+import { can, type GroupRole } from '../services/groupAccess.js';
+
+/** For members whose role doesn't allow it: they can see the game, so say why. */
+const forbidden = (what: string) => Object.assign(new Error('Forbidden'), {
+  status: 403,
+  publicMessage: `Only the group's organizers and owners can ${what}.`,
+});
+const roleOf = (game: Record<string, unknown>) => game.member_role as GroupRole;
 import { normalizeBggUrl, normalizeRulesUrl, normalizeRulesVideoUrl, BGG_URL_ERROR, RULES_URL_ERROR, RULES_VIDEO_URL_ERROR } from '../services/links.js';
 import { normalizeUnitName, UNIT_NAME_ERROR } from '../services/units.js';
 
@@ -30,14 +38,17 @@ router.get('/', async (req, res, next) => {
   try {
     const { sessionService } = await import('../services/sessionService.js');
     const [games, joined] = await Promise.all([
-      gameService.listByOwner(req.user.sub),
+      gameService.listForGroup(req.group.id),
       sessionService.listJoined(req.user.sub),
     ]);
-    res.renderEta('games/index', { title: 'My Games', games, joined, user: req.user });
+    res.renderEta('games/index', {
+      title: 'My Games', games, joined, user: req.user, canManageGames: can(req.group.role, 'manageGames'),
+    });
   } catch (err) { next(err); }
 });
 
-router.get('/new', (req, res) => {
+router.get('/new', (req, res, next) => {
+  if (!can(req.group.role, 'manageGames')) return next(forbidden('add games'));
   res.renderEta('games/new', { title: 'Add a Game', user: req.user, error: null });
 });
 
@@ -48,6 +59,7 @@ router.post('/',
   body('teams_mode').isIn(['none', 'adhoc', 'profiles']),
   async (req, res, next) => {
     try {
+      if (!can(req.group.role, 'manageGames')) return next(forbidden('add games'));
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
         return res.status(400).renderEta('games/new', { title: 'Add a Game', user: req.user, error: 'Please fill in all required fields.' });
@@ -56,7 +68,7 @@ router.post('/',
       if ('error' in parsed) {
         return res.status(400).renderEta('games/new', { title: 'Add a Game', user: req.user, error: parsed.error });
       }
-      const game = await gameService.create(req.user.sub, { ...req.body, ...parsed.fields } as Record<string, unknown>, req.file);
+      const game = await gameService.create(req.user.sub, req.group.id, { ...req.body, ...parsed.fields } as Record<string, unknown>, req.file);
       res.redirect(`/games/${game.id}`);
     } catch (err) { next(err); }
   }
@@ -70,7 +82,9 @@ router.get('/:id', async (req, res, next) => {
     const sessions = await sessionService.listByGame(req.params.id);
     const { scoreService } = await import('../services/scoreService.js');
     const categories = await scoreService.listCategories(req.params.id);
-    res.renderEta('games/show', { title: game.name, game, sessions, categories, user: req.user });
+    res.renderEta('games/show', {
+      title: game.name, game, sessions, categories, user: req.user, canManageGames: can(roleOf(game), 'manageGames'),
+    });
   } catch (err) { next(err); }
 });
 
@@ -78,6 +92,7 @@ router.get('/:id/edit', async (req, res, next) => {
   try {
     const game = await gameService.findById(req.params.id, req.user.sub);
     if (!game) return next(Object.assign(new Error('Not Found'), { status: 404 }));
+    if (!can(roleOf(game), 'manageGames')) return next(forbidden('edit games'));
     const { scoreService } = await import('../services/scoreService.js');
     const categories = await scoreService.listCategories(req.params.id);
     res.renderEta('games/edit', { title: `Edit ${game.name}`, game, categories, user: req.user, error: null });
@@ -93,6 +108,7 @@ router.post('/:id',
     try {
       const game = await gameService.findById(req.params.id, req.user.sub);
       if (!game) return next(Object.assign(new Error('Not Found'), { status: 404 }));
+      if (!can(roleOf(game), 'manageGames')) return next(forbidden('edit games'));
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
         const { scoreService } = await import('../services/scoreService.js');
@@ -118,6 +134,7 @@ router.post('/:id/delete', async (req, res, next) => {
   try {
     const game = await gameService.findById(req.params.id, req.user.sub);
     if (!game) return next(Object.assign(new Error('Not Found'), { status: 404 }));
+    if (!can(roleOf(game), 'manageGames')) return next(forbidden('delete games'));
     await gameService.remove(req.params.id);
     res.redirect('/games');
   } catch (err) { next(err); }
@@ -125,6 +142,7 @@ router.post('/:id/delete', async (req, res, next) => {
 
 router.get('/:gameId/sessions/new', async (req, res, next) => {
   try {
+    // Any member of the game's group can start a session
     const game = await gameService.findById(req.params.gameId, req.user.sub);
     if (!game) return next(Object.assign(new Error('Not Found'), { status: 404 }));
     const { playerService } = await import('../services/playerService.js');
@@ -155,15 +173,16 @@ router.get('/:gameId/sessions/:id', async (req, res, next) => {
   try {
     const access = await sessionAccess(req.params.id, req.user.sub, req.params.gameId);
     if (!access) return next(notFound());
-    const { game, session, role } = access;
+    const { game, session, role, canComplete, groupRole } = access;
     const { sessionService } = await import('../services/sessionService.js');
     const { scoreService } = await import('../services/scoreService.js');
     // The host shows an invite while the game is on; created on first need
-    const inviteUrl = role === 'host' && session.status === 'active'
+    const inviteUrl = canComplete && session.status === 'active'
       ? `${config.baseUrl}/join/${await sessionService.ensureInviteCode(session.id as string)}`
       : null;
-    const hostName = role === 'player'
-      ? (await playerService.findByUserId(game.owner_id as string))?.display_name ?? null
+    // Players see who started the game; the person who started it doesn't need telling
+    const hostName = session.created_by !== req.user.sub
+      ? (await playerService.findByUserId(session.created_by as string))?.display_name ?? null
       : null;
     const [participants, categories] = await Promise.all([
       sessionService.listParticipants(req.params.id),
@@ -175,7 +194,7 @@ router.get('/:gameId/sessions/:id', async (req, res, next) => {
     ]);
     res.renderEta('sessions/show', {
       title: `${game.name} – Session`, game, session, participants, categories, scores, photos, user: req.user,
-      role, inviteUrl, hostName,
+      role, inviteUrl, hostName, canComplete, groupRole,
     });
   } catch (err) { next(err); }
 });
@@ -204,13 +223,15 @@ router.get('/:gameId/sessions/:id/scoreboard', async (req, res, next) => {
 // permission to play sound); a plain form post still redirects.
 router.post('/:gameId/sessions/:id/complete', async (req, res, next) => {
   try {
-    if (!await hostAccess(req.params.id, req.user.sub, req.params.gameId)) return next(notFound());
+    const access = await sessionAccess(req.params.id, req.user.sub, req.params.gameId);
+    if (!access) return next(notFound());
+    if (!access.canComplete) return next(forbidden('complete a game someone else started'));
     const { sessionService } = await import('../services/sessionService.js');
     await sessionService.complete(req.params.id);
     const { sseRegistry } = await import('../services/sseRegistry.js');
     sseRegistry.broadcastSessionComplete(req.params.id);
     if (req.accepts(['html', 'json']) === 'json') {
-      return res.json({ celebration: await sessionService.getCelebration(req.params.id, req.user.sub) });
+      return res.json({ celebration: await sessionService.getCelebration(req.params.id) });
     }
     res.redirect(`/games/${req.params.gameId}/sessions/${req.params.id}`);
   } catch (err) { next(err); }
@@ -221,8 +242,7 @@ router.get('/:gameId/sessions/:id/celebration', async (req, res, next) => {
     const access = await sessionAccess(req.params.id, req.user.sub, req.params.gameId);
     if (!access) return next(notFound());
     const { sessionService } = await import('../services/sessionService.js');
-    // Win streaks and records come from the host's games, so every phone tells the same story
-    res.json({ celebration: await sessionService.getCelebration(req.params.id, access.game.owner_id as string) });
+    res.json({ celebration: await sessionService.getCelebration(req.params.id) });
   } catch (err) { next(err); }
 });
 

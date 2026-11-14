@@ -2,7 +2,9 @@
 
 <div class="page-header">
   <h1 class="page-header__title">My Games</h1>
+  <% if (it.canManageGames) { %>
   <a href="/games/new" class="btn btn--gold">+ Add a Game</a>
+  <% } %>
 </div>
 
 <% if (it.joined && it.joined.length) { %>
@@ -33,7 +35,11 @@
   <span class="empty-state__icon" aria-hidden="true">🎲</span>
   <h2 class="empty-state__title"><%= it.joined && it.joined.length ? 'No games of your own yet' : 'No games yet' %></h2>
   <p style="margin-bottom:var(--space-4)">Add your first game to start tracking sessions and scores.</p>
+  <% if (it.canManageGames) { %>
   <a href="/games/new" class="btn btn--primary">Add a Game</a>
+  <% } else { %>
+  <p class="form-hint">Ask one of <%= it.group.name %>'s organizers to add a game.</p>
+  <% } %>
 </div>
 <% } else { %>
 <%~ include('../partials/game-list', it) %>

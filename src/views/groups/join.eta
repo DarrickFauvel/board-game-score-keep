@@ -1,0 +1,29 @@
+<% layout('../layouts/base') %>
+
+<div style="max-width:32rem;margin:var(--space-6) auto">
+  <div class="card">
+    <div class="card__body" style="display:grid;gap:var(--space-4);text-align:center">
+      <div style="display:grid;gap:var(--space-2);justify-items:center">
+        <h1 style="font-size:var(--text-xl);text-wrap:balance">Join <%= it.group.name %></h1>
+        <p style="color:var(--color-text-muted)">
+          You'll see the group's games, scoreboards and Hall of Fame, and can start games and keep score with everyone.
+        </p>
+      </div>
+
+      <% if (it.members.length) { %>
+      <ul role="list" aria-label="Members" style="list-style:none;display:flex;flex-wrap:wrap;justify-content:center;gap:var(--space-2) var(--space-3)">
+        <% it.members.slice(0, 12).forEach(function(m) { %>
+        <li style="display:inline-flex;align-items:center;gap:var(--space-1)">
+          <%~ it.avatar(m.avatar_url, m.display_name || '?', m.preferred_color, 'avatar--sm') %>
+          <span><%= m.display_name %></span>
+        </li>
+        <% }) %>
+      </ul>
+      <% } %>
+
+      <form action="/groups/join/<%= it.code %>" method="POST" style="margin:0">
+        <button type="submit" class="btn btn--gold" style="width:100%">Join as <%= it.me ? it.me.display_name : 'a player' %></button>
+      </form>
+    </div>
+  </div>
+</div>

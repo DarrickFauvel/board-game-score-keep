@@ -54,8 +54,8 @@ export const sessionService = {
   async findByInviteCode(code: string) {
     if (!/^[A-Za-z0-9_-]{16,64}$/.test(code)) return null;
     const result = await db.execute({
-      sql: `SELECT s.*, g.name AS game_name, g.owner_id AS host_user_id,
-                   (SELECT display_name FROM players WHERE user_id = g.owner_id LIMIT 1) AS host_name
+      sql: `SELECT s.*, g.name AS game_name, s.created_by AS host_user_id,
+                   (SELECT display_name FROM players WHERE user_id = s.created_by LIMIT 1) AS host_name
             FROM sessions s
             JOIN games g ON g.id = s.game_id
             WHERE s.invite_code = ?`,
@@ -106,10 +106,11 @@ export const sessionService = {
     const result = await db.execute({
       sql: `SELECT s.id, s.game_id, s.status, s.started_at, s.completed_at,
                    g.name AS game_name, g.image_url AS game_image,
-                   (SELECT display_name FROM players WHERE user_id = g.owner_id LIMIT 1) AS host_name
+                   (SELECT display_name FROM players WHERE user_id = s.created_by LIMIT 1) AS host_name
             FROM sessions s
             JOIN games g ON g.id = s.game_id
-            WHERE g.owner_id <> ?
+            -- Sessions of groups you're not in, that you joined through an invite
+            WHERE g.group_id NOT IN (SELECT group_id FROM group_members WHERE user_id = ?)
               AND EXISTS (
                 SELECT 1 FROM session_participants sp
                 JOIN players p ON p.id = sp.player_id
@@ -174,9 +175,9 @@ export const sessionService = {
    * undecided. Each winner carries their record in this game (see
    * standingsService.winnerFacts) once the session is completed.
    */
-  async getCelebration(sessionId: string, userId: string) {
+  async getCelebration(sessionId: string) {
     const result = await db.execute({
-      sql: `SELECT s.game_id, g.name AS game_name, g.point_name, g.lowest_wins, sp.id, sp.display_name, sp.color, p.preferred_color,
+      sql: `SELECT s.game_id, g.group_id, g.name AS game_name, g.point_name, g.lowest_wins, sp.id, sp.display_name, sp.color, p.preferred_color,
                    COALESCE(SUM(se.value), 0) AS total
             FROM session_participants sp
             JOIN sessions s ON s.id = sp.session_id
@@ -189,11 +190,12 @@ export const sessionService = {
       args: [sessionId],
     });
     const rows = (result.rows as unknown as {
-      game_id: string; game_name: string; point_name: string | null; lowest_wins: number; id: string; display_name: string; color: string | null; preferred_color: string | null; total: number;
+      game_id: string; group_id: string; game_name: string; point_name: string | null; lowest_wins: number; id: string; display_name: string; color: string | null; preferred_color: string | null; total: number;
     }[]).map((r) => ({ ...r, total: Number(r.total) }));
     const top = winRule(rows[0]).winningTotal(rows.map((r) => r.total));
     const facts = top !== null
-      ? await standingsService.winnerFacts(userId, rows[0].game_id, sessionId)
+      // Streaks and records come from the session's group, so every phone tells the same story
+      ? await standingsService.winnerFacts(rows[0].group_id, rows[0].game_id, sessionId)
       : new Map();
     return {
       gameName: rows[0]?.game_name ?? '',
