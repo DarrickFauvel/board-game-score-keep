@@ -3,6 +3,7 @@ import { config } from '../config.js';
 
 interface HttpError {
   status?: number;
+  publicMessage?: string; // shown on the error page instead of the generic text
   statusCode?: number;
   message?: string;
 }
@@ -28,7 +29,7 @@ export function errorHandler(err: unknown, req: Request, res: Response, _next: N
 <body>
   <main id="main-content" style="padding:var(--space-8);text-align:center">
     <h1>${status}</h1>
-    <p>${status === 404 ? 'That page was not found in the Keep.' : message}</p>
+    <p>${httpErr.publicMessage ?? (status === 404 ? 'That page was not found in the Keep.' : message)}</p>
     <a href="/" class="btn btn--primary">Return to the Keep</a>
   </main>
 </body>

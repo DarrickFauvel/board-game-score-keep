@@ -13,6 +13,7 @@
       <% } %>
 
       <form action="/auth/login" method="POST" novalidate>
+        <% if (it.next && it.next !== '/') { %><input type="hidden" name="next" value="<%= it.next %>"><% } %>
         <div class="form-group">
           <label class="form-label" for="email">
             Email address <span class="required" aria-hidden="true">*</span>
@@ -43,7 +44,7 @@
       </form>
 
       <p style="text-align:center; margin-top:var(--space-3); font-size:var(--text-sm);">
-        New to The Keep? <a href="/auth/register" style="color:var(--color-border-focus); font-weight:600;">Create an account</a>
+        New to The Keep? <a href="/auth/register<%= it.next && it.next !== '/' ? '?next=' + encodeURIComponent(it.next) : '' %>" style="color:var(--color-border-focus); font-weight:600;">Create an account</a>
       </p>
     </div>
   </div>

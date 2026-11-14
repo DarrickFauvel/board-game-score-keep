@@ -12,11 +12,16 @@ const hasWinner = it.winRule(it.game).winningTotal(Object.values(sessionTotals))
     <h1 class="page-header__title"><%= it.game.name %></h1>
     <div style="font-size:var(--text-xs);color:var(--color-text-muted)">
       <%= new Date(it.session.started_at).toLocaleDateString('en-US', {weekday:'long', month:'long', day:'numeric', year:'numeric'}) %>
+      <% if (it.hostName) { %> · Hosted by <%= it.hostName %><% } %>
     </div>
   </div>
   <div style="display:flex;gap:var(--space-2);align-items:center;flex-wrap:wrap">
     <span class="badge badge--<%= it.session.status === 'active' ? 'active' : 'complete' %>"><%= it.session.status %></span>
-    <% if (it.session.status === 'active') { %>
+    <% if (it.inviteUrl) { %>
+    <qr-share url="<%= it.inviteUrl %>" label="Invite players" button-class="btn btn--secondary"
+              heading="Join this game" hint="Scan with a phone camera to join <%= it.game.name %>. They sign in, then play along."></qr-share>
+    <% } %>
+    <% if (it.session.status === 'active' && it.role === 'host') { %>
     <form action="/games/<%= it.game.id %>/sessions/<%= it.session.id %>/complete" method="POST" style="margin:0"
           data-confirm="Mark this session as complete? Scores will be locked."
           data-confirm-title="Complete Session"
@@ -33,7 +38,8 @@ const hasWinner = it.winRule(it.game).winningTotal(Object.values(sessionTotals))
     <% if (it.game.rules_video_url) { %>
     <a href="<%= it.game.rules_video_url %>" class="btn btn--secondary" target="_blank" rel="noopener noreferrer external">Rules video<span aria-hidden="true"> ↗</span><span class="visually-hidden"> (opens in a new tab)</span></a>
     <% } %>
-    <a href="/games/<%= it.game.id %>" class="btn btn--secondary">Back</a>
+    <%/* The game page is the host's; players go back to their list of games */%>
+    <a href="<%= it.role === 'host' ? '/games/' + it.game.id : '/games' %>" class="btn btn--secondary">Back</a>
   </div>
 </div>
 
@@ -169,16 +175,19 @@ for (const p of it.participants) {
           <button type="submit" class="btn btn--primary">Save</button>
         </div>
       </form>
+      <% if (it.role === 'host') { %>
       <form method="POST" class="photo-dialog__delete" data-photo-delete
             data-confirm="Remove this photo?"
             data-confirm-title="Delete Photo"
             data-confirm-label="Delete">
         <button type="submit" class="btn btn--ghost">Delete photo</button>
       </form>
+      <% } %>
     </dialog>
   </photo-gallery>
 </section>
 
+<% if (it.role === 'host') { %>
 <fieldset style="border:1px solid var(--color-danger);border-radius:var(--radius-md);padding:var(--space-3);margin-top:var(--space-4)">
   <legend style="color:var(--color-danger);font-weight:600;padding:0 var(--space-1)">Danger Zone</legend>
   <p style="font-size:var(--text-sm);color:var(--color-text-muted);margin-bottom:var(--space-2)">Deleting this session will permanently remove all its scores.</p>
@@ -189,3 +198,4 @@ for (const p of it.participants) {
     <button type="submit" class="btn btn--danger">Delete Session</button>
   </form>
 </fieldset>
+<% } %>

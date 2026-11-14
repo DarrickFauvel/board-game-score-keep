@@ -156,7 +156,9 @@ class PhotoGallery extends HTMLElement {
     });
     const img = dialog.querySelector('.photo-dialog__img');
     img.src = tile.querySelector('img').src;
-    dialog.querySelector('[data-photo-delete]').action = `${action}/delete`;
+    // Only the host gets the delete form
+    const del = dialog.querySelector('[data-photo-delete]');
+    if (del) del.action = `${action}/delete`;
 
     dialog.showModal();
   }

@@ -7,6 +7,7 @@ import teamsRouter from './teams.js';
 import standingsRouter from './standings.js';
 import sseRouter from './sse.js';
 import proxyRouter from './proxy.js';
+import joinRouter from './join.js';
 import { requireAuth, optionalAuth } from '../middleware/auth.js';
 
 const router = Router();
@@ -19,6 +20,7 @@ router.use('/sessions', requireAuth, scoresRouter);
 router.use('/players', requireAuth, playersRouter);
 router.use('/teams', requireAuth, teamsRouter);
 router.use('/standings', requireAuth, standingsRouter);
+router.use('/join', requireAuth, joinRouter);
 
 // Signed-out visitors get the public landing page; signed-in users get The Keep.
 router.get('/', optionalAuth, async (req, res, next) => {

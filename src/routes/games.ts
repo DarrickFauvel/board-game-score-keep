@@ -2,6 +2,9 @@ import { Router } from 'express';
 import { body, validationResult } from 'express-validator';
 import { gameService } from '../services/gameService.js';
 import { upload } from '../middleware/upload.js';
+import { sessionAccess, hostAccess } from '../services/sessionAccess.js';
+import { playerService } from '../services/playerService.js';
+import { config } from '../config.js';
 import { normalizeBggUrl, normalizeRulesUrl, normalizeRulesVideoUrl, BGG_URL_ERROR, RULES_URL_ERROR, RULES_VIDEO_URL_ERROR } from '../services/links.js';
 import { normalizeUnitName, UNIT_NAME_ERROR } from '../services/units.js';
 
@@ -25,8 +28,12 @@ const router = Router();
 
 router.get('/', async (req, res, next) => {
   try {
-    const games = await gameService.listByOwner(req.user.sub);
-    res.renderEta('games/index', { title: 'My Games', games, user: req.user });
+    const { sessionService } = await import('../services/sessionService.js');
+    const [games, joined] = await Promise.all([
+      gameService.listByOwner(req.user.sub),
+      sessionService.listJoined(req.user.sub),
+    ]);
+    res.renderEta('games/index', { title: 'My Games', games, joined, user: req.user });
   } catch (err) { next(err); }
 });
 
@@ -146,12 +153,18 @@ router.post('/:gameId/sessions', async (req, res, next) => {
 
 router.get('/:gameId/sessions/:id', async (req, res, next) => {
   try {
-    const game = await gameService.findById(req.params.gameId, req.user.sub);
-    if (!game) return next(Object.assign(new Error('Not Found'), { status: 404 }));
+    const access = await sessionAccess(req.params.id, req.user.sub, req.params.gameId);
+    if (!access) return next(notFound());
+    const { game, session, role } = access;
     const { sessionService } = await import('../services/sessionService.js');
-    const session = await sessionService.findById(req.params.id);
-    if (!session) return next(Object.assign(new Error('Not Found'), { status: 404 }));
     const { scoreService } = await import('../services/scoreService.js');
+    // The host shows an invite while the game is on; created on first need
+    const inviteUrl = role === 'host' && session.status === 'active'
+      ? `${config.baseUrl}/join/${await sessionService.ensureInviteCode(session.id as string)}`
+      : null;
+    const hostName = role === 'player'
+      ? (await playerService.findByUserId(game.owner_id as string))?.display_name ?? null
+      : null;
     const [participants, categories] = await Promise.all([
       sessionService.listParticipants(req.params.id),
       scoreService.listCategories(req.params.gameId),
@@ -160,7 +173,10 @@ router.get('/:gameId/sessions/:id', async (req, res, next) => {
       scoreService.getSessionScores(req.params.id),
       sessionService.listPhotos(req.params.id),
     ]);
-    res.renderEta('sessions/show', { title: `${game.name} – Session`, game, session, participants, categories, scores, photos, user: req.user });
+    res.renderEta('sessions/show', {
+      title: `${game.name} – Session`, game, session, participants, categories, scores, photos, user: req.user,
+      role, inviteUrl, hostName,
+    });
   } catch (err) { next(err); }
 });
 
@@ -168,11 +184,10 @@ router.get('/:gameId/sessions/:id', async (req, res, next) => {
 // live stream says scores changed on another device.
 router.get('/:gameId/sessions/:id/scoreboard', async (req, res, next) => {
   try {
-    const game = await gameService.findById(req.params.gameId, req.user.sub);
-    if (!game) return next(notFound());
+    const access = await sessionAccess(req.params.id, req.user.sub, req.params.gameId);
+    if (!access) return next(notFound());
+    const { game, session } = access;
     const { sessionService } = await import('../services/sessionService.js');
-    const session = await sessionService.findById(req.params.id);
-    if (!session || session.game_id !== game.id) return next(notFound());
     const { scoreService } = await import('../services/scoreService.js');
     const [participants, categories, scores] = await Promise.all([
       sessionService.listParticipants(req.params.id),
@@ -189,7 +204,7 @@ router.get('/:gameId/sessions/:id/scoreboard', async (req, res, next) => {
 // permission to play sound); a plain form post still redirects.
 router.post('/:gameId/sessions/:id/complete', async (req, res, next) => {
   try {
-    if (!await findOwnedSession(req.params.gameId, req.params.id, req.user.sub)) return next(notFound());
+    if (!await hostAccess(req.params.id, req.user.sub, req.params.gameId)) return next(notFound());
     const { sessionService } = await import('../services/sessionService.js');
     await sessionService.complete(req.params.id);
     const { sseRegistry } = await import('../services/sseRegistry.js');
@@ -203,19 +218,19 @@ router.post('/:gameId/sessions/:id/complete', async (req, res, next) => {
 
 router.get('/:gameId/sessions/:id/celebration', async (req, res, next) => {
   try {
-    if (!await findOwnedSession(req.params.gameId, req.params.id, req.user.sub)) return next(notFound());
+    const access = await sessionAccess(req.params.id, req.user.sub, req.params.gameId);
+    if (!access) return next(notFound());
     const { sessionService } = await import('../services/sessionService.js');
-    res.json({ celebration: await sessionService.getCelebration(req.params.id, req.user.sub) });
+    // Win streaks and records come from the host's games, so every phone tells the same story
+    res.json({ celebration: await sessionService.getCelebration(req.params.id, access.game.owner_id as string) });
   } catch (err) { next(err); }
 });
 
 router.post('/:gameId/sessions/:id/rounds', async (req, res, next) => {
   try {
-    const game = await gameService.findById(req.params.gameId, req.user.sub);
-    if (!game) return next(Object.assign(new Error('Not Found'), { status: 404 }));
-    const { sessionService } = await import('../services/sessionService.js');
-    const session = await sessionService.findById(req.params.id);
-    if (!session) return next(Object.assign(new Error('Not Found'), { status: 404 }));
+    const access = await sessionAccess(req.params.id, req.user.sub, req.params.gameId);
+    if (!access) return next(notFound());
+    const { session } = access;
     const round = Number(req.body.round);
     if (session.status === 'active' && Number.isInteger(round) && round > 0) {
       const { scoreService } = await import('../services/scoreService.js');
@@ -230,6 +245,7 @@ router.post('/:gameId/sessions/:id/rounds', async (req, res, next) => {
 router.post('/:gameId/sessions/:id/note',
   async (req, res, next) => {
     try {
+      if (!await sessionAccess(req.params.id, req.user.sub, req.params.gameId)) return next(notFound());
       const { sessionService } = await import('../services/sessionService.js');
       await sessionService.saveNote(
         req.params.id,
@@ -240,15 +256,6 @@ router.post('/:gameId/sessions/:id/note',
   }
 );
 
-/** The session, if it belongs to this game and the game belongs to the user. */
-async function findOwnedSession(gameId: string, sessionId: string, userId: string) {
-  const game = await gameService.findById(gameId, userId);
-  if (!game) return null;
-  const { sessionService } = await import('../services/sessionService.js');
-  const session = await sessionService.findById(sessionId);
-  return session && session.game_id === gameId ? session : null;
-}
-
 const notFound = () => Object.assign(new Error('Not Found'), { status: 404 });
 
 // Accepts several photos per request (the uploader sends one at a time so each
@@ -257,7 +264,7 @@ router.post('/:gameId/sessions/:id/photos',
   upload.fields([{ name: 'photos', maxCount: 20 }, { name: 'photo', maxCount: 1 }]),
   async (req, res, next) => {
     try {
-      if (!await findOwnedSession(req.params.gameId, req.params.id, req.user.sub)) return next(notFound());
+      if (!await sessionAccess(req.params.id, req.user.sub, req.params.gameId)) return next(notFound());
       const { sessionService } = await import('../services/sessionService.js');
       const { resolveImageUrl } = await import('../services/imageService.js');
       const files = req.files as Record<string, Express.Multer.File[]> | undefined;
@@ -285,7 +292,7 @@ router.post('/:gameId/sessions/:id/photos/:photoId',
   async (req, res, next) => {
     try {
       const { gameId, id, photoId } = req.params as { gameId: string; id: string; photoId: string };
-      if (!await findOwnedSession(gameId, id, req.user.sub)) return next(notFound());
+      if (!await sessionAccess(id, req.user.sub, gameId)) return next(notFound());
       if (!validationResult(req).isEmpty()) return next(Object.assign(new Error('Caption is too long.'), { status: 400 }));
       const { sessionService } = await import('../services/sessionService.js');
       const raw = (req.body as Record<string, unknown>).participant_ids;
@@ -299,7 +306,7 @@ router.post('/:gameId/sessions/:id/photos/:photoId',
 
 router.post('/:gameId/sessions/:id/photos/:photoId/delete', async (req, res, next) => {
   try {
-    if (!await findOwnedSession(req.params.gameId, req.params.id, req.user.sub)) return next(notFound());
+    if (!await hostAccess(req.params.id, req.user.sub, req.params.gameId)) return next(notFound());
     const { sessionService } = await import('../services/sessionService.js');
     await sessionService.removePhoto(req.params.id, req.params.photoId);
     res.redirect(`/games/${req.params.gameId}/sessions/${req.params.id}#photos-heading`);
@@ -308,6 +315,7 @@ router.post('/:gameId/sessions/:id/photos/:photoId/delete', async (req, res, nex
 
 router.post('/:gameId/sessions/:id/delete', async (req, res, next) => {
   try {
+    if (!await hostAccess(req.params.id, req.user.sub, req.params.gameId)) return next(notFound());
     const { sessionService } = await import('../services/sessionService.js');
     await sessionService.remove(req.params.id);
     res.redirect(`/games/${req.params.gameId}`);

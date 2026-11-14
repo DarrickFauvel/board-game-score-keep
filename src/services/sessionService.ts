@@ -1,3 +1,4 @@
+import { randomBytes } from 'node:crypto';
 import { db } from '../db/client.js';
 import { processUploadedImage } from './imageService.js';
 import { standingsService } from './standingsService.js';
@@ -30,6 +31,95 @@ export const sessionService = {
       args: [id],
     });
     return result.rows[0] ?? null;
+  },
+
+  /* ─── Invites ───────────────────────────────────────── */
+
+  /** The session's invite code, creating it the first time it's needed. */
+  async ensureInviteCode(sessionId: string): Promise<string> {
+    const existing = await db.execute({ sql: 'SELECT invite_code FROM sessions WHERE id = ?', args: [sessionId] });
+    const current = existing.rows[0]?.invite_code as string | null | undefined;
+    if (current) return current;
+    const code = randomBytes(16).toString('base64url');
+    // Only set it if still empty, so two tabs opening at once agree on one code
+    await db.execute({
+      sql: 'UPDATE sessions SET invite_code = ? WHERE id = ? AND invite_code IS NULL',
+      args: [code, sessionId],
+    });
+    const after = await db.execute({ sql: 'SELECT invite_code FROM sessions WHERE id = ?', args: [sessionId] });
+    return after.rows[0].invite_code as string;
+  },
+
+  /** A session by its invite code, with its game and host's name. */
+  async findByInviteCode(code: string) {
+    if (!/^[A-Za-z0-9_-]{16,64}$/.test(code)) return null;
+    const result = await db.execute({
+      sql: `SELECT s.*, g.name AS game_name, g.owner_id AS host_user_id,
+                   (SELECT display_name FROM players WHERE user_id = g.owner_id LIMIT 1) AS host_name
+            FROM sessions s
+            JOIN games g ON g.id = s.game_id
+            WHERE s.invite_code = ?`,
+      args: [code],
+    });
+    return result.rows[0] ?? null;
+  },
+
+  /** Unlinked guests in the session whose name matches, ignoring capitals and spacing. */
+  async guestsNamed(sessionId: string, name: string) {
+    const result = await db.execute({
+      sql: `SELECT * FROM session_participants
+            WHERE session_id = ? AND player_id IS NULL AND team_id IS NULL
+            ORDER BY sort_order`,
+      args: [sessionId],
+    });
+    const norm = (s: string) => s.trim().toLowerCase().replace(/\s+/g, ' ');
+    return result.rows.filter((r) => norm(String(r.display_name)) === norm(name));
+  },
+
+  /**
+   * Link an unlinked guest spot to a player, keeping its scores. False if the
+   * spot isn't an unlinked guest in this session (e.g. someone claimed it first).
+   */
+  async claimGuest(sessionId: string, participantId: string, playerId: string): Promise<boolean> {
+    const result = await db.execute({
+      // Take the player's own spelling of their name too ("kit" becomes "Kit")
+      sql: `UPDATE session_participants
+            SET player_id = ?, display_name = COALESCE((SELECT display_name FROM players WHERE id = ?), display_name)
+            WHERE id = ? AND session_id = ? AND player_id IS NULL AND team_id IS NULL
+            RETURNING id`,
+      args: [playerId, playerId, participantId, sessionId],
+    });
+    return result.rows.length > 0;
+  },
+
+  /** Add a player at the end of the session's list. */
+  async addPlayer(sessionId: string, player: { id: string; display_name: string; preferred_color: string | null }) {
+    await db.execute({
+      sql: `INSERT INTO session_participants (session_id, player_id, display_name, color, sort_order)
+            VALUES (?, ?, ?, ?, (SELECT COALESCE(MAX(sort_order), -1) + 1 FROM session_participants WHERE session_id = ?))`,
+      args: [sessionId, player.id, player.display_name, player.preferred_color, sessionId],
+    });
+  },
+
+  /** Sessions the user plays in but doesn't host: active first, then the latest finished. */
+  async listJoined(userId: string) {
+    const result = await db.execute({
+      sql: `SELECT s.id, s.game_id, s.status, s.started_at, s.completed_at,
+                   g.name AS game_name, g.image_url AS game_image,
+                   (SELECT display_name FROM players WHERE user_id = g.owner_id LIMIT 1) AS host_name
+            FROM sessions s
+            JOIN games g ON g.id = s.game_id
+            WHERE g.owner_id <> ?
+              AND EXISTS (
+                SELECT 1 FROM session_participants sp
+                JOIN players p ON p.id = sp.player_id
+                WHERE sp.session_id = s.id AND p.user_id = ?
+              )
+            ORDER BY s.status = 'active' DESC, COALESCE(s.completed_at, s.started_at) DESC
+            LIMIT 12`,
+      args: [userId, userId],
+    });
+    return result.rows;
   },
 
   async create(
