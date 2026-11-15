@@ -16,6 +16,36 @@
   <% } %>
 </div>
 
+<% if (it.claimed) { %>
+<div class="flash flash--success" role="status">Done. Those games are on your record now.</div>
+<% } %>
+
+<% if (it.canEdit && !it.player.user_id) { %>
+<section id="claim" class="card" aria-labelledby="claim-heading" style="margin-bottom:var(--space-4)">
+  <div class="card__body" style="display:grid;gap:var(--space-2)">
+    <h2 id="claim-heading" style="font-size:var(--text-base)">Does <%= it.player.display_name %> have an account?</h2>
+    <p class="form-hint" style="margin:0">
+      Share a link so <%= it.player.display_name %> can sign in or register and take these games as their own.
+      They'll join this group as a Player. The link works once.
+    </p>
+    <div style="display:flex;flex-wrap:wrap;gap:var(--space-2);align-items:center">
+      <% if (it.claimUrl) { %>
+      <qr-share url="<%= it.claimUrl %>" label="Show claim link" button-class="btn btn--secondary"
+                heading="Claim <%= it.player.display_name %>'s games" hint="Scan with a phone camera, sign in or register, and these games become yours."></qr-share>
+      <form action="/players/<%= it.player.id %>/claim-link/reset" method="POST" style="margin:0"
+            data-confirm="Make a new link? The one you shared will stop working." data-confirm-title="New claim link" data-confirm-label="Make new link">
+        <button type="submit" class="btn btn--ghost btn--sm">New link</button>
+      </form>
+      <% } else { %>
+      <form action="/players/<%= it.player.id %>/claim-link" method="POST" style="margin:0">
+        <button type="submit" class="btn btn--secondary">Invite <%= it.player.display_name %> to claim these games</button>
+      </form>
+      <% } %>
+    </div>
+  </div>
+</section>
+<% } %>
+
 <div class="stats-grid" style="margin-bottom:var(--space-6)" aria-label="Player statistics">
   <div class="stat-card">
     <div class="stat-card__value"><%= it.stats.games_played || 0 %></div>
