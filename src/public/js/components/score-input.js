@@ -53,7 +53,8 @@ class ScoreInput extends HTMLElement {
           user-select: none;
           touch-action: manipulation;
         }
-        @media (hover: hover) {
+        button:active:not(:disabled) { background: var(--color-surface, #efebe3); }
+        @media (hover: hover) and (pointer: fine) {
           button:hover:not(:disabled) { background: var(--color-surface, #efebe3); }
         }
         button:focus-visible {

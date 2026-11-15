@@ -24,7 +24,10 @@ class ThemeToggle extends HTMLElement {
           white-space: nowrap;
           transition: background 120ms ease;
         }
-        button:hover { background: var(--color-chrome-hover, rgba(255 255 255 / 0.1)); }
+        button:active { background: var(--color-chrome-hover, rgba(255 255 255 / 0.1)); }
+        @media (hover: hover) and (pointer: fine) {
+          button:hover { background: var(--color-chrome-hover, rgba(255 255 255 / 0.1)); }
+        }
         button:focus-visible {
           outline: 3px solid var(--color-border-focus, #0066cc);
           outline-offset: 2px;
