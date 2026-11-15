@@ -11,8 +11,8 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <%/* The landing page's pairing: DM Serif Display for headings and numbers, Funnel Sans for text, DM Mono for labels */%>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Funnel+Sans:wght@400..700&family=DM+Mono:wght@400;500&display=swap">
+  <%/* Newsreader for headings, the wordmark and scores (optical sizes, tabular figures); Funnel Sans for everything else */%>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Funnel+Sans:wght@400..700&family=Newsreader:opsz,wght@6..72,400..700&display=swap">
 
   <link rel="stylesheet" href="/css/tokens.css">
   <link rel="stylesheet" href="/css/reset.css">

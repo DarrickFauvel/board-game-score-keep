@@ -1,6 +1,8 @@
 /* ─── Root & body ────────────────────────────────── */
 html {
-  font-size: var(--text-base);
+  /* 20px at every width: phones were already here, and the old fluid
+     root grew to 24px on desktop, wrapping the signed-in nav */
+  font-size: 1.25rem;
   font-family: var(--font-text);
   line-height: var(--leading-normal);
   color: var(--color-text);
@@ -110,6 +112,7 @@ textarea:focus-visible {
 }
 
 .site-header__logo {
+  flex-shrink: 0; /* a crowded nav squeezed the mark to a dot */
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
@@ -207,7 +210,7 @@ textarea:focus-visible {
 .site-header__nav button:not(.btn) {
   color: var(--color-chrome-muted, var(--color-chrome-text));
   text-decoration: none;
-  font-size: var(--text-sm);
+  font-size: var(--text-xs);
   padding: var(--space-1) 0.75rem;
   border-radius: var(--radius-md);
   min-height: var(--tap-min);

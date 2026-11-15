@@ -14,11 +14,13 @@
   .keep-hero { padding: var(--space-4) 0 var(--space-6); }
 }
 
-/* Small mono label above a heading, as on the landing page */
+/* Small uppercase label above a heading */
 .keep-eyebrow {
-  font-family: var(--font-mono);
-  font-size: var(--text-xs);
-  letter-spacing: -0.01em;
+  font-family: var(--font-text);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   color: var(--color-gold-text);
   margin-bottom: var(--space-1);
 }
@@ -152,10 +154,11 @@
 }
 
 .hall__heading {
-  font-family: var(--font-mono);
-  font-size: var(--text-xs);
-  font-weight: 500;
-  letter-spacing: -0.01em;
+  font-family: var(--font-text);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   color: var(--color-text-muted);
   margin-bottom: var(--space-1);
 }
