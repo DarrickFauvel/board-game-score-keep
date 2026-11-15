@@ -509,14 +509,24 @@ textarea.form-control {
   list-style: none;
 }
 
+/* Rank, name, score and stepper share one baseline: the serif score and the
+   sans name have different line metrics, so centring left the score a few
+   pixels high. Dots and avatars have no text, so they stay centred.
+   align-content centres the line in the 48px row; it needs a wrapping
+   container, and the name's zero basis keeps standings rows on one line. */
 .standings__row,
 .round-row {
   display: flex;
-  align-items: center;
+  flex-wrap: wrap;
+  align-items: baseline;
+  align-content: center;
   gap: var(--space-1);
   min-height: var(--tap-min);
   font-size: var(--text-sm);
 }
+.standings__row > .avatar,
+.round-row > .avatar,
+.round-row__dot { align-self: center; }
 
 .standings__row + .standings__row,
 .round-row + .round-row {
