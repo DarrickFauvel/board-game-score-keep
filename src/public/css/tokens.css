@@ -15,16 +15,14 @@
   --text-xl:   clamp(2rem, 1.6rem + 2vw, 3rem);
   --text-2xl:  clamp(2.5rem, 2rem + 2.5vw, 4rem);
 
-  /* ─── Type: the landing page's pairing ───────────
-     DM Serif Display for headings, the wordmark and big numbers; Funnel Sans
-     for everything else; DM Mono for small labels. */
-  --font-display: 'DM Serif Display', Georgia, serif;
+  /* ─── Type ───────────────────────────────────────
+     Newsreader for headings, the wordmark and scores: its optical sizes keep
+     it sturdy from small labels up to titles, and its figures are tabular
+     by default, so score columns line up and live scores don't shift.
+     Funnel Sans for everything else, small labels included. */
+  --font-display: 'Newsreader', Georgia, serif;
   --font-text:    'Funnel Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  --font-mono:    'DM Mono', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
-
-  /* DM Serif Display ships one weight; stop browsers faking a bold on the
-     600/700 headings. Funnel Sans has real weights, so it is unaffected. */
-  font-synthesis-weight: none;
+  --font-mono:    ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
 
   /* ─── Touch targets ──────────────────────────── */
   --tap-min: 3rem; /* 48px — exceeds WCAG 2.1 AA */
