@@ -146,7 +146,8 @@ router.get('/:gameId/sessions/new', async (req, res, next) => {
     const game = await gameService.findById(req.params.gameId, req.user.sub);
     if (!game) return next(Object.assign(new Error('Not Found'), { status: 404 }));
     const { playerService } = await import('../services/playerService.js');
-    const players = await playerService.listAll();
+    // Suggestions: the group's members and guests, and people you've played with
+    const players = await playerService.listVisible(req.user.sub, String(game.group_id));
     const { teamService } = await import('../services/teamService.js');
     const teams = await teamService.listByGame(req.params.gameId);
     const { scoreService } = await import('../services/scoreService.js');
@@ -164,7 +165,7 @@ router.post('/:gameId/sessions', async (req, res, next) => {
     const form = req.body as Record<string, unknown>;
     const plannedRounds = game.scoring_mode === 'tally' ? parseRoundCount(form.planned_rounds) : null;
     const targetScore = parseTargetScore(form.target_score);
-    const session = await sessionService.create(req.params.gameId, req.user.sub, form, plannedRounds, targetScore);
+    const session = await sessionService.create(game, req.user.sub, form, plannedRounds, targetScore);
     res.redirect(`/games/${req.params.gameId}/sessions/${session.id}`);
   } catch (err) { next(err); }
 });

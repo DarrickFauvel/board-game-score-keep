@@ -1,18 +1,104 @@
 import { db } from '../db/client.js';
 import { processUploadedImage, parseCrop, splitImageRef, withCrop } from './imageService.js';
+import { can, groupRole } from './groupAccess.js';
+
+/**
+ * Sessions the user can see: their groups' games, plus single sessions they
+ * joined through an invite. Takes the user id twice.
+ */
+const ACCESSIBLE_SESSIONS = `
+  SELECT s.id FROM sessions s JOIN games g ON g.id = s.game_id
+  WHERE g.group_id IN (SELECT group_id FROM group_members WHERE user_id = ?)
+     OR EXISTS (SELECT 1 FROM session_participants sp JOIN players p ON p.id = sp.player_id
+                WHERE sp.session_id = s.id AND p.user_id = ?)`;
+
+/** How a player relates to the person looking. */
+export type PlayerKind = 'member' | 'guest' | 'played';
+
+const norm = (s: string) => s.trim().toLowerCase().replace(/\s+/g, ' ');
 
 export const playerService = {
-  async listAll() {
-    const result = await db.execute('SELECT * FROM players ORDER BY display_name');
+  /**
+   * The players the user may pick for a session in this group, or see on the
+   * Players page; never every account in the app:
+   *   member  people in the group (accounts), the user included
+   *   guest   the group's guests (no account); hidden ones only if asked
+   *   played  other accounts the user has shared a session with
+   */
+  async listVisible(userId: string, groupId: string, opts: { includeHidden?: boolean } = {}) {
+    const result = await db.execute({
+      sql: `SELECT p.*, 'member' AS kind FROM players p
+              WHERE p.user_id IN (SELECT user_id FROM group_members WHERE group_id = ?)
+            UNION ALL
+            SELECT p.*, 'guest' AS kind FROM players p
+              WHERE p.group_id = ? AND p.user_id IS NULL ${opts.includeHidden ? '' : 'AND p.hidden_at IS NULL'}
+            UNION ALL
+            SELECT p.*, 'played' AS kind FROM players p
+              WHERE p.user_id IS NOT NULL
+                AND p.user_id NOT IN (SELECT user_id FROM group_members WHERE group_id = ?)
+                AND p.id IN (SELECT player_id FROM session_participants WHERE session_id IN (${ACCESSIBLE_SESSIONS}))
+            ORDER BY display_name COLLATE NOCASE`,
+      args: [groupId, groupId, groupId, userId, userId],
+    });
     return result.rows;
   },
 
-  async search(q: string) {
+  /**
+   * Whether the user may open this player's profile: themselves, anyone in
+   * one of their groups (members and guests), or anyone in a session they
+   * can see. Outsiders get a 404.
+   */
+  async canView(playerId: string, userId: string): Promise<boolean> {
     const result = await db.execute({
-      sql: 'SELECT * FROM players WHERE display_name LIKE ? ORDER BY display_name LIMIT 20',
-      args: [`%${q}%`],
+      sql: `SELECT 1 FROM players p
+            WHERE p.id = ? AND (
+              p.user_id = ?
+              OR p.user_id IN (SELECT gm.user_id FROM group_members gm
+                               WHERE gm.group_id IN (SELECT group_id FROM group_members WHERE user_id = ?))
+              OR p.group_id IN (SELECT group_id FROM group_members WHERE user_id = ?)
+              OR p.id IN (SELECT player_id FROM session_participants WHERE session_id IN (${ACCESSIBLE_SESSIONS}))
+            )`,
+      args: [playerId, userId, userId, userId, userId, userId],
     });
-    return result.rows;
+    return result.rows.length > 0;
+  },
+
+  /** Your own profile, or a guest of a group where you can manage guests. */
+  async canEdit(player: Record<string, unknown>, userId: string): Promise<boolean> {
+    if (player.user_id) return player.user_id === userId;
+    return can(await groupRole(player.group_id as string | null, userId), 'manageGuests');
+  },
+
+  /** The group's guest with this name (ignoring capitals and spacing), if any. */
+  async findGuest(groupId: string, name: string) {
+    const result = await db.execute({
+      sql: `SELECT * FROM players WHERE group_id = ? AND user_id IS NULL
+              AND lower(trim(display_name)) = lower(trim(?))`,
+      args: [groupId, name.replace(/\s+/g, ' ')],
+    });
+    return result.rows[0] ?? null;
+  },
+
+  /**
+   * The group's guest with this name, created if new. Names are unique per
+   * group, so typing "Sam" again always means the same Sam.
+   */
+  async findOrCreateGuest(groupId: string, name: string, color: string | null) {
+    const clean = name.trim().replace(/\s+/g, ' ');
+    const existing = await this.findGuest(groupId, clean);
+    if (existing) return existing;
+    try {
+      const result = await db.execute({
+        sql: 'INSERT INTO players (group_id, display_name, preferred_color) VALUES (?, ?, ?) RETURNING *',
+        args: [groupId, clean, color],
+      });
+      return result.rows[0];
+    } catch (err) {
+      // Someone added the same guest a moment ago: use theirs
+      const raced = await this.findGuest(groupId, clean);
+      if (raced) return raced;
+      throw err;
+    }
   },
 
   async findById(id: string) {

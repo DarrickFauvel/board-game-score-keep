@@ -4,17 +4,27 @@ import { body, validationResult } from 'express-validator';
 import { playerService, AvatarError } from '../services/playerService.js';
 import { upload } from '../middleware/upload.js';
 import { config } from '../config.js';
+import { can } from '../services/groupAccess.js';
+
+const editTitle = (player: Record<string, unknown>) => (player.user_id ? 'Edit Profile' : `Edit ${player.display_name}`);
 
 const router = Router();
 
+const notFound = () => Object.assign(new Error('Not Found'), { status: 404 });
+const forbidden = () => Object.assign(new Error('Forbidden'), {
+  status: 403, publicMessage: "You can edit your own profile, and the group's organizers can edit its guests.",
+});
+
+// Only the people the user knows: their group's members and guests, and anyone they've played with
 router.get('/', async (req, res, next) => {
   try {
-    const q = (req.query.q as string | undefined) ?? '';
-    const players = q
-      ? await playerService.search(q)
-      : await playerService.listAll();
-    if (req.accepts(['html', 'json']) === 'json') return res.json(players);
-    res.renderEta('players/index', { title: 'Players', players, user: req.user });
+    const players = await playerService.listVisible(req.user.sub, req.group.id, { includeHidden: true });
+    const byKind = (k: string) => players.filter((p) => p.kind === k);
+    res.renderEta('players/index', {
+      title: 'Players', user: req.user,
+      members: byKind('member'), guests: byKind('guest'), played: byKind('played'),
+      canManageGuests: can(req.group.role, 'manageGuests'),
+    });
   } catch (err) { next(err); }
 });
 
@@ -30,19 +40,22 @@ router.get('/me', async (req, res, next) => {
 router.get('/:id', async (req, res, next) => {
   try {
     const player = await playerService.findById(req.params.id);
-    if (!player) return next(Object.assign(new Error('Not Found'), { status: 404 }));
-    const stats = await playerService.getStats(req.params.id);
-    const history = await playerService.getGameHistory(req.params.id);
-    res.renderEta('players/show', { title: player.display_name, player, stats, history, user: req.user });
+    if (!player || !await playerService.canView(String(player.id), req.user.sub)) return next(notFound());
+    const [stats, history, canEdit] = await Promise.all([
+      playerService.getStats(req.params.id),
+      playerService.getGameHistory(req.params.id),
+      playerService.canEdit(player, req.user.sub),
+    ]);
+    res.renderEta('players/show', { title: player.display_name, player, stats, history, user: req.user, canEdit });
   } catch (err) { next(err); }
 });
 
 router.get('/:id/edit', async (req, res, next) => {
   try {
     const player = await playerService.findById(req.params.id);
-    if (!player) return next(Object.assign(new Error('Not Found'), { status: 404 }));
-    if (player.user_id !== req.user.sub) return next(Object.assign(new Error('Forbidden'), { status: 403 }));
-    res.renderEta('players/edit', { title: 'Edit Profile', player, user: req.user, error: null });
+    if (!player || !await playerService.canView(String(player.id), req.user.sub)) return next(notFound());
+    if (!await playerService.canEdit(player, req.user.sub)) return next(forbidden());
+    res.renderEta('players/edit', { title: editTitle(player), player, user: req.user, error: null });
   } catch (err) { next(err); }
 });
 
@@ -65,14 +78,25 @@ router.post('/:id',
   async (req, res, next) => {
     try {
       const player = await playerService.findById(req.params.id);
-      if (!player) return next(Object.assign(new Error('Not Found'), { status: 404 }));
-      if (player.user_id !== req.user.sub) return next(Object.assign(new Error('Forbidden'), { status: 403 }));
+      if (!player || !await playerService.canView(String(player.id), req.user.sub)) return next(notFound());
+      if (!await playerService.canEdit(player, req.user.sub)) return next(forbidden());
+      const title = editTitle(player);
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
-        return res.status(400).renderEta('players/edit', { title: 'Edit Profile', player, user: req.user, error: 'Display name is required.' });
+        return res.status(400).renderEta('players/edit', { title, player, user: req.user, error: 'A name is required.' });
       }
       if (res.locals.avatarError) {
-        return res.status(400).renderEta('players/edit', { title: 'Edit Profile', player, user: req.user, error: res.locals.avatarError });
+        return res.status(400).renderEta('players/edit', { title, player, user: req.user, error: res.locals.avatarError });
+      }
+      // A group's guests have distinct names, so "Sam" always means the same Sam
+      if (!player.user_id && player.group_id) {
+        const clash = await playerService.findGuest(String(player.group_id), String(req.body.display_name));
+        if (clash && clash.id !== player.id) {
+          return res.status(409).renderEta('players/edit', {
+            title, player, user: req.user,
+            error: `There's already a guest called ${clash.display_name} in this group. Pick another name, like "${String(req.body.display_name).trim()} B."`,
+          });
+        }
       }
       try {
         await playerService.update(req.params.id, req.body as Record<string, unknown>, req.file, player.avatar_url as string | null);
@@ -82,7 +106,7 @@ router.post('/:id',
         const error = err instanceof AvatarError
           ? err.message
           : "We couldn't use that picture. Try a different image, or a JPEG or PNG under 10 MB.";
-        return res.status(400).renderEta('players/edit', { title: 'Edit Profile', player, user: req.user, error });
+        return res.status(400).renderEta('players/edit', { title, player, user: req.user, error });
       }
       res.redirect(303, `/players/${req.params.id}`);
     } catch (err) { next(err); }

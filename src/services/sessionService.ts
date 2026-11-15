@@ -64,11 +64,12 @@ export const sessionService = {
     return result.rows[0] ?? null;
   },
 
-  /** Unlinked guests in the session whose name matches, ignoring capitals and spacing. */
+  /** Guest spots in the session whose name matches, ignoring capitals and spacing. */
   async guestsNamed(sessionId: string, name: string) {
     const result = await db.execute({
+      // A guest spot: a guest profile (no account), or a bare name from before guests had profiles
       sql: `SELECT * FROM session_participants
-            WHERE session_id = ? AND player_id IS NULL AND team_id IS NULL
+            WHERE session_id = ? AND team_id IS NULL AND (player_id IS NULL OR player_id IN (SELECT id FROM players WHERE user_id IS NULL))
             ORDER BY sort_order`,
       args: [sessionId],
     });
@@ -77,7 +78,7 @@ export const sessionService = {
   },
 
   /**
-   * Link an unlinked guest spot to a player, keeping its scores. False if the
+   * Move a guest spot to a player, keeping its scores. False if the
    * spot isn't an unlinked guest in this session (e.g. someone claimed it first).
    */
   async claimGuest(sessionId: string, participantId: string, playerId: string): Promise<boolean> {
@@ -85,7 +86,7 @@ export const sessionService = {
       // Take the player's own spelling of their name too ("kit" becomes "Kit")
       sql: `UPDATE session_participants
             SET player_id = ?, display_name = COALESCE((SELECT display_name FROM players WHERE id = ?), display_name)
-            WHERE id = ? AND session_id = ? AND player_id IS NULL AND team_id IS NULL
+            WHERE id = ? AND session_id = ? AND team_id IS NULL AND (player_id IS NULL OR player_id IN (SELECT id FROM players WHERE user_id IS NULL))
             RETURNING id`,
       args: [playerId, playerId, participantId, sessionId],
     });
@@ -123,18 +124,45 @@ export const sessionService = {
     return result.rows;
   },
 
+  /**
+   * Start a session. Every person in it links to a player: someone picked
+   * from the list keeps their id (if the host can see them; an unknown id is
+   * treated as a typed name), and a typed name becomes the group's guest of
+   * that name, created if new. Ad-hoc team games keep their rows as team
+   * names. The same player is only added once.
+   */
   async create(
-    gameId: string, userId: string, body: Record<string, unknown>,
+    game: Record<string, unknown>, userId: string, body: Record<string, unknown>,
     plannedRounds: number | null = null, targetScore: number | null = null,
   ) {
+    const { playerService } = await import('./playerService.js');
+    const groupId = String(game.group_id);
+    const visible = new Set((await playerService.listVisible(userId, groupId, { includeHidden: true })).map((p) => String(p.id)));
+    const people = game.teams_mode !== 'adhoc';
+
+    const participants: ParticipantInput[] = [];
+    const seen = new Set<string>();
+    for (const p of parseParticipants(body)) {
+      if (people && !p.team_id) {
+        if (p.player_id && !visible.has(p.player_id)) p.player_id = null;
+        if (!p.player_id) {
+          const guest = await playerService.findOrCreateGuest(groupId, p.display_name, p.color);
+          p.player_id = String(guest.id);
+          p.display_name = String(guest.display_name);
+        }
+        if (seen.has(p.player_id)) continue;
+        seen.add(p.player_id);
+      }
+      participants.push(p);
+    }
+
     const result = await db.execute({
       // rounds_closed = 0: rounds advance only when someone taps Next Round
       sql: 'INSERT INTO sessions (game_id, created_by, planned_rounds, target_score, rounds_closed) VALUES (?, ?, ?, ?, 0) RETURNING *',
-      args: [gameId, userId, plannedRounds, targetScore],
+      args: [String(game.id), userId, plannedRounds, targetScore],
     });
     const session = result.rows[0];
 
-    const participants = parseParticipants(body);
     for (let i = 0; i < participants.length; i++) {
       const p = participants[i];
       await db.execute({
