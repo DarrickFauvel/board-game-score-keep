@@ -7,7 +7,7 @@
   <meta name="description" content="The Keep, a board game score keeper: track every round and every winner, game after game.">
   <title><%= it.title ? it.title + ' · The Keep' : 'The Keep · board game score keeper' %></title>
 
-  <script>try{var t=localStorage.getItem('theme');if(t&&t!=='auto')document.documentElement.dataset.theme=t}catch(e){}</script>
+  <script>try{var t=localStorage.getItem('theme');if(t==='light'||t==='dark')document.documentElement.dataset.theme=t}catch(e){}</script>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -79,7 +79,7 @@
         <% if (it.me) { %><%~ it.avatar(it.me.avatar_url, it.me.display_name, it.me.preferred_color, 'avatar--xs') %><% } %>My Profile
       </a>
       <qr-share></qr-share>
-      <theme-toggle aria-label="Toggle dark mode"></theme-toggle>
+      <theme-toggle></theme-toggle>
       <form action="/auth/logout" method="POST" style="margin:0">
         <button type="submit" class="btn btn--ghost" style="color:inherit">Sign Out</button>
       </form>
@@ -91,7 +91,7 @@
     </nav>
 
     <div class="site-header__mobile-menu"
-         data-show="$menuOpen"
+         data-class:is-open="$menuOpen"
          aria-label="Navigation menu">
       <% if (it.user) { %>
       <%/* Which group you're looking at; a menu to switch when you're in more than one */%>
@@ -114,8 +114,9 @@
       <a href="/players/me" class="site-header__mobile-link site-header__me">
         <% if (it.me) { %><%~ it.avatar(it.me.avatar_url, it.me.display_name, it.me.preferred_color, 'avatar--xs') %><% } %>My Profile
       </a>
-      <div style="display:flex;align-items:center;gap:var(--space-2);padding:var(--space-1) var(--space-2)">
-        <theme-toggle aria-label="Toggle dark mode"></theme-toggle>
+      <%/* Close the menu only once the theme change has played out, so it is seen */%>
+      <div style="padding-inline:0.5rem" data-on:theme-settled="$menuOpen = false">
+        <theme-toggle></theme-toggle>
       </div>
       <qr-share label="QR code"></qr-share>
       <form action="/auth/logout" method="POST" style="margin:0">
