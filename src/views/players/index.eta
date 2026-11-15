@@ -5,7 +5,7 @@ const sections = [
     hint: 'People with an account in this group.' },
   { id: 'guests', title: 'Guests', list: it.guests, always: true,
     hint: it.guests.length
-      ? 'People without an account, kept by the group so their games add up.' + (it.canManageGuests ? ' Open a guest to rename them or give them a picture.' : '')
+      ? 'People without an account, kept by the group so their games add up.'
       : 'No guests yet.' },
   { id: 'played', title: "People you've played with", list: it.played, always: false,
     hint: "They've played in a game with you but aren't members of this group. Invite them from the group page to add them." },
@@ -21,7 +21,12 @@ const sections = [
 
 <% sections.forEach(function(sec, si) { if (!sec.always && !sec.list.length) return; %>
 <section aria-labelledby="<%= sec.id %>-heading" class="section"<% if (si) { %> style="margin-top:var(--space-6)"<% } %>>
-  <h2 id="<%= sec.id %>-heading" style="margin-bottom:var(--space-2)"><%= sec.title %></h2>
+  <div style="display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:var(--space-2);margin-bottom:var(--space-2)">
+    <h2 id="<%= sec.id %>-heading"><%= sec.title %></h2>
+    <% if (sec.id === 'guests' && it.canManageGuests && sec.list.length) { %>
+    <a href="/players/manage" class="btn btn--secondary btn--sm">Manage guests</a>
+    <% } %>
+  </div>
   <% if (sec.list.length) { %>
   <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,14rem),1fr));gap:var(--space-3)">
     <% sec.list.forEach(function(p) { %>
