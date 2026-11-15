@@ -1,27 +1,49 @@
 <% layout('../layouts/base') %>
+<%
+const sections = [
+  { id: 'members', title: 'Members', list: it.members, always: true,
+    hint: 'People with an account in this group.' },
+  { id: 'guests', title: 'Guests', list: it.guests, always: true,
+    hint: it.guests.length
+      ? 'People without an account, kept by the group so their games add up.' + (it.canManageGuests ? ' Open a guest to rename them or give them a picture.' : '')
+      : 'No guests yet.' },
+  { id: 'played', title: "People you've played with", list: it.played, always: false,
+    hint: "They've played in a game with you but aren't members of this group. Invite them from the group page to add them." },
+];
+%>
 
 <div class="page-header">
-  <h1 class="page-header__title">Players</h1>
+  <div>
+    <h1 class="page-header__title">Players</h1>
+    <div style="font-size:var(--text-sm);color:var(--color-text-muted)"><%= it.group.name %></div>
+  </div>
 </div>
 
-<% if (it.players.length === 0) { %>
-<div class="empty-state">
-  <span class="empty-state__icon" aria-hidden="true">👤</span>
-  <h2 class="empty-state__title">No players yet</h2>
-  <p>Players are created automatically when you register an account.</p>
-</div>
-<% } else { %>
-<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,14rem),1fr));gap:var(--space-3)">
-  <% it.players.forEach(function(player) { %>
-  <a href="/players/<%= player.id %>" class="card session-card" style="text-decoration:none">
-    <%~ it.avatar(player.avatar_url, player.display_name, player.preferred_color) %>
-    <div>
-      <div style="font-weight:600"><%= player.display_name %></div>
-      <% if (player.preferred_token) { %>
-      <div style="font-size:var(--text-xs);color:var(--color-text-muted)"><%= player.preferred_token %></div>
-      <% } %>
-    </div>
-  </a>
-  <% }) %>
-</div>
-<% } %>
+<% sections.forEach(function(sec, si) { if (!sec.always && !sec.list.length) return; %>
+<section aria-labelledby="<%= sec.id %>-heading" class="section"<% if (si) { %> style="margin-top:var(--space-6)"<% } %>>
+  <h2 id="<%= sec.id %>-heading" style="margin-bottom:var(--space-2)"><%= sec.title %></h2>
+  <% if (sec.list.length) { %>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,14rem),1fr));gap:var(--space-3)">
+    <% sec.list.forEach(function(p) { %>
+    <a href="/players/<%= p.id %>" class="card session-card"
+       style="text-decoration:none;display:flex;align-items:center;gap:var(--space-3)<%= p.hidden_at ? ';opacity:0.6' : '' %>">
+      <%~ it.avatar(p.avatar_url, p.display_name, p.preferred_color) %>
+      <span style="min-width:0">
+        <span style="display:block;font-weight:600"><%= p.display_name %><%= p.user_id === it.user.sub ? ' (you)' : '' %></span>
+        <% if (p.hidden_at) { %>
+        <span style="font-size:var(--text-xs);color:var(--color-text-muted)">Hidden from suggestions</span>
+        <% } else if (p.preferred_token) { %>
+        <span style="font-size:var(--text-xs);color:var(--color-text-muted)"><%= p.preferred_token %></span>
+        <% } %>
+      </span>
+    </a>
+    <% }) %>
+  </div>
+  <% } %>
+  <p class="form-hint" style="margin-top:var(--space-2)">
+    <%= sec.hint %>
+    <% if (sec.id === 'members') { %><a href="/groups/<%= it.group.id %>">Invite more from the group page</a>.<% } %>
+    <% if (sec.id === 'guests') { %>Add one by typing their name when you start a game.<% } %>
+  </p>
+</section>
+<% }) %>

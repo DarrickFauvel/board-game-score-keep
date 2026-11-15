@@ -1,8 +1,9 @@
 <% layout('../layouts/base') %>
+<% const isGuest = !it.player.user_id; %>
 
 <div style="max-width:36rem;margin:0 auto">
   <div class="page-header">
-    <h1 class="page-header__title">Edit Profile</h1>
+    <h1 class="page-header__title"><%= it.title %></h1>
     <a href="/players/<%= it.player.id %>" class="btn btn--secondary">Cancel</a>
   </div>
 
@@ -15,16 +16,16 @@
     <fieldset class="form-group" style="border:0;padding:0;margin-inline:0">
       <legend class="form-label">Profile picture</legend>
       <div style="display:flex;align-items:center;gap:var(--space-3);margin-bottom:var(--space-3)">
-        <%~ it.avatar(it.player.avatar_url, it.player.display_name, it.player.preferred_color, 'avatar--lg', it.player.avatar_url ? 'Your current profile picture' : '') %>
+        <%~ it.avatar(it.player.avatar_url, it.player.display_name, it.player.preferred_color, 'avatar--lg', it.player.avatar_url ? (isGuest ? `${it.player.display_name}'s current picture` : 'Your current profile picture') : '') %>
         <% if (it.player.avatar_url) { %>
         <label style="display:inline-flex;align-items:center;gap:var(--space-2);min-height:3rem;cursor:pointer">
           <input type="checkbox" name="remove_avatar" value="1"> Remove picture
         </label>
         <% } else { %>
-        <span class="form-hint" style="margin:0">No picture yet. Others see your initial until you add one.</span>
+        <span class="form-hint" style="margin:0"><%= isGuest ? 'No picture yet. Everyone sees their initial until one is added.' : 'No picture yet. Others see your initial until you add one.' %></span>
         <% } %>
       </div>
-      <avatar-picker name="avatar" facing="user" aria-label="Upload, link or take a new profile picture"></avatar-picker>
+      <avatar-picker name="avatar" facing="<%= isGuest ? 'environment' : 'user' %>" aria-label="Upload, link or take a new profile picture"></avatar-picker>
       <span class="form-hint">JPEG, PNG, WebP, GIF or AVIF, up to 10 MB.</span>
 
       <%/* The cropper shows the picture being framed, so the picker's own thumbnails would repeat it */%>
@@ -38,7 +39,7 @@
 
     <div class="form-group">
       <label class="form-label" for="display_name">
-        Display name <span class="required" aria-hidden="true">*</span>
+        <%= isGuest ? 'Name' : 'Display name' %> <span class="required" aria-hidden="true">*</span>
       </label>
       <input class="form-control" type="text" id="display_name" name="display_name"
              value="<%= it.player.display_name %>" required aria-required="true" maxlength="60">
@@ -50,7 +51,7 @@
              value="<%= it.player.preferred_token || '' %>" maxlength="10"
              placeholder="e.g. ♟ or 🎩 or Blue"
              aria-describedby="token-hint">
-      <span class="form-hint" id="token-hint">A short symbol, emoji, or color that represents you on score sheets.</span>
+      <span class="form-hint" id="token-hint">A short symbol, emoji, or color that represents <%= isGuest ? 'them' : 'you' %> on score sheets.</span>
     </div>
 
     <div class="form-group">

@@ -33,9 +33,12 @@
       <div style="margin-top:var(--space-2)">
         <p style="font-size:var(--text-sm);color:var(--color-text-muted)">Or add a guest player:</p>
         <div class="input-row" style="margin-top:var(--space-1)">
-          <input class="form-control" type="text" id="guest-name" placeholder="Guest name" maxlength="60">
+          <input class="form-control" type="text" id="guest-name" placeholder="Guest name" maxlength="60"
+                 onkeydown="if(event.key==='Enter'){event.preventDefault();addGuest();}">
           <button type="button" class="btn btn--secondary" onclick="addGuest()">Add Guest</button>
         </div>
+        <%/* Shown when a typed name is close to someone already known ("Lindsey" vs "Lindsay") */%>
+        <div id="name-check" class="name-check" role="status" hidden></div>
       </div>
     </section>
     <% } %>
@@ -92,31 +95,89 @@
 <script>
 <%/* Only what the picker needs, with each picture already resolved; "<" escaped so a name can't close this script */%>
 const playersData = <%~ JSON.stringify(it.players.map(p => ({
-  id: p.id, display_name: p.display_name, preferred_color: p.preferred_color,
+  id: p.id, display_name: p.display_name, preferred_color: p.preferred_color, kind: p.kind,
   avatar: p.avatar_url ? it.imgUrl(p.avatar_url) : '',
 }))).replace(/</g, '\\u003c') %>;
 
+// Ignore capitals and extra spaces, so "sam" still means Sam and brings their picture
+const norm = (s) => s.trim().toLowerCase().replace(/\s+/g, ' ');
+
+/** Edit distance, for spotting near-identical names. Small inputs only. */
+function distance(a, b) {
+  const d = Array.from({ length: a.length + 1 }, (_, i) => [i, ...Array(b.length).fill(0)]);
+  for (let j = 1; j <= b.length; j++) d[0][j] = j;
+  for (let i = 1; i <= a.length; i++)
+    for (let j = 1; j <= b.length; j++)
+      d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+  return d[a.length][b.length];
+}
+
 function addPlayerFromSearch() {
   const search = document.getElementById('player-search');
-  const val = search.value.trim();
-  if (!val) return;
-  // Ignore capitals and extra spaces, so "sam" still links to Sam and brings their picture
-  const norm = (s) => s.trim().toLowerCase().replace(/\s+/g, ' ');
-  const player = playersData.find(p => norm(p.display_name) === norm(val));
-  addParticipantRow(player ? player.display_name : val, player?.id ?? '', player?.preferred_color ?? '', player?.avatar ?? '');
-  search.value = '';
+  if (addByName(search.value)) search.value = '';
 }
 
 function addGuest() {
-  const name = document.getElementById('guest-name').value.trim();
-  if (!name) return;
-  addParticipantRow(name, '', '');
-  document.getElementById('guest-name').value = '';
+  const input = document.getElementById('guest-name');
+  if (addByName(input.value)) input.value = '';
 }
 
+/**
+ * Add whoever this name means: someone already known (exact name, any
+ * capitals), or a new guest. A name one or two letters off a known person
+ * asks first, so "Lindsey" doesn't quietly become a second Lindsay.
+ * Returns false while waiting for that answer.
+ */
+function addByName(raw, { skipCheck = false } = {}) {
+  const name = raw.trim().replace(/\s+/g, ' ');
+  if (!name) return false;
+  hideNameCheck();
+  const known = playersData.find((p) => norm(p.display_name) === norm(name));
+  if (known) { addKnown(known); return true; }
+  if (!skipCheck) {
+    const close = playersData.find((p) => {
+      const a = norm(p.display_name), b = norm(name);
+      return Math.min(a.length, b.length) >= 3 && distance(a, b) <= 2;
+    });
+    if (close) { showNameCheck(name, close); return false; }
+  }
+  addParticipantRow(name, '', '', '', 'New guest');
+  return true;
+}
+
+function addKnown(p) {
+  const tag = p.kind === 'guest' ? 'Guest' : '';
+  addParticipantRow(p.display_name, p.id, p.preferred_color ?? '', p.avatar ?? '', tag);
+}
+
+function showNameCheck(name, close) {
+  const box = document.getElementById('name-check');
+  box.replaceChildren();
+  const msg = document.createElement('p');
+  msg.textContent = `You already have ${close.display_name}. Same person?`;
+  const use = Object.assign(document.createElement('button'), { type: 'button', className: 'btn btn--gold btn--sm', textContent: `Use ${close.display_name}` });
+  use.addEventListener('click', () => { addKnown(close); clearInputs(); hideNameCheck(); });
+  const add = Object.assign(document.createElement('button'), { type: 'button', className: 'btn btn--secondary btn--sm', textContent: `Add "${name}" as a new guest` });
+  add.addEventListener('click', () => { addByName(name, { skipCheck: true }); clearInputs(); });
+  const actions = document.createElement('div');
+  actions.className = 'name-check__actions';
+  actions.append(use, add);
+  box.append(msg, actions);
+  box.hidden = false;
+  use.focus();
+}
+
+function hideNameCheck() { const box = document.getElementById('name-check'); box.hidden = true; box.replaceChildren(); }
+function clearInputs() { for (const id of ['player-search', 'guest-name']) document.getElementById(id).value = ''; }
+
 /* Built with DOM calls, not an HTML string, so names show as typed and never run as markup */
-function addParticipantRow(name, playerId, color, avatarSrc = '') {
+function addParticipantRow(name, playerId, color, avatarSrc = '', tag = '') {
   const el = (tag, props = {}) => Object.assign(document.createElement(tag), props);
+  // Each person once: adding someone already listed just points at their row
+  const list = document.getElementById('participant-list');
+  const dupe = [...list.querySelectorAll('.card')].find((c) =>
+    (playerId && c.dataset.playerId === playerId) || norm(c.dataset.name || '') === norm(name));
+  if (dupe) { dupe.scrollIntoView({ block: 'nearest' }); dupe.animate?.([{ outline: '2px solid var(--color-border-focus)' }, { outline: '2px solid transparent' }], 900); return; }
   const hidden = (n, v) => el('input', { type: 'hidden', name: n, value: v });
 
   let pic;
@@ -136,12 +197,19 @@ function addParticipantRow(name, playerId, color, avatarSrc = '') {
   row.style.cssText = 'display:flex;align-items:center;gap:var(--space-2);flex-wrap:wrap';
   const label = el('span', { textContent: name });
   label.style.cssText = 'font-weight:600;flex:1';
+  if (tag) {
+    const t = el('span', { className: 'badge', textContent: tag });
+    t.style.marginLeft = 'var(--space-2)';
+    label.append(t);
+  }
   row.append(pic, label, hidden('player_id', playerId), hidden('display_name', name), hidden('color', color), remove);
 
   const card = el('div', { className: 'card' });
   card.style.padding = 'var(--space-2)';
+  card.dataset.playerId = playerId;
+  card.dataset.name = name;
   card.append(row);
-  document.getElementById('participant-list').appendChild(card);
+  list.appendChild(card);
 }
 
 function addTeam() {

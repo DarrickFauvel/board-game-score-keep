@@ -5,13 +5,14 @@
     <%~ it.avatar(it.player.avatar_url, it.player.display_name, it.player.preferred_color, 'avatar--lg') %>
     <div>
       <h1 style="font-size:var(--text-xl)"><%= it.player.display_name %></h1>
-      <% if (it.player.preferred_token) { %>
-      <div style="font-size:var(--text-sm);color:var(--color-text-muted)"><%= it.player.preferred_token %></div>
-      <% } %>
+      <div style="font-size:var(--text-sm);color:var(--color-text-muted)">
+        <% if (!it.player.user_id) { %><span class="badge">Guest</span><% } %>
+        <%= it.player.preferred_token || '' %>
+      </div>
     </div>
   </div>
-  <% if (it.player.user_id === it.user.sub) { %>
-  <a href="/players/<%= it.player.id %>/edit" class="btn btn--secondary">Edit Profile</a>
+  <% if (it.canEdit) { %>
+  <a href="/players/<%= it.player.id %>/edit" class="btn btn--secondary"><%= it.player.user_id ? 'Edit Profile' : 'Edit guest' %></a>
   <% } %>
 </div>
 
