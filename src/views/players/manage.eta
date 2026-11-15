@@ -1,0 +1,63 @@
+<% layout('../layouts/base') %>
+
+<div class="page-header">
+  <div>
+    <h1 class="page-header__title">Manage guests</h1>
+    <div style="font-size:var(--text-sm);color:var(--color-text-muted)"><%= it.group.name %></div>
+  </div>
+  <a href="/players" class="btn btn--secondary">Back to Players</a>
+</div>
+
+<% if (it.error) { %><div class="flash flash--error" role="alert"><%= it.error %></div><% } %>
+<% if (it.notice) { %><div class="flash flash--success" role="status"><%= it.notice %></div><% } %>
+
+<% if (!it.guests.length) { %>
+<div class="empty-state">
+  <p class="empty-state__title">No guests yet</p>
+  <p>Guests are people without an account. Add one by typing their name when you start a game.</p>
+</div>
+<% } else { %>
+<p class="form-hint" style="margin-bottom:var(--space-3)">
+  Hiding a guest takes them out of suggestions when you start a game; their games still count in Standings.
+  Merging moves every game from one guest to another, for when the same person was added twice.
+</p>
+
+<ul role="list" class="guest-list">
+  <% it.guests.forEach(function(g) {
+       const others = it.guests.filter(function(o) { return o.id !== g.id; });
+       const games = Number(g.sessions);
+  %>
+  <li class="card guest-row<%= g.hidden_at ? ' is-hidden' : '' %>">
+    <div class="guest-row__who">
+      <%~ it.avatar(g.avatar_url, g.display_name, g.preferred_color) %>
+      <div style="min-width:0">
+        <a href="/players/<%= g.id %>" class="guest-row__name"><%= g.display_name %></a>
+        <div class="guest-row__meta">
+          <%= games %> <%= games === 1 ? 'game' : 'games' %><% if (g.hidden_at) { %> · Hidden from suggestions<% } %>
+        </div>
+      </div>
+    </div>
+
+    <div class="guest-row__actions">
+      <a href="/players/<%= g.id %>/edit" class="btn btn--secondary btn--sm">Edit</a>
+      <form action="/players/<%= g.id %>/<%= g.hidden_at ? 'unhide' : 'hide' %>" method="POST" style="margin:0">
+        <button type="submit" class="btn btn--secondary btn--sm"><%= g.hidden_at ? 'Unhide' : 'Hide' %></button>
+      </form>
+    </div>
+
+    <% if (others.length) { %>
+    <form action="/players/<%= g.id %>/merge" method="POST" class="guest-row__merge"
+          data-confirm="Merge <%= g.display_name %> into the guest you picked? <%= g.display_name %>'s games move over and <%= g.display_name %> is removed. This can't be undone."
+          data-confirm-title="Merge guests" data-confirm-label="Merge">
+      <label class="visually-hidden" for="merge-<%= g.id %>">Merge <%= g.display_name %> into</label>
+      <select class="form-control" id="merge-<%= g.id %>" name="target_id" required>
+        <option value="">Merge into…</option>
+        <% others.forEach(function(o) { %><option value="<%= o.id %>"><%= o.display_name %></option><% }) %>
+      </select>
+      <button type="submit" class="btn btn--ghost btn--sm">Merge</button>
+    </form>
+    <% } %>
+  </li>
+  <% }) %>
+</ul>
+<% } %>

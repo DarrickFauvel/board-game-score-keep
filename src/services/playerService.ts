@@ -101,6 +101,80 @@ export const playerService = {
     }
   },
 
+  /**
+   * The group's guests for the manage page, hidden ones included, with how
+   * many sessions each has played.
+   */
+  async listGuestsForManage(groupId: string) {
+    const result = await db.execute({
+      sql: `SELECT p.*, (SELECT COUNT(DISTINCT sp.session_id) FROM session_participants sp WHERE sp.player_id = p.id) AS sessions
+            FROM players p
+            WHERE p.group_id = ? AND p.user_id IS NULL
+            ORDER BY p.hidden_at IS NOT NULL, p.display_name COLLATE NOCASE`,
+      args: [groupId],
+    });
+    return result.rows;
+  },
+
+  /** Hide a guest from suggestions (their history stays), or bring them back. */
+  async setHidden(guestId: string, groupId: string, hidden: boolean) {
+    const result = await db.execute({
+      sql: `UPDATE players SET hidden_at = ${hidden ? "strftime('%Y-%m-%dT%H:%M:%fZ','now')" : 'NULL'},
+              updated_at = strftime('%Y-%m-%dT%H:%M:%fZ','now')
+            WHERE id = ? AND group_id = ? AND user_id IS NULL`,
+      args: [guestId, groupId],
+    });
+    return result.rowsAffected > 0;
+  },
+
+  /**
+   * Merge one guest into another of the same group: every session row and
+   * team membership moves to the target, old rows take the target's name, the
+   * target picks up a colour or picture it lacks, and the source is deleted.
+   * All in one transaction. Refused when both played in the same session,
+   * since one person can't hold two seats.
+   */
+  async mergeGuests(sourceId: string, targetId: string, groupId: string): Promise<MergeResult> {
+    if (sourceId === targetId) return { ok: false, reason: 'Pick a different guest to merge into.' };
+    const guests = await db.execute({
+      sql: 'SELECT * FROM players WHERE id IN (?, ?) AND group_id = ? AND user_id IS NULL',
+      args: [sourceId, targetId, groupId],
+    });
+    const source = guests.rows.find((p) => p.id === sourceId);
+    const target = guests.rows.find((p) => p.id === targetId);
+    if (!source || !target) return { ok: false, reason: 'Both guests must belong to this group.' };
+
+    const shared = await db.execute({
+      sql: `SELECT COUNT(*) AS n FROM session_participants a JOIN session_participants b ON a.session_id = b.session_id
+            WHERE a.player_id = ? AND b.player_id = ?`,
+      args: [sourceId, targetId],
+    });
+    if (Number(shared.rows[0].n) > 0) {
+      return { ok: false, reason: `${source.display_name} and ${target.display_name} played in the same game, so they can't be the same person.` };
+    }
+
+    const moved = await db.execute({
+      sql: 'SELECT COUNT(DISTINCT session_id) AS n FROM session_participants WHERE player_id = ?',
+      args: [sourceId],
+    });
+    await db.batch([
+      { sql: 'UPDATE session_participants SET player_id = ?, display_name = ? WHERE player_id = ?',
+        args: [targetId, target.display_name, sourceId] },
+      { sql: 'INSERT OR IGNORE INTO team_members (team_id, player_id) SELECT team_id, ? FROM team_members WHERE player_id = ?',
+        args: [targetId, sourceId] },
+      { sql: `UPDATE players SET
+                preferred_color = COALESCE(preferred_color, ?),
+                avatar_url = COALESCE(avatar_url, ?),
+                updated_at = strftime('%Y-%m-%dT%H:%M:%fZ','now')
+              WHERE id = ?`,
+        args: [source.preferred_color ?? null, source.avatar_url ?? null, targetId] },
+      // Explicit, rather than trusting ON DELETE CASCADE with foreign keys possibly off
+      { sql: 'DELETE FROM team_members WHERE player_id = ?', args: [sourceId] },
+      { sql: 'DELETE FROM players WHERE id = ?', args: [sourceId] },
+    ], 'write');
+    return { ok: true, source: String(source.display_name), target: String(target.display_name), sessions: Number(moved.rows[0].n) };
+  },
+
   async findById(id: string) {
     const result = await db.execute({ sql: 'SELECT * FROM players WHERE id = ?', args: [id] });
     return result.rows[0] ?? null;
@@ -226,6 +300,10 @@ async function resolveAvatar(body: Record<string, unknown>, file: Express.Multer
   }
   return undefined;
 }
+
+export type MergeResult =
+  | { ok: true; source: string; target: string; sessions: number }
+  | { ok: false; reason: string };
 
 /** A problem with the avatar the person chose, safe to show them. */
 export class AvatarError extends Error {}
