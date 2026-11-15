@@ -239,18 +239,58 @@ textarea:focus-visible {
 }
 
 /* ─── Mobile menu panel ──────────────────────────── */
+/* The dropdown follows the light/dark theme, unlike the always-espresso
+   header bar. Re-pointing the chrome tokens here recolours everything
+   inside it (links, QR button, theme switch) without touching the bar. */
 .site-header__mobile-menu {
+  --color-chrome-text:  var(--color-text);
+  --color-chrome-muted: var(--color-text-muted);
+  --color-chrome-hover: var(--color-surface);
+  --color-chrome-line:  var(--color-border);
+  --switch-track:       var(--color-border-strong);
+  --switch-track-line:  var(--color-border-strong);
   position: absolute;
   top: 100%;
   left: 0;
   right: 0;
-  background: var(--color-chrome);
+  color: var(--color-text);
+  background: var(--color-bg-raised);
   border-top: 1px solid var(--color-chrome-line);
   padding: var(--space-2) var(--space-3);
   display: flex;
   flex-direction: column;
   z-index: var(--z-overlay);
   box-shadow: var(--shadow-md);
+
+  /* Closed: rolled up into the header's bottom edge and out of reach.
+     visibility waits for the roll-up to finish before hiding it, so it
+     also drops out of the tab order and screen readers once closed. */
+  opacity: 0;
+  visibility: hidden;
+  clip-path: inset(0 0 100% 0);
+  transition:
+    clip-path 180ms cubic-bezier(.4, 0, 1, 1),
+    opacity 180ms ease-in,
+    visibility 0s linear 180ms;
+}
+
+/* Open: unrolls downward (the negative inset leaves room for the shadow) */
+.site-header__mobile-menu.is-open {
+  opacity: 1;
+  visibility: visible;
+  clip-path: inset(0 0 -2rem 0);
+  transition:
+    clip-path 240ms cubic-bezier(.2, .7, .2, 1),
+    opacity 160ms ease-out,
+    visibility 0s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .site-header__mobile-menu,
+  .site-header__mobile-menu.is-open {
+    clip-path: none;
+    transition-property: opacity, visibility;
+  }
 }
 
 .site-header__mobile-link {
