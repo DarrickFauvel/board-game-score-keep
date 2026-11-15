@@ -291,7 +291,10 @@ function addStyles() {
     }
     .victory__actions { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--space-2); margin-top: var(--space-2); animation: victory-rise 600ms 500ms ease-out both; }
     .victory__actions .btn--secondary { color: var(--color-chrome-text); border-color: color-mix(in oklab, var(--color-chrome-text) 50%, transparent); }
-    .victory__actions .btn--secondary:hover { background: var(--color-chrome-hover); }
+    .victory__actions .btn--secondary:active { background: var(--color-chrome-hover); }
+    @media (hover: hover) and (pointer: fine) {
+      .victory__actions .btn--secondary:hover { background: var(--color-chrome-hover); }
+    }
     @keyframes victory-pop { from { transform: scale(0.2) rotate(-20deg); opacity: 0; } to { transform: none; opacity: 1; } }
     @keyframes victory-rise { from { transform: translateY(1rem); opacity: 0; } to { transform: none; opacity: 1; } }
     /* Short screens (most phones): smaller trophy and title so it all fits */

@@ -46,7 +46,10 @@ function injectStyles() {
       font-weight: 600;
       transition: background var(--transition-fast);
     }
-    .qr-share__btn:hover { background: var(--color-chrome-hover); }
+    .qr-share__btn:active { background: var(--color-chrome-hover); }
+    @media (hover: hover) and (pointer: fine) {
+      .qr-share__btn:hover { background: var(--color-chrome-hover); }
+    }
 
     /* Mobile menu variant: full-width row like .site-header__mobile-link */
     qr-share[label] { display: flex; }
@@ -161,7 +164,10 @@ function injectStyles() {
       font-size: var(--text-lg);
       line-height: 1;
     }
-    .qr-share__close:hover { background: var(--color-surface); color: var(--color-text); }
+    .qr-share__close:active { background: var(--color-surface); color: var(--color-text); }
+    @media (hover: hover) and (pointer: fine) {
+      .qr-share__close:hover { background: var(--color-surface); color: var(--color-text); }
+    }
     .qr-share__copy { margin-top: var(--space-2); }
 
     /* Short landscape screens: code beside the text instead of above it */

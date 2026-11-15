@@ -33,8 +33,13 @@
   color: var(--game-on-accent);
 }
 
-.game-layout .btn--gold:hover {
+.game-layout .btn--gold:active {
   background: color-mix(in oklab, var(--game-accent-ui) 88%, var(--game-on-accent));
+}
+@media (hover: hover) and (pointer: fine) {
+  .game-layout .btn--gold:hover {
+    background: color-mix(in oklab, var(--game-accent-ui) 88%, var(--game-on-accent));
+  }
 }
 
 /* The round being played, outlined in the game's primary colour */

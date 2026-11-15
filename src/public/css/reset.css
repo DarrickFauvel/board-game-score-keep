@@ -5,6 +5,8 @@
 }
 
 html {
+  /* No gray flash on tap; controls give their own :active feedback */
+  -webkit-tap-highlight-color: transparent;
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
   tab-size: 4;
@@ -53,6 +55,17 @@ button {
   cursor: pointer;
   background: none;
   border: none;
+}
+
+/* Tap fires click immediately (no double-tap-zoom wait) */
+a, button, summary, label, [role="button"] {
+  touch-action: manipulation;
+}
+
+/* A long press on a control shouldn't select its label; content stays selectable */
+button, summary, [role="button"] {
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 table {

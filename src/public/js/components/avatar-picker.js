@@ -37,7 +37,10 @@ class AvatarPicker extends HTMLElement {
           color: var(--color-on-primary, #f5f0e8);
           border-color: var(--color-primary, #2c2416);
         }
-        avatar-picker .ap-tab:hover:not([aria-selected="true"]) { background: var(--color-surface, #e8e0d0); }
+        avatar-picker .ap-tab:active:not([aria-selected="true"]) { background: var(--color-surface, #e8e0d0); }
+        @media (hover: hover) and (pointer: fine) {
+          avatar-picker .ap-tab:hover:not([aria-selected="true"]) { background: var(--color-surface, #e8e0d0); }
+        }
         avatar-picker .ap-tab:focus-visible { outline: 3px solid var(--color-border-focus, #0066cc); outline-offset: 2px; border-radius: 4px; }
         avatar-picker .ap-panel { display: none; }
         avatar-picker .ap-panel[data-active] { display: block; }
@@ -61,7 +64,10 @@ class AvatarPicker extends HTMLElement {
           font-family: inherit; color: var(--color-text, #2c2416);
           transition: background 120ms ease; margin-top: 0.5rem;
         }
-        avatar-picker .ap-btn:hover { background: var(--color-surface, #e8e0d0); }
+        avatar-picker .ap-btn:active { background: var(--color-surface, #e8e0d0); }
+        @media (hover: hover) and (pointer: fine) {
+          avatar-picker .ap-btn:hover { background: var(--color-surface, #e8e0d0); }
+        }
         avatar-picker .ap-btn:focus-visible { outline: 3px solid var(--color-border-focus, #0066cc); outline-offset: 2px; border-radius: 6px; }
         avatar-picker canvas { display: none; }
         avatar-picker .ap-preview { max-width: 160px; border-radius: 8px; margin-top: 0.5rem; }

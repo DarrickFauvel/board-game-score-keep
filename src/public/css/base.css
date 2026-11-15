@@ -82,7 +82,7 @@ table, .standings__total, .round-row__value, .leaderboard__wins, .stat-card__val
 
 /* Links in running text: a thin underline that thickens on hover */
 a { text-underline-offset: 0.2em; text-decoration-thickness: 1px; }
-@media (hover: hover) {
+@media (hover: hover) and (pointer: fine) {
   a:hover { text-decoration-thickness: 2px; }
 }
 
@@ -156,7 +156,10 @@ textarea:focus-visible {
   transition: background var(--transition-fast);
 }
 
-.site-header__menu-btn:hover { background: var(--color-chrome-hover); }
+.site-header__menu-btn:active { background: var(--color-chrome-hover); }
+@media (hover: hover) and (pointer: fine) {
+  .site-header__menu-btn:hover { background: var(--color-chrome-hover); }
+}
 
 .site-header__menu-icon {
   display: block;
@@ -213,10 +216,17 @@ textarea:focus-visible {
   transition: background var(--transition-fast);
 }
 
-.site-header__nav a:not(.btn):hover,
-.site-header__nav button:not(.btn):hover {
+.site-header__nav a:not(.btn):active,
+.site-header__nav button:not(.btn):active {
   background: var(--color-chrome-hover);
   color: var(--color-chrome-text);
+}
+@media (hover: hover) and (pointer: fine) {
+  .site-header__nav a:not(.btn):hover,
+  .site-header__nav button:not(.btn):hover {
+    background: var(--color-chrome-hover);
+    color: var(--color-chrome-text);
+  }
 }
 /* The section you're in reads brighter, with a gold underline */
 .site-header__nav a[aria-current="page"] {
@@ -253,7 +263,10 @@ textarea:focus-visible {
   transition: background var(--transition-fast);
 }
 
-.site-header__mobile-link:hover { background: var(--color-chrome-hover); }
+.site-header__mobile-link:active { background: var(--color-chrome-hover); }
+@media (hover: hover) and (pointer: fine) {
+  .site-header__mobile-link:hover { background: var(--color-chrome-hover); }
+}
 
 /* ─── Breakpoint: show desktop nav, hide mobile ──── */
 /* Signed-in nav (wordmark + 3 links + QR + theme toggle + sign out) fits on
