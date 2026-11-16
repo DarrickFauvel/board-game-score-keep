@@ -43,7 +43,7 @@ const roleHelp = it.roleHelp;
       </span>
       <% if (it.canManageMembers) { %>
       <% const roleUrl = `/groups/${it.group.id}/members/${m.user_id}/role` %>
-      <form action="<%= roleUrl %>" method="POST" style="margin:0;display:flex;gap:var(--space-1);align-items:center"
+      <form action="<%= roleUrl %>" method="POST" data-autosave style="margin:0;display:flex;gap:var(--space-1);align-items:center"
             data-on:submit__prevent="@post('<%= roleUrl %>', {contentType: 'form'})">
         <label class="visually-hidden" for="role-<%= m.user_id %>">Role for <%= m.display_name %></label>
         <span class="autosave autosave--select">
@@ -87,7 +87,7 @@ const roleHelp = it.roleHelp;
 <section aria-labelledby="settings-heading" class="section" style="margin-top:var(--space-8)">
   <h2 id="settings-heading" style="margin-bottom:var(--space-2)">Name</h2>
   <% const renameUrl = `/groups/${it.group.id}/rename` %>
-  <form action="<%= renameUrl %>" method="POST" style="max-width:32rem"
+  <form action="<%= renameUrl %>" method="POST" data-autosave style="max-width:32rem"
         data-on:submit__prevent="@post('<%= renameUrl %>', {contentType: 'form'})">
     <label class="visually-hidden" for="rename">Group name</label>
     <div class="autosave">

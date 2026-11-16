@@ -27,10 +27,10 @@ If this returns `200` and the argument isn't `restart`, tell the user the server
 ## Stop
 
 ```bash
-kill $(cat /tmp/bgsk.pid) 2>/dev/null; pkill -f "[n]odemon src/server.ts"; pkill -f "[t]sx src/server.ts"; rm -f /tmp/bgsk.pid
+kill $(cat /tmp/bgsk.pid) 2>/dev/null; pkill -f "[n]odemon src/server.ts"; kill $(lsof -ti tcp:3000) 2>/dev/null; rm -f /tmp/bgsk.pid
 ```
 
-The `[n]`/`[t]` brackets keep `pkill -f` from matching (and killing) the shell running this command.
+The `[n]` bracket keeps `pkill -f` from matching (and killing) the shell running this command. The server itself is stopped by its port: its process runs as `node --require …/tsx/dist/preflight.cjs … src/server.ts`, which a `tsx src/server.ts` pattern doesn't match, so an old server could keep running and answer instead of the new one.
 
 ## Start
 

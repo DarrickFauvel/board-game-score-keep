@@ -84,3 +84,40 @@ document.addEventListener('click', async (e) => {
     btn.disabled = false;
   }
 });
+
+/* Instant-save forms (data-autosave) save a moment after typing stops. If a
+   link is followed inside that moment, save first, so the change shows on
+   the next page. Datastar reports each request on document as
+   "datastar-fetch" (started / finished). */
+const lastInput = new Map();   // form → when it last changed
+const lastSaved = new Map();   // form → when the last finished save started
+const inFlight = new Map();    // form → when the current save started
+const autosaveForm = (el) => el?.closest?.('form[data-autosave]');
+
+document.addEventListener('input', (e) => {
+  const form = autosaveForm(e.target);
+  if (form) lastInput.set(form, performance.now());
+});
+document.addEventListener('datastar-fetch', (e) => {
+  const form = autosaveForm(e.detail?.el);
+  if (!form) return;
+  if (e.detail.type === 'started') inFlight.set(form, performance.now());
+  if (e.detail.type === 'finished') lastSaved.set(form, inFlight.get(form) ?? performance.now());
+});
+
+const unsavedForms = () => [...lastInput].filter(([form, at]) => form.isConnected && at > (lastSaved.get(form) ?? -1)).map(([form]) => form);
+
+document.addEventListener('click', async (e) => {
+  const link = e.target.closest('a[href]');
+  if (!link || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+  if (link.target && link.target !== '_self') return;
+  const forms = unsavedForms();
+  if (!forms.length) return;
+  e.preventDefault();
+  // A plain post saves the whole form, the same as the no-JavaScript button
+  await Promise.allSettled(forms.map((form) => fetch(form.action, {
+    method: 'POST',
+    body: new URLSearchParams(new FormData(form)),
+  })));
+  window.location.href = link.href;
+});

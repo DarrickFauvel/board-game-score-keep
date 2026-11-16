@@ -92,7 +92,7 @@ for (const p of it.participants) {
   <div class="card">
     <div class="card__body">
       <%/* Saves as you type (Datastar); the button is only for browsers without JavaScript */%>
-      <form action="/games/<%= it.game.id %>/sessions/<%= it.session.id %>/note" method="POST"
+      <form action="/games/<%= it.game.id %>/sessions/<%= it.session.id %>/note" method="POST" data-autosave
             data-on:submit__prevent="@post('/games/<%= it.game.id %>/sessions/<%= it.session.id %>/note', {contentType: 'form'})">
         <div class="form-group">
           <label class="form-label" for="note">

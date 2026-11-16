@@ -5,6 +5,7 @@
     <h1 class="page-header__title" id="game-edit-title">Edit: <%= it.game.name %></h1>
     <a href="/games/<%= it.game.id %>" class="btn btn--secondary">Done</a>
   </div>
+  <p class="form-hint autosave-note">Changes save automatically.</p>
 
   <% if (it.error) { %>
   <div class="flash flash--error" role="alert"><%= it.error %></div>
@@ -27,7 +28,7 @@
        form, naming the field that changed so only it flashes. The button at the
        end is only for browsers without JavaScript. */%>
   <% const settingsUrl = `/games/${it.game.id}/settings` %>
-  <form action="<%= settingsUrl %>" method="POST" novalidate id="game-settings"
+  <form action="<%= settingsUrl %>" method="POST" novalidate id="game-settings" data-autosave
         data-on:submit__prevent="@post('<%= settingsUrl %>?field=name', {contentType: 'form'})"
         data-on:input__debounce.700ms="@post('<%= settingsUrl %>?field=' + (evt.target.dataset.field || evt.target.id), {contentType: 'form'})">
 
@@ -238,6 +239,11 @@
     </noscript>
 
   </form>
+
+  <%/* The page is long: a way out at the end too, where Save used to be */%>
+  <div class="form-actions">
+    <a href="/games/<%= it.game.id %>" class="btn btn--primary">Done</a>
+  </div>
 
   <fieldset style="border:1px solid var(--color-danger);border-radius:var(--radius-md);padding:var(--space-3);margin-top:var(--space-4)">
     <legend style="color:var(--color-danger);font-weight:600;padding:0 var(--space-1)">Delete this game</legend>
