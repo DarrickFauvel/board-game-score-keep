@@ -30,19 +30,29 @@
       <span id="save-name-error" class="form-error"></span>
     </div>
 
-    <div class="form-group">
+    <%/* $openedColor is the color when the page opened. Colors save as you
+         pick them, so a wrong pick is already saved: once the color differs,
+         a button offers the opened color back (and saves it). */%>
+    <% const color = it.player.preferred_color || '#5a3e2b'; %>
+    <div class="form-group" data-signals="{color: '<%= color %>', openedColor: '<%= color %>'}">
       <label class="form-label" for="preferred_color">Preferred color</label>
       <div class="color-field autosave">
         <input type="color" id="preferred_color" name="preferred_color"
-               value="<%= it.player.preferred_color || '#5a3e2b' %>"
+               value="<%= color %>" data-bind:color
                aria-describedby="color-hint"
                oninput="document.getElementById('preferred_color_text').value = this.value"
                data-on:change="@post('<%= detailsUrl %>?field=color', {contentType: 'form'})">
         <input class="form-control" type="text" id="preferred_color_text" aria-label="Color code"
-               value="<%= it.player.preferred_color || '#5a3e2b' %>" style="flex:1"
-               oninput="if (/^#[0-9a-f]{6}$/i.test(this.value)) { const c = document.getElementById('preferred_color'); c.value = this.value; c.dispatchEvent(new Event('change', { bubbles: true })); }">
+               value="<%= color %>" style="flex:1"
+               oninput="if (/^#[0-9a-f]{6}$/i.test(this.value)) { const c = document.getElementById('preferred_color'); c.value = this.value; c.dispatchEvent(new Event('input', { bubbles: true })); c.dispatchEvent(new Event('change', { bubbles: true })); }">
         <span id="save-color" class="autosave__mark" aria-hidden="true"></span>
       </div>
+      <button type="button" class="btn btn--ghost btn--sm color-restore" style="display:none"
+              data-show="$color.toLowerCase() !== $openedColor.toLowerCase()"
+              data-on:click="const c = document.getElementById('preferred_color'); c.value = $openedColor; c.dispatchEvent(new Event('input', { bubbles: true })); c.dispatchEvent(new Event('change', { bubbles: true }))">
+        <span class="color-restore__swatch" aria-hidden="true" style="background:<%= color %>"></span>
+        Restore previous color (<%= color %>)
+      </button>
       <span class="form-hint" id="color-hint">Used for your player chip and score sheet highlights.</span>
     </div>
     <noscript><button type="submit" class="btn btn--primary">Save name and color</button></noscript>
