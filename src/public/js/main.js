@@ -134,3 +134,21 @@ document.addEventListener('click', async (e) => {
   })));
   window.location.href = link.href;
 });
+
+/* Page transitions (see base.css): leaving a list, name the picture (and
+   title) in the link being followed, just for the transition, so it can
+   travel to the next page. Naming every picture in a list would capture
+   them all. Returning to a list is handled by the inline script in the
+   layout's <head>, which runs before the new page's first frame. */
+addEventListener('pageswap', (e) => {
+  if (!e.viewTransition || !e.activation?.entry?.url) return;
+  let to;
+  try { to = new URL(e.activation.entry.url).pathname; } catch { return; }
+  const named = [];
+  for (const el of document.querySelectorAll('a[href] [data-vt]')) {
+    if (new URL(el.closest('a').href).pathname !== to) continue;
+    el.style.viewTransitionName = el.style.getPropertyValue('--vt').trim();
+    named.push(el);
+  }
+  e.viewTransition.finished.finally(() => named.forEach((el) => { el.style.viewTransitionName = ''; }));
+});

@@ -1,7 +1,17 @@
 <% layout('../layouts/base') %>
 
 <div class="page-header">
-  <h1 class="page-header__title"><%= it.game.name %></h1>
+  <%/* The thumbnail from the games list, beside the title; it travels here
+       from the list on a page transition (base.css, main.js) */%>
+  <div class="game-title">
+    <% if (it.game.image_url) { %>
+    <div class="game-title__thumb game-cover" data-vt aria-hidden="true"
+         style="--cover-bg: url('<%= it.imgUrl(it.game.image_url) %>'); --vt: game-<%= it.game.id %>">
+      <img class="game-cover__img" src="<%= it.imgUrl(it.game.image_url) %>" alt="">
+    </div>
+    <% } %>
+    <h1 class="page-header__title" data-vt style="--vt: game-name-<%= it.game.id %>; view-transition-class: game-name"><%= it.game.name %></h1>
+  </div>
   <div style="display:flex;gap:var(--space-2);flex-wrap:wrap">
     <a href="/games/<%= it.game.id %>/sessions/new" class="btn btn--gold">+ New session</a>
     <a href="/standings?game=<%= it.game.id %>" class="btn btn--secondary">Standings</a>

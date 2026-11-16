@@ -2,7 +2,7 @@
 
 <div class="page-header">
   <div style="display:flex;align-items:center;gap:var(--space-3)">
-    <%~ it.avatar(it.player.avatar_url, it.player.display_name, it.player.preferred_color, 'avatar--lg') %>
+    <span class="vt-box" data-vt style="--vt: player-<%= it.player.id %>"><%~ it.avatar(it.player.avatar_url, it.player.display_name, it.player.preferred_color, 'avatar--lg') %></span>
     <div>
       <h1 style="font-size:var(--text-xl)"><%= it.player.display_name %></h1>
       <% if (!it.player.user_id) { %><div style="font-size:var(--text-sm);color:var(--color-text-muted)"><span class="badge">Guest</span></div><% } %>
