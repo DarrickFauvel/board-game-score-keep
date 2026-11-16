@@ -46,15 +46,6 @@
     </div>
 
     <div class="form-group">
-      <label class="form-label" for="preferred_token">Personal token / emoji</label>
-      <input class="form-control" type="text" id="preferred_token" name="preferred_token"
-             value="<%= it.player.preferred_token || '' %>" maxlength="10"
-             placeholder="e.g. ♟ or 🎩 or Blue"
-             aria-describedby="token-hint">
-      <span class="form-hint" id="token-hint">A short symbol, emoji, or color that represents <%= isGuest ? 'them' : 'you' %> on score sheets.</span>
-    </div>
-
-    <div class="form-group">
       <label class="form-label" for="preferred_color">Preferred color</label>
       <div class="color-field">
         <input type="color" id="preferred_color" name="preferred_color"
