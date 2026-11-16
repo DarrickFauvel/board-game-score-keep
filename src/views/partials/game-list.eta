@@ -5,7 +5,7 @@
   <li class="game-row">
     <a class="game-row__main" href="/games/<%= game.id %>">
       <% if (game.image_url) { %>
-      <div class="game-row__thumb game-cover" style="--cover-bg: url('<%= it.imgUrl(game.image_url) %>')">
+      <div class="game-row__thumb game-cover" data-vt style="--cover-bg: url('<%= it.imgUrl(game.image_url) %>'); --vt: game-<%= game.id %>">
         <img class="game-cover__img" src="<%= it.imgUrl(game.image_url) %>" alt="" loading="lazy">
       </div>
       <% } else { %>

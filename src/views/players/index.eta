@@ -32,7 +32,7 @@ const sections = [
     <% sec.list.forEach(function(p) { %>
     <a href="/players/<%= p.id %>" class="card session-card"
        style="text-decoration:none;display:flex;align-items:center;gap:var(--space-3)<%= p.hidden_at ? ';opacity:0.6' : '' %>">
-      <%~ it.avatar(p.avatar_url, p.display_name, p.preferred_color) %>
+      <span class="vt-box" data-vt style="--vt: player-<%= p.id %>"><%~ it.avatar(p.avatar_url, p.display_name, p.preferred_color) %></span>
       <span style="min-width:0">
         <span style="display:block;font-weight:600"><%= p.display_name %><%= p.user_id === it.user.sub ? ' (you)' : '' %></span>
         <% if (p.hidden_at) { %>

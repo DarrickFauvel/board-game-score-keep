@@ -134,3 +134,34 @@ document.addEventListener('click', async (e) => {
   })));
   window.location.href = link.href;
 });
+
+/* Page transitions (see base.css): a picture marked data-vt travels to the
+   next page. Only the one that matters gets its name, just for the
+   transition: outside a link (the cover on a game page), or in the link
+   that was followed (leaving a list) or came back from (returning to it).
+   Naming every picture in a list would capture them all, and transitions
+   then often didn't arrive on the next page. */
+const vtPath = (url) => { try { return new URL(url, location.href).pathname; } catch { return null; } };
+function nameTravellers(otherPath) {
+  const named = [];
+  for (const el of document.querySelectorAll('[data-vt]')) {
+    const link = el.closest('a[href]');
+    if (link && vtPath(link.href) !== otherPath) continue;
+    el.style.viewTransitionName = el.style.getPropertyValue('--vt').trim();
+    named.push(el);
+  }
+  return named;
+}
+const unname = (els) => els.forEach((el) => { el.style.viewTransitionName = ''; });
+
+addEventListener('pageswap', (e) => {
+  if (!e.viewTransition || !e.activation?.entry?.url) return;
+  const named = nameTravellers(vtPath(e.activation.entry.url));
+  e.viewTransition.finished.finally(() => unname(named));
+});
+addEventListener('pagereveal', (e) => {
+  if (!e.viewTransition) return;
+  const from = window.navigation?.activation?.from?.url;
+  const named = nameTravellers(from ? vtPath(from) : null);
+  e.viewTransition.finished.finally(() => unname(named));
+});

@@ -459,3 +459,51 @@ html.theme-transition::view-transition-new(root) {
     clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap;
   }
 }
+
+/* ─── Page transitions ───────────────────────────────
+   Moving between pages fades quickly, with the new page rising a few
+   pixels, while the header and group bar stay still. A game's cover and a
+   player's picture travel from a list into the page they open. Browsers
+   without cross-document view transitions just navigate.
+
+   Everything is scoped to the "page" type, so the theme switch's own view
+   transition (html.theme-transition, above) is left alone. Pictures that
+   travel are marked data-vt with their name in --vt (e.g. game-<id>);
+   main.js names only the one that matters, during a page transition. */
+@view-transition {
+  navigation: auto;
+  types: page;
+}
+
+html:active-view-transition-type(page) .site-header { view-transition-name: site-header; }
+html:active-view-transition-type(page) .context-bar { view-transition-name: context-bar; }
+
+html:active-view-transition-type(page)::view-transition-old(root) {
+  animation: 90ms ease-out both page-out;
+}
+html:active-view-transition-type(page)::view-transition-new(root) {
+  animation: 200ms cubic-bezier(0.22, 1, 0.36, 1) both page-in;
+}
+/* Covers and pictures travel a little longer, so the move reads */
+html:active-view-transition-type(page)::view-transition-group(*) {
+  animation-duration: 260ms;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+/* The header and bar: no movement, just their contents settling */
+html:active-view-transition-type(page)::view-transition-group(site-header),
+html:active-view-transition-type(page)::view-transition-group(context-bar) {
+  animation-duration: 150ms;
+}
+
+@keyframes page-out { to { opacity: 0; } }
+@keyframes page-in {
+  from { opacity: 0; transform: translateY(6px); }
+}
+
+/* A box for a picture that travels between pages (a bare <img> works too,
+   but the initial avatar is a span) */
+.vt-box { display: inline-flex; flex-shrink: 0; border-radius: var(--radius-full); }
+
+@media (prefers-reduced-motion: reduce) {
+  @view-transition { navigation: none; }
+}
