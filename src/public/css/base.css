@@ -3,6 +3,11 @@ html {
   /* The browser's 16px, so every rem (type, spacing, controls) is a real
      8px step; body text size comes from --text-base on body */
   font-size: 100%;
+  /* Room for the scrollbar on every page, even short ones. Where the
+     scrollbar takes space (Windows, Linux, a Mac with a mouse), going from a
+     short page to a long one otherwise narrows the viewport, and Chrome
+     cancels the page transition ("Viewport size changed"). */
+  scrollbar-gutter: stable;
   font-family: var(--font-text);
   line-height: var(--leading-normal);
   color: var(--color-text);
