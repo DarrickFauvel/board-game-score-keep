@@ -12,7 +12,19 @@ html {
 
 /* A column: the header and its bars, then main, which grows to push the
    footer down. (A fixed grid of rows broke when optional bars were added.) */
+/* One set of edges for the whole page: the header, the group bar, the
+   content and the footer all line up on a 72rem column with the same
+   gutters, and stay clear of notches (viewport-fit=cover). */
+:root {
+  --page-max: 72rem;
+  --page-gutter: var(--space-2);
+}
+@media (min-width: 48rem) {
+  :root { --page-gutter: var(--space-4); }
+}
 body {
+  --page-inline-start: max(var(--page-gutter), env(safe-area-inset-left), (100% - var(--page-max)) / 2 + var(--page-gutter));
+  --page-inline-end:   max(var(--page-gutter), env(safe-area-inset-right), (100% - var(--page-max)) / 2 + var(--page-gutter));
   display: flex;
   flex-direction: column;
   font-size: var(--text-base);
@@ -57,16 +69,14 @@ body {
    max() keeps content clear of notches/rounded corners (viewport-fit=cover). */
 main {
   flex: 1 0 auto;
-  padding: var(--space-3) max(var(--space-2), env(safe-area-inset-right)) var(--space-4) max(var(--space-2), env(safe-area-inset-left));
-  max-width: 72rem;
-  margin-inline: auto;
+  padding: var(--space-3) var(--page-inline-end) var(--space-4) var(--page-inline-start);
   width: 100%;
   container-type: inline-size;
 }
 
 @media (min-width: 48rem) {
   main {
-    padding: var(--space-6) max(var(--space-4), env(safe-area-inset-right)) var(--space-6) max(var(--space-4), env(safe-area-inset-left));
+    padding-block: var(--space-6);
   }
 }
 
@@ -106,7 +116,8 @@ textarea:focus-visible {
 .site-header {
   background: var(--color-chrome);
   color: var(--color-chrome-text);
-  padding: max(var(--space-1), env(safe-area-inset-top)) max(var(--space-2), env(safe-area-inset-right)) var(--space-1) max(var(--space-2), env(safe-area-inset-left));
+  /* 56px on phones, 72px from tablets up, like the landing nav */
+  padding: max(0.25rem, env(safe-area-inset-top)) var(--page-inline-end) 0.25rem var(--page-inline-start);
   display: flex;
   align-items: center;
   gap: var(--space-2);
@@ -130,6 +141,9 @@ textarea:focus-visible {
   white-space: nowrap;
 }
 .site-header__logo svg { color: var(--color-gold); }
+@media (min-width: 48rem) {
+  .site-header { padding-block: max(0.75rem, env(safe-area-inset-top)) 0.75rem; }
+}
 /* The wordmark with its descriptor stacked underneath; the descriptor
    shows once the header is wider than a phone */
 .site-header__name { display: flex; flex-direction: column; line-height: 1.05; }
@@ -328,13 +342,31 @@ textarea:focus-visible {
 .site-footer {
   background: transparent;
   border-top: 1px solid var(--color-border);
-  text-align: center;
-  padding: var(--space-3) var(--space-2) max(var(--space-3), env(safe-area-inset-bottom));
+  /* One row on the page's edges: the wordmark left, the credit right;
+     stacked on narrow phones */
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0 var(--space-3);
+  padding: var(--space-2) var(--page-inline-end) max(var(--space-2), env(safe-area-inset-bottom)) var(--page-inline-start);
   font-size: var(--text-xs);
   color: var(--color-text-muted);
 }
 
-.site-footer__credit { margin-top: 0.25rem; }
+.site-footer__brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.site-footer__brand svg { color: var(--color-gold); flex: none; }
+.site-footer__brand b {
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--color-text);
+}
 
 .site-footer__credit a {
   color: var(--color-text);
@@ -423,7 +455,7 @@ html.theme-transition::view-transition-new(root) {
   align-items: center;
   justify-content: space-between;
   gap: var(--space-1) var(--space-2);
-  padding: 0.375rem max(var(--space-2), env(safe-area-inset-right)) 0.375rem max(var(--space-2), env(safe-area-inset-left));
+  padding: 0.375rem var(--page-inline-end) 0.375rem var(--page-inline-start);
   background: var(--color-surface);
   border-bottom: 1px solid var(--color-border);
   font-size: var(--text-sm);
