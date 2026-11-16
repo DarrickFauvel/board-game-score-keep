@@ -42,7 +42,7 @@ router.get('/', async (req, res, next) => {
   try {
     const { sessionService } = await import('../services/sessionService.js');
     const [games, joined] = await Promise.all([
-      gameService.listForGroup(req.group.id),
+      gameService.listWithPlayForGroup(req.group.id),
       sessionService.listJoined(req.user.sub),
     ]);
     res.renderEta('games/index', {

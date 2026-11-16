@@ -46,6 +46,25 @@ export const gameService = {
   },
 
   /**
+   * The group's games for the games list, with when each was last played
+   * (`last_played_at`) and how many sessions are still going
+   * (`active_sessions`). Recently played first, then never-played games,
+   * newest first.
+   */
+  async listWithPlayForGroup(groupId: string) {
+    const result = await db.execute({
+      sql: `SELECT g.*,
+                   (SELECT MAX(COALESCE(s.completed_at, s.started_at)) FROM sessions s WHERE s.game_id = g.id) AS last_played_at,
+                   (SELECT COUNT(*) FROM sessions s WHERE s.game_id = g.id AND s.status = 'active') AS active_sessions
+            FROM games g
+            WHERE g.group_id = ?
+            ORDER BY last_played_at IS NULL, last_played_at DESC, g.created_at DESC`,
+      args: [groupId],
+    });
+    return result.rows;
+  },
+
+  /**
    * The game, if the user is a member of its group, with their role there as
    * `member_role` (see groupAccess: which roles may do what). Null otherwise,
    * which routes answer with a 404.
