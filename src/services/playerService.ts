@@ -296,19 +296,28 @@ export const playerService = {
     return result.rows;
   },
 
-  async update(id: string, body: Record<string, unknown>, file?: Express.Multer.File, currentAvatar?: string | null) {
-    const avatarUrl = await resolveAvatar(body, file, currentAvatar ?? null);
+  /** Name and color: the parts of a profile that save as you change them. */
+  async updateDetails(id: string, displayName: string, color: string | null) {
     await db.execute({
-      sql: `UPDATE players SET
-              display_name = ?,
-              preferred_color = ?,
+      sql: `UPDATE players SET display_name = ?, preferred_color = ?,
               updated_at = strftime('%Y-%m-%dT%H:%M:%fZ','now')
-              ${avatarUrl !== undefined ? ', avatar_url = ?' : ''}
             WHERE id = ?`,
-      args: avatarUrl !== undefined
-        ? [body.display_name as string, (body.preferred_color as string) || null, avatarUrl, id]
-        : [body.display_name as string, (body.preferred_color as string) || null, id],
+      args: [displayName, color, id],
     });
+  },
+
+  /**
+   * A new picture (file, camera, link), a new framing of the current one,
+   * or none (`remove_avatar=1`). Returns false when nothing changed.
+   */
+  async updatePicture(id: string, body: Record<string, unknown>, file: Express.Multer.File | undefined, currentAvatar: string | null) {
+    const avatarUrl = await resolveAvatar(body, file, currentAvatar);
+    if (avatarUrl === undefined) return false;
+    await db.execute({
+      sql: `UPDATE players SET avatar_url = ?, updated_at = strftime('%Y-%m-%dT%H:%M:%fZ','now') WHERE id = ?`,
+      args: [avatarUrl, id],
+    });
+    return true;
   },
 };
 

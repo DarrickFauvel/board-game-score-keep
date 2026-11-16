@@ -1153,3 +1153,81 @@ a.leaderboard__name { text-decoration: underline; text-underline-offset: 0.2em; 
   .guest-row { grid-template-columns: minmax(0, 1fr); }
   .guest-row__actions { justify-content: flex-start; }
 }
+
+/* ─── Toasts ─────────────────────────────────────────
+   For actions that aren't one field: a guest hidden, a game deleted, an
+   error. Each removes itself (see toastHtml in src/datastar.ts). */
+.toasts {
+  position: fixed;
+  z-index: var(--z-toast);
+  inset-inline: 0;
+  bottom: max(var(--space-2), env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  padding-inline: var(--space-2);
+  pointer-events: none;
+}
+.toast {
+  pointer-events: auto;
+  max-width: 28rem;
+  padding: 0.625rem 1rem;
+  border-radius: var(--radius-md);
+  background: var(--color-ink);
+  color: #fff;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  box-shadow: var(--shadow-md);
+  animation: toast-in 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.toast--error { box-shadow: var(--shadow-md), inset 4px 0 0 var(--color-danger); }
+@keyframes toast-in {
+  from { opacity: 0; transform: translateY(8px); }
+}
+
+/* ─── Instant saves ──────────────────────────────────
+   A field that saves on its own sits in .autosave with an .autosave__mark.
+   The server replaces the mark on each save, so its animation replays:
+   a soft green ring and tint over the field that fades, and a small check. */
+.autosave { position: relative; }
+.autosave__mark {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-md);
+  pointer-events: none;
+}
+.autosave__mark[data-state="saved"] {
+  animation: autosave-flash 1400ms ease-out forwards;
+}
+.autosave__mark[data-state="saved"]::after {
+  content: "✓";
+  position: absolute;
+  top: 50%;
+  right: 0.75rem;
+  translate: 0 -50%;
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--color-success);
+  animation: autosave-check 1400ms ease-out forwards;
+}
+.autosave__mark[data-state="error"] {
+  box-shadow: 0 0 0 2px var(--color-danger);
+}
+@keyframes autosave-flash {
+  0%   { box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-success) 60%, transparent); background: color-mix(in srgb, var(--color-success) 9%, transparent); }
+  100% { box-shadow: 0 0 0 2px transparent; background: transparent; }
+}
+@keyframes autosave-check {
+  0%, 60% { opacity: 1; }
+  100%    { opacity: 0; }
+}
+/* The check would cover a select's arrow; nudge it left */
+.autosave--select .autosave__mark[data-state="saved"]::after { right: 2.25rem; }
+/* Textareas: check in the top corner rather than the middle */
+.autosave--textarea .autosave__mark[data-state="saved"]::after { top: 0.75rem; translate: 0 0; }
+
+@media (prefers-reduced-motion: reduce) {
+  .toast { animation: none; }
+  /* The field flash only fades, with no movement, so it stays */
+}

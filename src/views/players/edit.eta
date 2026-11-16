@@ -4,23 +4,57 @@
 <div style="max-width:36rem;margin:0 auto">
   <div class="page-header">
     <h1 class="page-header__title"><%= it.title %></h1>
-    <a href="/players/<%= it.player.id %>" class="btn btn--secondary">Cancel</a>
+    <a href="/players/<%= it.player.id %>" class="btn btn--secondary">Done</a>
   </div>
 
   <% if (it.error) { %>
   <div class="flash flash--error" role="alert"><%= it.error %></div>
   <% } %>
 
-  <form action="/players/<%= it.player.id %>" method="POST" enctype="multipart/form-data" novalidate>
+  <%/* Name and color save as they change; the button is only for browsers without JavaScript */%>
+  <% const detailsUrl = `/players/${it.player.id}/details` %>
+  <form action="<%= detailsUrl %>" method="POST" novalidate
+        data-on:submit__prevent="@post('<%= detailsUrl %>?field=name', {contentType: 'form'})">
+    <div class="form-group">
+      <label class="form-label" for="display_name">
+        <%= isGuest ? 'Name' : 'Display name' %> <span class="required" aria-hidden="true">*</span>
+      </label>
+      <div class="autosave">
+        <input class="form-control" type="text" id="display_name" name="display_name"
+               value="<%= it.player.display_name %>" aria-required="true" maxlength="60"
+               aria-describedby="save-name-error"
+               data-on:input__debounce.800ms="@post('<%= detailsUrl %>?field=name', {contentType: 'form'})">
+        <span id="save-name" class="autosave__mark" aria-hidden="true"></span>
+      </div>
+      <span id="save-name-error" class="form-error"></span>
+    </div>
 
+    <div class="form-group">
+      <label class="form-label" for="preferred_color">Preferred color</label>
+      <div class="color-field autosave">
+        <input type="color" id="preferred_color" name="preferred_color"
+               value="<%= it.player.preferred_color || '#5a3e2b' %>"
+               aria-describedby="color-hint"
+               oninput="document.getElementById('preferred_color_text').value = this.value"
+               data-on:change="@post('<%= detailsUrl %>?field=color', {contentType: 'form'})">
+        <input class="form-control" type="text" id="preferred_color_text" aria-label="Color code"
+               value="<%= it.player.preferred_color || '#5a3e2b' %>" style="flex:1"
+               oninput="if (/^#[0-9a-f]{6}$/i.test(this.value)) { const c = document.getElementById('preferred_color'); c.value = this.value; c.dispatchEvent(new Event('change', { bubbles: true })); }">
+        <span id="save-color" class="autosave__mark" aria-hidden="true"></span>
+      </div>
+      <span class="form-hint" id="color-hint">Used for your player chip and score sheet highlights. Changes save as you make them.</span>
+    </div>
+    <noscript><button type="submit" class="btn btn--primary">Save name and color</button></noscript>
+  </form>
+
+  <%/* The picture is framed before it's stored, so it has its own save */%>
+  <form action="/players/<%= it.player.id %>/picture" method="POST" enctype="multipart/form-data" novalidate style="margin-top:var(--space-6)">
     <fieldset class="form-group" style="border:0;padding:0;margin-inline:0">
       <legend class="form-label">Profile picture</legend>
       <div style="display:flex;align-items:center;gap:var(--space-3);margin-bottom:var(--space-3)">
         <%~ it.avatar(it.player.avatar_url, it.player.display_name, it.player.preferred_color, 'avatar--lg', it.player.avatar_url ? (isGuest ? `${it.player.display_name}'s current picture` : 'Your current profile picture') : '') %>
         <% if (it.player.avatar_url) { %>
-        <label style="display:inline-flex;align-items:center;gap:var(--space-2);min-height:3rem;cursor:pointer">
-          <input type="checkbox" name="remove_avatar" value="1"> Remove picture
-        </label>
+        <button type="submit" form="remove-picture" class="btn btn--ghost btn--sm">Remove picture</button>
         <% } else { %>
         <span class="form-hint" style="margin:0"><%= isGuest ? 'No picture yet. Everyone sees their initial until one is added.' : 'No picture yet. Others see your initial until you add one.' %></span>
         <% } %>
@@ -37,30 +71,16 @@
       </div>
     </fieldset>
 
-    <div class="form-group">
-      <label class="form-label" for="display_name">
-        <%= isGuest ? 'Name' : 'Display name' %> <span class="required" aria-hidden="true">*</span>
-      </label>
-      <input class="form-control" type="text" id="display_name" name="display_name"
-             value="<%= it.player.display_name %>" required aria-required="true" maxlength="60">
-    </div>
-
-    <div class="form-group">
-      <label class="form-label" for="preferred_color">Preferred color</label>
-      <div class="color-field">
-        <input type="color" id="preferred_color" name="preferred_color"
-               value="<%= it.player.preferred_color || '#5a3e2b' %>"
-               aria-describedby="color-hint">
-        <input class="form-control" type="text" value="<%= it.player.preferred_color || '#5a3e2b' %>"
-               style="flex:1" oninput="document.getElementById('preferred_color').value=this.value">
-      </div>
-      <span class="form-hint" id="color-hint">Used for your player chip and score sheet highlights.</span>
-    </div>
-
     <div class="form-actions">
-      <a href="/players/<%= it.player.id %>" class="btn btn--secondary">Cancel</a>
-      <button type="submit" class="btn btn--primary">Save profile</button>
+      <button type="submit" class="btn btn--primary">Save picture</button>
     </div>
-
   </form>
+
+  <% if (it.player.avatar_url) { %>
+  <form id="remove-picture" action="/players/<%= it.player.id %>/picture" method="POST" hidden
+        data-confirm="Remove <%= isGuest ? `${it.player.display_name}'s` : 'your' %> picture? <%= isGuest ? 'Everyone will see their initial instead.' : 'Others will see your initial instead.' %>"
+        data-confirm-title="Remove picture" data-confirm-label="Remove">
+    <input type="hidden" name="remove_avatar" value="1">
+  </form>
+  <% } %>
 </div>

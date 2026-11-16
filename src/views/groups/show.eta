@@ -1,16 +1,12 @@
 <% layout('../layouts/base') %>
 <%
 const roles = ['owner', 'organizer', 'player'];
-const roleHelp = {
-  owner: 'Everything, including members, roles and deleting the group',
-  organizer: 'Add and edit games, manage guests, finish or delete any session, invite people',
-  player: 'Start sessions, enter scores, add photos and notes, finish games they started',
-};
+const roleHelp = it.roleHelp;
 %>
 
 <div class="page-header">
   <div>
-    <h1 class="page-header__title"><%= it.group.name %></h1>
+    <h1 class="page-header__title" id="group-title"><%= it.group.name %></h1>
     <div style="font-size:var(--text-sm);color:var(--color-text-muted)">You're <%= it.role === 'player' ? 'a' : 'an' %> <%= it.roleLabel[it.role].toLowerCase() %> here</div>
   </div>
   <div style="display:flex;gap:var(--space-2);flex-wrap:wrap;align-items:center">
@@ -43,14 +39,20 @@ const roleHelp = {
       <%~ it.avatar(m.avatar_url, m.display_name || '?', m.preferred_color) %>
       <span style="flex:1;min-width:8rem">
         <span style="display:block;font-weight:600"><%= m.display_name || 'Unnamed player' %><%= isMe ? ' (you)' : '' %></span>
-        <span style="font-size:var(--text-xs);color:var(--color-text-muted)"><%= roleHelp[m.role] %></span>
+        <span id="role-help-<%= m.user_id %>" style="font-size:var(--text-xs);color:var(--color-text-muted)"><%= roleHelp[m.role] %></span>
       </span>
       <% if (it.canManageMembers) { %>
-      <form action="/groups/<%= it.group.id %>/members/<%= m.user_id %>/role" method="POST" style="margin:0;display:flex;gap:var(--space-1);align-items:center">
+      <% const roleUrl = `/groups/${it.group.id}/members/${m.user_id}/role` %>
+      <form action="<%= roleUrl %>" method="POST" style="margin:0;display:flex;gap:var(--space-1);align-items:center"
+            data-on:submit__prevent="@post('<%= roleUrl %>', {contentType: 'form'})">
         <label class="visually-hidden" for="role-<%= m.user_id %>">Role for <%= m.display_name %></label>
-        <select class="form-control" id="role-<%= m.user_id %>" name="role" style="min-height:2.5rem;width:auto" onchange="this.form.requestSubmit()">
-          <% roles.forEach(function(r) { %><option value="<%= r %>"<%= m.role === r ? ' selected' : '' %>><%= it.roleLabel[r] %></option><% }) %>
-        </select>
+        <span class="autosave autosave--select">
+          <select class="form-control" id="role-<%= m.user_id %>" name="role" style="min-height:2.5rem;width:auto"
+                  data-on:change="@post('<%= roleUrl %>', {contentType: 'form'})">
+            <% roles.forEach(function(r) { %><option value="<%= r %>"<%= m.role === r ? ' selected' : '' %>><%= it.roleLabel[r] %></option><% }) %>
+          </select>
+          <span id="save-role-<%= m.user_id %>" class="autosave__mark" aria-hidden="true"></span>
+        </span>
         <noscript><button type="submit" class="btn btn--secondary btn--sm">Save</button></noscript>
       </form>
       <% if (!isMe) { %>
@@ -84,10 +86,18 @@ const roleHelp = {
 <% if (it.canManageGroup) { %>
 <section aria-labelledby="settings-heading" class="section" style="margin-top:var(--space-8)">
   <h2 id="settings-heading" style="margin-bottom:var(--space-2)">Name</h2>
-  <form action="/groups/<%= it.group.id %>/rename" method="POST" class="input-row" style="max-width:32rem">
+  <% const renameUrl = `/groups/${it.group.id}/rename` %>
+  <form action="<%= renameUrl %>" method="POST" style="max-width:32rem"
+        data-on:submit__prevent="@post('<%= renameUrl %>', {contentType: 'form'})">
     <label class="visually-hidden" for="rename">Group name</label>
-    <input class="form-control" id="rename" name="name" maxlength="60" required value="<%= it.group.name %>">
-    <button type="submit" class="btn btn--secondary">Rename</button>
+    <div class="autosave">
+      <input class="form-control" id="rename" name="name" maxlength="60" aria-required="true" value="<%= it.group.name %>"
+             aria-describedby="save-rename-error"
+             data-on:input__debounce.800ms="@post('<%= renameUrl %>', {contentType: 'form'})">
+      <span id="save-rename" class="autosave__mark" aria-hidden="true"></span>
+    </div>
+    <span id="save-rename-error" class="form-error"></span>
+    <noscript><button type="submit" class="btn btn--secondary" style="margin-top:var(--space-2)">Rename</button></noscript>
   </form>
 </section>
 <% } %>
