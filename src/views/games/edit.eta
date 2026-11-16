@@ -2,22 +2,16 @@
 
 <div style="max-width:48rem;margin:0 auto" data-signals="{scoringMode:'<%= it.game.scoring_mode %>'}">
   <div class="page-header">
-    <h1 class="page-header__title">Edit: <%= it.game.name %></h1>
-    <a href="/games/<%= it.game.id %>" class="btn btn--secondary">Cancel</a>
+    <h1 class="page-header__title" id="game-edit-title">Edit: <%= it.game.name %></h1>
+    <a href="/games/<%= it.game.id %>" class="btn btn--secondary">Done</a>
   </div>
 
   <% if (it.error) { %>
   <div class="flash flash--error" role="alert"><%= it.error %></div>
   <% } %>
 
-  <form action="/games/<%= it.game.id %>" method="POST" enctype="multipart/form-data" novalidate>
-
-    <div class="form-group">
-      <label class="form-label" for="name">Game name <span class="required" aria-hidden="true">*</span></label>
-      <input class="form-control" type="text" id="name" name="name" required aria-required="true"
-             maxlength="120" value="<%= it.game.name %>">
-    </div>
-
+  <%/* The picture has its own save, so changing a field never re-uploads it */%>
+  <form action="/games/<%= it.game.id %>/image" method="POST" enctype="multipart/form-data" novalidate style="margin-bottom:var(--space-4)">
     <div class="form-group">
       <label class="form-label">Game image</label>
       <% if (it.game.image_url) { %>
@@ -26,90 +20,157 @@
       <% } %>
       <avatar-picker name="image" folder="game" aria-label="Replace game image"></avatar-picker>
     </div>
+    <button type="submit" class="btn btn--secondary btn--sm">Save picture</button>
+  </form>
+
+  <%/* Every setting saves as it changes: one listener on the form posts the whole
+       form, naming the field that changed so only it flashes. The button at the
+       end is only for browsers without JavaScript. */%>
+  <% const settingsUrl = `/games/${it.game.id}/settings` %>
+  <form action="<%= settingsUrl %>" method="POST" novalidate id="game-settings"
+        data-on:submit__prevent="@post('<%= settingsUrl %>?field=name', {contentType: 'form'})"
+        data-on:input__debounce.700ms="@post('<%= settingsUrl %>?field=' + (evt.target.dataset.field || evt.target.id), {contentType: 'form'})">
+
+    <div class="form-group">
+      <label class="form-label" for="name">Game name <span class="required" aria-hidden="true">*</span></label>
+      <div class="autosave">
+      <input class="form-control" type="text" id="name" name="name" aria-required="true"
+             maxlength="120" value="<%= it.game.name %>">
+        <span id="save-name" class="autosave__mark" aria-hidden="true"></span>
+      </div>
+      <span id="save-name-error" class="form-error"></span>
+    </div>
+
 
     <div class="form-group">
       <label class="form-label" for="bgg_url">BoardGameGeek link</label>
+      <div class="autosave">
       <input class="form-control" type="url" inputmode="url" id="bgg_url" name="bgg_url" maxlength="300"
              placeholder="https://boardgamegeek.com/boardgame/266192/wingspan" value="<%= it.game.bgg_url || '' %>" aria-describedby="bgg_url-hint">
+        <span id="save-bgg_url" class="autosave__mark" aria-hidden="true"></span>
+      </div>
+      <span id="save-bgg_url-error" class="form-error"></span>
       <span class="form-hint" id="bgg_url-hint">Optional. Paste the game's page from boardgamegeek.com for rules, rankings and reviews.</span>
     </div>
 
     <div class="form-group">
       <label class="form-label" for="rules_url">Rules link</label>
+      <div class="autosave">
       <input class="form-control" type="url" inputmode="url" id="rules_url" name="rules_url" maxlength="500"
              placeholder="https://example.com/rules.pdf" value="<%= it.game.rules_url || '' %>" aria-describedby="rules_url-hint">
+        <span id="save-rules_url" class="autosave__mark" aria-hidden="true"></span>
+      </div>
+      <span id="save-rules_url-error" class="form-error"></span>
       <span class="form-hint" id="rules_url-hint">Optional. A direct link to the rulebook, such as the publisher's PDF. It shows as a Rules button during sessions.</span>
     </div>
 
     <div class="form-group">
       <label class="form-label" for="rules_video_url">Rules video link</label>
+      <div class="autosave">
       <input class="form-control" type="url" inputmode="url" id="rules_video_url" name="rules_video_url" maxlength="500"
              placeholder="https://www.youtube.com/watch?v=…" value="<%= it.game.rules_video_url || '' %>" aria-describedby="rules_video_url-hint">
+        <span id="save-rules_video_url" class="autosave__mark" aria-hidden="true"></span>
+      </div>
+      <span id="save-rules_video_url-error" class="form-error"></span>
       <span class="form-hint" id="rules_video_url-hint">Optional. A how-to-play video, such as one on YouTube. It shows as a Rules video button during sessions.</span>
     </div>
 
     <div class="form-group">
       <label class="form-label" for="scoring_mode">Scoring mode <span class="required" aria-hidden="true">*</span></label>
-      <select class="form-control" id="scoring_mode" name="scoring_mode" required aria-required="true"
+      <div class="autosave autosave--select">
+      <select class="form-control" id="scoring_mode" name="scoring_mode" aria-required="true"
               data-bind:scoring-mode>
         <option value="tally" <%= it.game.scoring_mode === 'tally' ? 'selected' : '' %>>Running tally</option>
         <option value="final" <%= it.game.scoring_mode === 'final' ? 'selected' : '' %>>Single final score</option>
         <option value="categories" <%= it.game.scoring_mode === 'categories' ? 'selected' : '' %>>Custom categories</option>
       </select>
+        <span id="save-scoring_mode" class="autosave__mark" aria-hidden="true"></span>
+      </div>
+      <span id="save-scoring_mode-error" class="form-error"></span>
     </div>
 
     <div class="form-group" data-show="$scoringMode === 'tally'">
       <label class="form-label" for="round_name">What's a round called?</label>
+      <div class="autosave autosave--fit">
       <input class="form-control form-control--narrow" type="text" id="round_name" name="round_name" maxlength="24"
              placeholder="round" value="<%= it.game.round_name || '' %>" aria-describedby="round_name-hint">
+        <span id="save-round_name" class="autosave__mark" aria-hidden="true"></span>
+      </div>
+      <span id="save-round_name-error" class="form-error"></span>
       <span class="form-hint" id="round_name-hint">Optional. One of them, like race, hand or leg. The scoreboard says "Race 2 of 5" and "Next race".</span>
     </div>
 
     <div class="form-group" data-show="$scoringMode === 'tally'">
       <label class="form-label" for="suggested_rounds"
              data-unit-label="round_name" data-unit-default="round" data-unit-template="{units} per game"><%= it.units(it.game).Rounds %> per game</label>
+      <div class="autosave autosave--fit">
       <input class="form-control form-control--narrow" type="number" inputmode="numeric" id="suggested_rounds" name="suggested_rounds"
              min="1" max="99" step="1" value="<%= it.game.suggested_rounds || '' %>" aria-describedby="suggested_rounds-hint">
+        <span id="save-suggested_rounds" class="autosave__mark" aria-hidden="true"></span>
+      </div>
+      <span id="save-suggested_rounds-error" class="form-error"></span>
       <span class="form-hint" id="suggested_rounds-hint">From the rulebook. Each new session starts with this many; leave blank if the game ends some other way.</span>
     </div>
 
     <div class="form-group">
       <label class="form-label" for="point_name">What are points called?</label>
+      <div class="autosave autosave--fit">
       <input class="form-control form-control--narrow" type="text" id="point_name" name="point_name" maxlength="24"
              placeholder="point" value="<%= it.game.point_name || '' %>" aria-describedby="point_name-hint">
+        <span id="save-point_name" class="autosave__mark" aria-hidden="true"></span>
+      </div>
+      <span id="save-point_name-error" class="form-error"></span>
       <span class="form-hint" id="point_name-hint">Optional. One of them, like victory point or VP. Used in "First to 10 victory points" and the victory celebration.</span>
     </div>
 
     <div class="form-group">
       <label class="form-label" for="lowest_wins">Who wins?</label>
+      <div class="autosave autosave--select autosave--fit">
       <select class="form-control form-control--medium" id="lowest_wins" name="lowest_wins" aria-describedby="lowest_wins-hint">
         <option value="0"<%= it.winRule(it.game).lowestWins ? '' : ' selected' %>>Highest score</option>
         <option value="1"<%= it.winRule(it.game).lowestWins ? ' selected' : '' %>>Lowest score</option>
       </select>
+        <span id="save-lowest_wins" class="autosave__mark" aria-hidden="true"></span>
+      </div>
+      <span id="save-lowest_wins-error" class="form-error"></span>
       <span class="form-hint" id="lowest_wins-hint">Pick "Lowest score" for games like Golf or Hearts, where points count against you.</span>
     </div>
 
     <div class="form-group">
       <label class="form-label" for="target_score"
              data-unit-label="point_name" data-unit-default="point" data-unit-template="{units} to win"><%= it.units(it.game).Points %> to win</label>
+      <div class="autosave autosave--fit">
       <input class="form-control form-control--narrow" type="number" inputmode="numeric" id="target_score" name="target_score"
              min="1" max="9999" step="1" value="<%= it.game.target_score || '' %>" aria-describedby="target_score-hint">
+        <span id="save-target_score" class="autosave__mark" aria-hidden="true"></span>
+      </div>
+      <span id="save-target_score-error" class="form-error"></span>
       <span class="form-hint" id="target_score-hint">For "first to …" games, like 10 in Catan. In lowest-score games it's the score that ends the game, like 100 in Hearts. Each new session starts with this target; leave blank if there isn't one.</span>
     </div>
 
     <div data-show="$scoringMode === 'categories'" id="categories-section">
       <div class="form-group">
         <label class="form-label">Score categories</label>
+        <div class="autosave" style="padding:2px;margin:-2px">
         <div id="category-list" style="display:flex;flex-direction:column;gap:var(--space-2)">
-          <% if (it.categories.length > 0) { %>
-            <% it.categories.forEach(function(cat) { %>
-            <input class="form-control" type="text" name="categories" value="<%= cat.name %>">
-            <% }) %>
-          <% } else { %>
-          <input class="form-control" type="text" name="categories" placeholder="e.g. Roads">
-          <input class="form-control" type="text" name="categories" placeholder="e.g. Cities">
-          <% } %>
+          <%/* No categories yet: two blank rows to start from */%>
+          <% const rows = it.categories.length ? it.categories : it.blankCategories; %>
+          <% rows.forEach(function(cat) { const n = it.scoreCounts[cat.id] || 0; %>
+          <div class="category-row" id="category-<%= cat.id %>">
+            <input type="hidden" name="category_id" value="<%= cat.id %>">
+            <label class="visually-hidden" for="category-name-<%= cat.id %>">Category</label>
+            <input class="form-control" type="text" id="category-name-<%= cat.id %>" name="categories" value="<%= cat.name %>" data-field="categories"<% if (cat.placeholder) { %> placeholder="<%= cat.placeholder %>"<% } %>>
+            <button type="button" class="btn btn--ghost btn--sm" aria-describedby="category-name-<%= cat.id %>"
+                    data-confirm-name="#category-name-<%= cat.id %>"
+                    data-confirm="Remove {name} category?<%= n ? ` ${n} recorded ${n === 1 ? 'score keeps its points but loses' : 'scores keep their points but lose'} this label.` : '' %>"
+                    data-confirm-title="Remove category" data-confirm-label="Remove"
+                    data-on:confirmed="@post('/games/<%= it.game.id %>/categories/<%= cat.id %>/delete')">Remove</button>
+          </div>
+          <% }) %>
         </div>
+          <span id="save-categories" class="autosave__mark" aria-hidden="true"></span>
+        </div>
+        <span id="save-categories-error" class="form-error"></span>
         <button type="button" class="btn btn--secondary btn--sm" style="margin-top:var(--space-2)"
                 onclick="addCategory()">+ Add category</button>
       </div>
@@ -117,11 +178,15 @@
 
     <div class="form-group">
       <label class="form-label" for="teams_mode">Team play</label>
+      <div class="autosave autosave--select">
       <select class="form-control" id="teams_mode" name="teams_mode">
         <option value="none" <%= it.game.teams_mode === 'none' ? 'selected' : '' %>>Individual players only</option>
         <option value="adhoc" <%= it.game.teams_mode === 'adhoc' ? 'selected' : '' %>>Ad-hoc teams</option>
         <option value="profiles" <%= it.game.teams_mode === 'profiles' ? 'selected' : '' %>>Profile-linked teams</option>
       </select>
+        <span id="save-teams_mode" class="autosave__mark" aria-hidden="true"></span>
+      </div>
+      <span id="save-teams_mode-error" class="form-error"></span>
     </div>
 
     <fieldset style="border:1px solid var(--color-border);border-radius:var(--radius-md);padding:var(--space-3);margin-bottom:var(--space-3)">
@@ -137,38 +202,40 @@
       <div class="form-row form-row--3" style="margin-top:var(--space-2)">
         <div class="form-group" style="margin-bottom:0">
           <label class="form-label" for="color_primary">Primary</label>
-          <div class="color-field">
+          <div class="color-field autosave">
             <input type="color" id="color_primary" name="color_primary" value="<%= it.game.color_primary || '#5a3e2b' %>"
                    oninput="this.nextElementSibling.value=this.value; updateTheme('primary',this.value)">
-            <input class="form-control" type="text" value="<%= it.game.color_primary || '#5a3e2b' %>" style="flex:1;font-size:var(--text-xs)"
+            <input class="form-control" type="text" data-field="color_primary" aria-label="Primary color code" value="<%= it.game.color_primary || '#5a3e2b' %>" style="flex:1;font-size:var(--text-xs)"
                    oninput="document.getElementById('color_primary').value=this.value; updateTheme('primary',this.value)">
+            <span id="save-color_primary" class="autosave__mark" aria-hidden="true"></span>
           </div>
         </div>
         <div class="form-group" style="margin-bottom:0">
           <label class="form-label" for="color_secondary">Secondary</label>
-          <div class="color-field">
+          <div class="color-field autosave">
             <input type="color" id="color_secondary" name="color_secondary" value="<%= it.game.color_secondary || '#e8d5a3' %>"
                    oninput="this.nextElementSibling.value=this.value; updateTheme('secondary',this.value)">
-            <input class="form-control" type="text" value="<%= it.game.color_secondary || '#e8d5a3' %>" style="flex:1;font-size:var(--text-xs)"
+            <input class="form-control" type="text" data-field="color_secondary" aria-label="Secondary color code" value="<%= it.game.color_secondary || '#e8d5a3' %>" style="flex:1;font-size:var(--text-xs)"
                    oninput="document.getElementById('color_secondary').value=this.value; updateTheme('secondary',this.value)">
+            <span id="save-color_secondary" class="autosave__mark" aria-hidden="true"></span>
           </div>
         </div>
         <div class="form-group" style="margin-bottom:0">
           <label class="form-label" for="color_accent">Accent</label>
-          <div class="color-field">
+          <div class="color-field autosave">
             <input type="color" id="color_accent" name="color_accent" value="<%= it.game.color_accent || '#c9a84c' %>"
                    oninput="this.nextElementSibling.value=this.value; updateTheme('accent',this.value)">
-            <input class="form-control" type="text" value="<%= it.game.color_accent || '#c9a84c' %>" style="flex:1;font-size:var(--text-xs)"
+            <input class="form-control" type="text" data-field="color_accent" aria-label="Accent color code" value="<%= it.game.color_accent || '#c9a84c' %>" style="flex:1;font-size:var(--text-xs)"
                    oninput="document.getElementById('color_accent').value=this.value; updateTheme('accent',this.value)">
+            <span id="save-color_accent" class="autosave__mark" aria-hidden="true"></span>
           </div>
         </div>
       </div>
     </fieldset>
 
-    <div class="form-actions">
-      <a href="/games/<%= it.game.id %>" class="btn btn--secondary">Cancel</a>
-      <button type="submit" class="btn btn--primary">Save changes</button>
-    </div>
+    <noscript>
+      <div class="form-actions"><button type="submit" class="btn btn--primary">Save changes</button></div>
+    </noscript>
 
   </form>
 
@@ -201,12 +268,18 @@ function resetTheme() {
 
 function addCategory() {
   const list = document.getElementById('category-list');
-  const input = document.createElement('input');
-  input.className = 'form-control';
-  input.type = 'text';
-  input.name = 'categories';
-  input.placeholder = 'Category name';
-  list.appendChild(input);
-  input.focus();
+  // An id made here, so the row is the same category however often it saves
+  const id = Array.from(crypto.getRandomValues(new Uint8Array(16)), (b) => b.toString(16).padStart(2, '0')).join('');
+  const row = document.createElement('div');
+  row.className = 'category-row';
+  row.id = `category-${id}`;
+  row.innerHTML = `<input type="hidden" name="category_id" value="${id}">
+    <label class="visually-hidden" for="category-name-${id}">Category</label>
+    <input class="form-control" type="text" id="category-name-${id}" name="categories" data-field="categories" placeholder="Category name">
+    <button type="button" class="btn btn--ghost btn--sm" aria-describedby="category-name-${id}"
+            data-confirm-name="#category-name-${id}" data-confirm="Remove {name} category?" data-confirm-title="Remove category" data-confirm-label="Remove"
+            data-on:confirmed="@post('/games/<%= it.game.id %>/categories/${id}/delete')">Remove</button>`;
+  list.appendChild(row);
+  row.querySelector('input[type="text"]').focus();
 }
 </script>
