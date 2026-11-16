@@ -1238,3 +1238,6 @@ a.leaderboard__name { text-decoration: underline; text-underline-offset: 0.2em; 
 /* A score category: its name, and a remove button */
 .category-row { display: flex; gap: var(--space-1); align-items: center; }
 .category-row .form-control { flex: 1; min-width: 0; }
+
+/* "Changes save automatically", under the title of a page that saves as you go */
+.autosave-note { margin: calc(-1 * var(--space-2)) 0 var(--space-4); }

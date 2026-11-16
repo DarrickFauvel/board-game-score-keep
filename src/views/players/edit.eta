@@ -6,6 +6,7 @@
     <h1 class="page-header__title"><%= it.title %></h1>
     <a href="/players/<%= it.player.id %>" class="btn btn--secondary">Done</a>
   </div>
+  <p class="form-hint autosave-note">Name and color save automatically. A new picture saves with its own button.</p>
 
   <% if (it.error) { %>
   <div class="flash flash--error" role="alert"><%= it.error %></div>
@@ -42,7 +43,7 @@
                oninput="if (/^#[0-9a-f]{6}$/i.test(this.value)) { const c = document.getElementById('preferred_color'); c.value = this.value; c.dispatchEvent(new Event('change', { bubbles: true })); }">
         <span id="save-color" class="autosave__mark" aria-hidden="true"></span>
       </div>
-      <span class="form-hint" id="color-hint">Used for your player chip and score sheet highlights. Changes save as you make them.</span>
+      <span class="form-hint" id="color-hint">Used for your player chip and score sheet highlights.</span>
     </div>
     <noscript><button type="submit" class="btn btn--primary">Save name and color</button></noscript>
   </form>
@@ -83,4 +84,7 @@
     <input type="hidden" name="remove_avatar" value="1">
   </form>
   <% } %>
+  <div class="form-actions" style="margin-top:var(--space-6)">
+    <a href="/players/<%= it.player.id %>" class="btn btn--secondary">Done</a>
+  </div>
 </div>
