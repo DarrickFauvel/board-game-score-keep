@@ -3,6 +3,11 @@ html {
   /* The browser's 16px, so every rem (type, spacing, controls) is a real
      8px step; body text size comes from --text-base on body */
   font-size: 100%;
+  /* Room for the scrollbar on every page, even short ones. Where the
+     scrollbar takes space (Windows, Linux, a Mac with a mouse), going from a
+     short page to a long one otherwise narrows the viewport, and Chrome
+     cancels the page transition ("Viewport size changed"). */
+  scrollbar-gutter: stable;
   font-family: var(--font-text);
   line-height: var(--leading-normal);
   color: var(--color-text);
@@ -560,10 +565,8 @@ html.theme-transition::view-transition-new(root) {
    Everything is scoped to the "page" type, so the theme switch's own view
    transition (html.theme-transition, above) is left alone. Pictures that
    travel are marked data-vt with their name in --vt (e.g. game-<id>). */
-@view-transition {
-  navigation: auto;
-  types: page;
-}
+/* The @view-transition opt-in (navigation: auto, type "page") is inline in
+   the layout's <head>, so it applies before this file arrives. */
 
 html:active-view-transition-type(page) .site-header { view-transition-name: site-header; }
 html:active-view-transition-type(page) .context-bar { view-transition-name: context-bar; }
@@ -609,6 +612,4 @@ html:active-view-transition-type(page)::view-transition-group(context-bar) {
    but the initial avatar is a span) */
 .vt-box { display: inline-flex; flex-shrink: 0; border-radius: var(--radius-full); }
 
-@media (prefers-reduced-motion: reduce) {
-  @view-transition { navigation: none; }
-}
+/* Reduced motion turns page transitions off: also inline in the layout */
