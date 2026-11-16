@@ -12,6 +12,19 @@ import { primeAudio, celebrateVictory } from './components/victory-celebration.j
 import './components/live-scores.js';
 import './units.js';
 
+/* A toast from the browser, matching the server's (toastHtml in src/datastar.ts):
+   for errors noticed here, like a score that didn't save */
+window.showToast = (message, kind = 'success') => {
+  const toasts = document.getElementById('toasts');
+  if (!toasts) return;
+  const toast = document.createElement('div');
+  toast.className = `toast toast--${kind}`;
+  toast.setAttribute('role', kind === 'error' ? 'alert' : 'status');
+  toast.textContent = message;
+  toasts.append(toast);
+  setTimeout(() => toast.remove(), kind === 'error' ? 6000 : 3500);
+};
+
 /* Mount a shared confirm-dialog for programmatic use */
 const dialog = document.createElement('confirm-dialog');
 document.body.appendChild(dialog);
