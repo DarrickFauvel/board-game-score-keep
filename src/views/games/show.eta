@@ -24,54 +24,18 @@
   </div>
 </div>
 
-<div style="display:grid;grid-template-columns:1fr;gap:var(--space-4)">
-
-  <% if (it.game.image_url) { %>
-  <game-image src="<%= it.imgUrl(it.game.image_url) %>" alt="<%= it.game.name %>" max-height="20rem" style="border-radius:var(--radius-lg);overflow:hidden"></game-image>
-  <% } %>
-
-  <section aria-labelledby="details-heading" class="card">
-    <div class="card__body">
-      <h2 id="details-heading" style="font-size:var(--text-base);margin-bottom:var(--space-2)">Game details</h2>
-      <dl style="display:grid;grid-template-columns:auto 1fr;gap:var(--space-1) var(--space-3)">
-        <dt style="font-weight:600;color:var(--color-text-muted)">Scoring</dt>
-        <dd><%= it.game.scoring_mode === 'tally' ? 'Running tally' : it.game.scoring_mode === 'final' ? 'Final score' : 'Custom categories' %></dd>
-        <% const u = it.units(it.game) %>
-        <% if (it.game.scoring_mode === 'tally' && it.game.suggested_rounds) { %>
-        <dt style="font-weight:600;color:var(--color-text-muted)"><%= u.Rounds %></dt>
-        <dd><%= it.game.suggested_rounds %> per game</dd>
-        <% } %>
-        <% const lowestWins = it.winRule(it.game).lowestWins %>
-        <dt style="font-weight:600;color:var(--color-text-muted)">Winner</dt>
-        <dd><%= lowestWins ? 'Lowest score' : 'Highest score' %></dd>
-        <% if (it.game.target_score) { %>
-        <dt style="font-weight:600;color:var(--color-text-muted)"><%= lowestWins ? 'Game ends' : 'To win' %></dt>
-        <dd><%= lowestWins ? 'When someone reaches' : 'First to' %> <%= u.pointCount(Number(it.game.target_score)) %></dd>
-        <% } %>
-        <dt style="font-weight:600;color:var(--color-text-muted)">Teams</dt>
-        <dd><%= it.game.teams_mode === 'none' ? 'Individual players' : it.game.teams_mode === 'adhoc' ? 'Ad-hoc teams' : 'Profile-linked teams' %></dd>
-        <% if (it.game.rules_url || it.game.rules_video_url || it.game.bgg_url) { %>
-        <dt style="font-weight:600;color:var(--color-text-muted)">Rules &amp; info</dt>
-        <dd class="link-list">
-          <% if (it.game.rules_url) { %><a href="<%= it.game.rules_url %>" target="_blank" rel="noopener noreferrer external">Read the rules<span aria-hidden="true"> ↗</span><span class="visually-hidden"> (opens in a new tab)</span></a><% } %>
-          <% if (it.game.rules_video_url) { %><a href="<%= it.game.rules_video_url %>" target="_blank" rel="noopener noreferrer external">Watch how to play<span aria-hidden="true"> ↗</span><span class="visually-hidden"> (opens in a new tab)</span></a><% } %>
-          <% if (it.game.bgg_url) { %><a href="<%= it.game.bgg_url %>" target="_blank" rel="noopener noreferrer external">View on BoardGameGeek<span aria-hidden="true"> ↗</span><span class="visually-hidden"> (opens in a new tab)</span></a><% } %>
-        </dd>
-        <% } %>
-        <% if (it.categories.length > 0) { %>
-        <dt style="font-weight:600;color:var(--color-text-muted)">Categories</dt>
-        <dd><%= it.categories.map(c => c.name).join(', ') %></dd>
-        <% } %>
-      </dl>
-    </div>
-  </section>
-
+<%/* Sessions are the page's main column; the cover, how it plays and
+     copying sit beside them from laptops up, and under them on phones */%>
+<div class="game-page">
+  <div class="game-page__main">
   <section aria-labelledby="sessions-heading">
     <div class="section-head"><h2 id="sessions-heading">Session history</h2></div>
 
     <% if (it.sessions.length === 0) { %>
-    <div class="empty-state" style="padding:var(--space-4)">
-      <p>No sessions recorded yet. <a href="/games/<%= it.game.id %>/sessions/new" style="color:var(--color-border-focus)">Start the first session!</a></p>
+    <div class="empty-state">
+      <h3 class="empty-state__title">No sessions yet</h3>
+      <p style="margin-bottom:var(--space-3)">Play it once and every round lands here.</p>
+      <a href="/games/<%= it.game.id %>/sessions/new" class="btn btn--primary">Start the first session</a>
     </div>
     <% } else { %>
     <div class="stack" role="list">
@@ -89,12 +53,54 @@
     </div>
     <% } %>
   </section>
+  </div>
+
+  <aside class="game-page__aside" aria-label="About <%= it.game.name %>">
+  <% if (it.game.image_url) { %>
+  <game-image src="<%= it.imgUrl(it.game.image_url) %>" alt="<%= it.game.name %>" max-height="16rem" class="game-aside__cover"></game-image>
+  <% } %>
+
+  <section aria-labelledby="details-heading" class="card">
+    <div class="card__body">
+      <h2 id="details-heading" class="card__heading">How it plays</h2>
+      <dl class="details-list">
+        <dt>Scoring</dt>
+        <dd><%= it.game.scoring_mode === 'tally' ? 'Running tally' : it.game.scoring_mode === 'final' ? 'Final score' : 'Custom categories' %></dd>
+        <% const u = it.units(it.game) %>
+        <% if (it.game.scoring_mode === 'tally' && it.game.suggested_rounds) { %>
+        <dt><%= u.Rounds %></dt>
+        <dd><%= it.game.suggested_rounds %> per game</dd>
+        <% } %>
+        <% const lowestWins = it.winRule(it.game).lowestWins %>
+        <dt>Winner</dt>
+        <dd><%= lowestWins ? 'Lowest score' : 'Highest score' %></dd>
+        <% if (it.game.target_score) { %>
+        <dt><%= lowestWins ? 'Game ends' : 'To win' %></dt>
+        <dd><%= lowestWins ? 'When someone reaches' : 'First to' %> <%= u.pointCount(Number(it.game.target_score)) %></dd>
+        <% } %>
+        <dt>Teams</dt>
+        <dd><%= it.game.teams_mode === 'none' ? 'Individual players' : it.game.teams_mode === 'adhoc' ? 'Ad-hoc teams' : 'Profile-linked teams' %></dd>
+        <% if (it.game.rules_url || it.game.rules_video_url || it.game.bgg_url) { %>
+        <dt>Rules &amp; info</dt>
+        <dd class="link-list">
+          <% if (it.game.rules_url) { %><a href="<%= it.game.rules_url %>" target="_blank" rel="noopener noreferrer external">Read the rules<span aria-hidden="true"> ↗</span><span class="visually-hidden"> (opens in a new tab)</span></a><% } %>
+          <% if (it.game.rules_video_url) { %><a href="<%= it.game.rules_video_url %>" target="_blank" rel="noopener noreferrer external">Watch how to play<span aria-hidden="true"> ↗</span><span class="visually-hidden"> (opens in a new tab)</span></a><% } %>
+          <% if (it.game.bgg_url) { %><a href="<%= it.game.bgg_url %>" target="_blank" rel="noopener noreferrer external">View on BoardGameGeek<span aria-hidden="true"> ↗</span><span class="visually-hidden"> (opens in a new tab)</span></a><% } %>
+        </dd>
+        <% } %>
+        <% if (it.categories.length > 0) { %>
+        <dt>Categories</dt>
+        <dd><%= it.categories.map(c => c.name).join(', ') %></dd>
+        <% } %>
+      </dl>
+    </div>
+  </section>
 
   <%/* Only for people in another group where they can add games */%>
   <% if (it.copyTargets.length) { %>
   <section aria-labelledby="copy-heading" class="card" id="copy">
     <div class="card__body">
-      <h2 id="copy-heading" style="font-size:var(--text-base);margin-bottom:var(--space-1)">Copy to another group</h2>
+      <h2 id="copy-heading" class="card__heading">Copy to another group</h2>
       <p class="form-hint" id="copy-hint" style="margin-bottom:var(--space-2)">
         Copies the game's settings: scoring, <%= it.units(it.game).rounds %>, categories, colors and links. Sessions and scores stay here.<% if (it.game.teams_mode === 'profiles') { %> Teams aren't copied, so set them up again in the other group.<% } %>
       </p>
@@ -111,5 +117,5 @@
     </div>
   </section>
   <% } %>
-
+  </aside>
 </div>
