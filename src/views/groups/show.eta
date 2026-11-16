@@ -5,11 +5,12 @@ const roleHelp = it.roleHelp;
 %>
 
 <div class="page-header">
-  <div>
+  <div class="page-header__text">
+    <a href="/groups" class="page-header__eyebrow"><span aria-hidden="true">←</span> Your groups</a>
     <h1 class="page-header__title" id="group-title"><%= it.group.name %></h1>
-    <div style="font-size:var(--text-sm);color:var(--color-text-muted)">You're <%= it.role === 'player' ? 'a' : 'an' %> <%= it.roleLabel[it.role].toLowerCase() %> here</div>
+    <div class="page-header__lede">You're <%= it.role === 'player' ? 'a' : 'an' %> <%= it.roleLabel[it.role].toLowerCase() %> here</div>
   </div>
-  <div style="display:flex;gap:var(--space-2);flex-wrap:wrap;align-items:center">
+  <div class="page-header__actions">
     <% if (!it.isCurrent) { %>
     <form action="/groups/switch" method="POST" style="margin:0">
       <input type="hidden" name="group_id" value="<%= it.group.id %>">

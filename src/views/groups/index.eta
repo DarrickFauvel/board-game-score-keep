@@ -1,13 +1,14 @@
 <% layout('../layouts/base') %>
 
 <div class="page-header">
-  <h1 class="page-header__title">Your groups</h1>
+  <div class="page-header__text">
+    <h1 class="page-header__title">Your groups</h1>
+    <p class="page-header__lede">
+      A group shares its games, guests and history: your family, your Friday night crew, your club.
+      Everyone in it sees the same scoreboards and hall of fame.
+    </p>
+  </div>
 </div>
-
-<p style="color:var(--color-text-muted);max-width:60ch;margin-bottom:var(--space-4)">
-  A group shares its games, guests and history: your family, your Friday night crew, your club.
-  Everyone in it sees the same scoreboards and Hall of Fame.
-</p>
 
 <ul role="list" style="list-style:none;display:grid;gap:var(--space-2);margin-bottom:var(--space-6)">
   <% it.groups.forEach(function(g) { %>

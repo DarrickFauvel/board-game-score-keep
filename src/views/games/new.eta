@@ -2,8 +2,13 @@
 
 <div style="max-width:48rem; margin:0 auto" data-signals="{scoringMode:'tally'}">
   <div class="page-header">
-    <h1 class="page-header__title">Add a game</h1>
-    <a href="/games" class="btn btn--secondary">Cancel</a>
+    <div class="page-header__text">
+      <a href="/games" class="page-header__eyebrow"><span aria-hidden="true">←</span> Games</a>
+      <h1 class="page-header__title">Add a game</h1>
+    </div>
+    <div class="page-header__actions">
+      <a href="/games" class="btn btn--secondary">Cancel</a>
+    </div>
   </div>
 
   <% if (it.error) { %>

@@ -2,8 +2,13 @@
 
 <div style="max-width:48rem;margin:0 auto">
   <div class="page-header">
-    <h1 class="page-header__title">New session: <%= it.game.name %></h1>
-    <a href="/games/<%= it.game.id %>" class="btn btn--secondary">Cancel</a>
+    <div class="page-header__text">
+      <a href="/games/<%= it.game.id %>" class="page-header__eyebrow"><span aria-hidden="true">←</span> <%= it.game.name %></a>
+      <h1 class="page-header__title">New session</h1>
+    </div>
+    <div class="page-header__actions">
+      <a href="/games/<%= it.game.id %>" class="btn btn--secondary">Cancel</a>
+    </div>
   </div>
 
   <form action="/games/<%= it.game.id %>/sessions" method="POST" novalidate>

@@ -13,9 +13,9 @@ const sections = [
 %>
 
 <div class="page-header">
-  <div>
+  <div class="page-header__text">
+    <p class="page-header__eyebrow"><%= it.group.name %></p>
     <h1 class="page-header__title">Players</h1>
-    <div style="font-size:var(--text-sm);color:var(--color-text-muted)"><%= it.group.name %></div>
   </div>
 </div>
 
