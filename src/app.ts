@@ -78,6 +78,8 @@ export function createApp() {
             ...data, me, config, imgUrl: resolveImageUrl, imgOriginal: resolveOriginalUrl, imgCrop: cropOf,
             avatar, units: gameUnits, winRule, currentPath: req.originalUrl.split('?')[0],
           });
+          // Always current: going Back shouldn't show a copy from before an instant save
+          res.set('Cache-Control', 'no-store');
           res.send(html);
         } catch (err) { next(err); }
       })();

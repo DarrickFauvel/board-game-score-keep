@@ -27,7 +27,7 @@
        form, naming the field that changed so only it flashes. The button at the
        end is only for browsers without JavaScript. */%>
   <% const settingsUrl = `/games/${it.game.id}/settings` %>
-  <form action="<%= settingsUrl %>" method="POST" novalidate id="game-settings"
+  <form action="<%= settingsUrl %>" method="POST" novalidate id="game-settings" data-autosave
         data-on:submit__prevent="@post('<%= settingsUrl %>?field=name', {contentType: 'form'})"
         data-on:input__debounce.700ms="@post('<%= settingsUrl %>?field=' + (evt.target.dataset.field || evt.target.id), {contentType: 'form'})">
 
