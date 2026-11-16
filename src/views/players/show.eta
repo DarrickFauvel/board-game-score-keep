@@ -5,10 +5,7 @@
     <%~ it.avatar(it.player.avatar_url, it.player.display_name, it.player.preferred_color, 'avatar--lg') %>
     <div>
       <h1 style="font-size:var(--text-xl)"><%= it.player.display_name %></h1>
-      <div style="font-size:var(--text-sm);color:var(--color-text-muted)">
-        <% if (!it.player.user_id) { %><span class="badge">Guest</span><% } %>
-        <%= it.player.preferred_token || '' %>
-      </div>
+      <% if (!it.player.user_id) { %><div style="font-size:var(--text-sm);color:var(--color-text-muted)"><span class="badge">Guest</span></div><% } %>
     </div>
   </div>
   <% if (it.canEdit) { %>

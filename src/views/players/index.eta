@@ -37,8 +37,6 @@ const sections = [
         <span style="display:block;font-weight:600"><%= p.display_name %><%= p.user_id === it.user.sub ? ' (you)' : '' %></span>
         <% if (p.hidden_at) { %>
         <span style="font-size:var(--text-xs);color:var(--color-text-muted)">Hidden from suggestions</span>
-        <% } else if (p.preferred_token) { %>
-        <span style="font-size:var(--text-xs);color:var(--color-text-muted)"><%= p.preferred_token %></span>
         <% } %>
       </span>
     </a>

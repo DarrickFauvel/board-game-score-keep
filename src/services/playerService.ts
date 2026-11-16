@@ -302,13 +302,12 @@ export const playerService = {
       sql: `UPDATE players SET
               display_name = ?,
               preferred_color = ?,
-              preferred_token = ?,
               updated_at = strftime('%Y-%m-%dT%H:%M:%fZ','now')
               ${avatarUrl !== undefined ? ', avatar_url = ?' : ''}
             WHERE id = ?`,
       args: avatarUrl !== undefined
-        ? [body.display_name as string, (body.preferred_color as string) || null, (body.preferred_token as string) || null, avatarUrl, id]
-        : [body.display_name as string, (body.preferred_color as string) || null, (body.preferred_token as string) || null, id],
+        ? [body.display_name as string, (body.preferred_color as string) || null, avatarUrl, id]
+        : [body.display_name as string, (body.preferred_color as string) || null, id],
     });
   },
 };
