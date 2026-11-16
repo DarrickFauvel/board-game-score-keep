@@ -1,5 +1,6 @@
 import { Router, type Request, type Response } from 'express';
-import { isDatastar, reply, saved, flash } from '../datastar.js';
+import { randomBytes } from 'node:crypto';
+import { isDatastar, reply, saved, invalid, clearError, toast, flash, escapeText } from '../datastar.js';
 import { GROUP_COOKIE, groupCookieOptions } from '../middleware/group.js';
 import { body, validationResult } from 'express-validator';
 import { gameService } from '../services/gameService.js';
@@ -21,14 +22,15 @@ import { normalizeUnitName, UNIT_NAME_ERROR } from '../services/units.js';
 /** The game's optional links and unit names, normalized, or the message for the first bad one. */
 function parseGameExtras(body: Record<string, unknown>) {
   const bggUrl = normalizeBggUrl(body.bgg_url);
-  if (bggUrl === false) return { error: BGG_URL_ERROR } as const;
+  if (bggUrl === false) return { field: 'bgg_url', error: BGG_URL_ERROR } as const;
   const rulesUrl = normalizeRulesUrl(body.rules_url);
-  if (rulesUrl === false) return { error: RULES_URL_ERROR } as const;
+  if (rulesUrl === false) return { field: 'rules_url', error: RULES_URL_ERROR } as const;
   const rulesVideoUrl = normalizeRulesVideoUrl(body.rules_video_url);
-  if (rulesVideoUrl === false) return { error: RULES_VIDEO_URL_ERROR } as const;
+  if (rulesVideoUrl === false) return { field: 'rules_video_url', error: RULES_VIDEO_URL_ERROR } as const;
   const roundName = normalizeUnitName(body.round_name);
   const pointName = normalizeUnitName(body.point_name);
-  if (roundName === false || pointName === false) return { error: UNIT_NAME_ERROR } as const;
+  if (roundName === false) return { field: 'round_name', error: UNIT_NAME_ERROR } as const;
+  if (pointName === false) return { field: 'point_name', error: UNIT_NAME_ERROR } as const;
   return {
     fields: { bgg_url: bggUrl, rules_url: rulesUrl, rules_video_url: rulesVideoUrl, round_name: roundName, point_name: pointName },
   } as const;
@@ -121,45 +123,110 @@ router.post('/:id/copy', async (req, res, next) => {
 
 router.get('/:id/edit', async (req, res, next) => {
   try {
-    const game = await gameService.findById(req.params.id, req.user.sub);
-    if (!game) return next(Object.assign(new Error('Not found'), { status: 404 }));
-    if (!can(roleOf(game), 'manageGames')) return next(forbidden('edit games'));
-    const { scoreService } = await import('../services/scoreService.js');
-    const categories = await scoreService.listCategories(req.params.id);
-    res.renderEta('games/edit', { title: `Edit ${game.name}`, game, categories, user: req.user, error: null });
+    const found = await editableGame(req);
+    if ('error' in found) return next(found.error);
+    await renderEdit(req, res, found.game);
   } catch (err) { next(err); }
 });
 
-router.post('/:id',
-  upload.single('image'),
-  body('name').trim().isLength({ min: 1, max: 120 }),
-  body('scoring_mode').isIn(['tally', 'final', 'categories']),
-  body('teams_mode').isIn(['none', 'adhoc', 'profiles']),
-  async (req, res, next) => {
-    try {
-      const game = await gameService.findById(req.params.id, req.user.sub);
-      if (!game) return next(Object.assign(new Error('Not found'), { status: 404 }));
-      if (!can(roleOf(game), 'manageGames')) return next(forbidden('edit games'));
-      const errors = validationResult(req);
-      if (!errors.isEmpty()) {
-        const { scoreService } = await import('../services/scoreService.js');
-        const categories = await scoreService.listCategories(req.params.id);
-        return res.status(400).renderEta('games/edit', { title: `Edit ${game.name}`, game, categories, user: req.user, error: 'Please fill in all required fields.' });
-      }
-      const parsed = parseGameExtras(req.body);
-      if ('error' in parsed) {
-        const { scoreService } = await import('../services/scoreService.js');
-        const categories = await scoreService.listCategories(req.params.id);
-        // Keep what was typed so it can be corrected
-        const typed = { ...game, bgg_url: req.body.bgg_url, rules_url: req.body.rules_url, rules_video_url: req.body.rules_video_url,
-          round_name: req.body.round_name, point_name: req.body.point_name, lowest_wins: req.body.lowest_wins };
-        return res.status(400).renderEta('games/edit', { title: `Edit ${game.name}`, game: typed, categories, user: req.user, error: parsed.error });
-      }
-      await gameService.update(req.params.id, { ...req.body, ...parsed.fields } as Record<string, unknown>, req.file);
-      res.redirect(`/games/${req.params.id}`);
-    } catch (err) { next(err); }
+/**
+ * The settings form, checked as a whole (it always carries every field),
+ * so a scoring-mode switch only saves once the fields it needs are valid.
+ * On failure, `field` is the id of the input to mark.
+ */
+function parseSettings(body: Record<string, unknown>) {
+  const fail = (field: string, error: string) => ({ field, error } as const);
+  const name = String(body.name ?? '').trim();
+  if (!name || name.length > 120) return fail('name', 'Give the game a name, up to 120 characters.');
+  if (!['tally', 'final', 'categories'].includes(String(body.scoring_mode))) return fail('scoring_mode', 'Pick a scoring mode.');
+  if (!['none', 'adhoc', 'profiles'].includes(String(body.teams_mode ?? 'none'))) return fail('teams_mode', 'Pick how teams work.');
+  const extras = parseGameExtras(body);
+  if ('error' in extras) return fail(String(extras.field), String(extras.error));
+  if (body.scoring_mode === 'categories') {
+    const names = (Array.isArray(body.categories) ? body.categories : [body.categories]).map((c) => String(c ?? '').trim());
+    if (!names.some(Boolean)) return fail('categories', 'Add at least one category to score by.');
   }
-);
+  return { fields: { ...body, name, ...extras.fields } as Record<string, unknown> } as const;
+}
+
+/** The edit page, with each category's recorded-score count for the remove dialog. */
+async function renderEdit(req: Request, res: Response, game: Record<string, unknown>, error: string | null = null, status = 200) {
+  const { scoreService } = await import('../services/scoreService.js');
+  const [categories, scoreCounts] = await Promise.all([
+    scoreService.listCategories(String(game.id)),
+    gameService.categoryScoreCounts(String(game.id)),
+  ]);
+  const blankCategories = ['e.g. Roads', 'e.g. Cities'].map((placeholder) => ({ id: randomBytes(16).toString('hex'), name: '', placeholder }));
+  res.status(status).renderEta('games/edit', { title: `Edit ${game.name}`, game, categories, scoreCounts, blankCategories, user: req.user, error });
+}
+
+/** The game, if you may edit it; otherwise the error to pass on. */
+async function editableGame(req: Request) {
+  const game = await gameService.findById(req.params.id, req.user.sub);
+  if (!game) return { error: notFound() } as const;
+  if (!can(roleOf(game), 'manageGames')) return { error: forbidden('edit games') } as const;
+  return { game } as const;
+}
+
+const SETTINGS_FIELDS = ['name', 'bgg_url', 'rules_url', 'rules_video_url', 'scoring_mode', 'round_name', 'suggested_rounds',
+  'point_name', 'lowest_wins', 'target_score', 'categories', 'teams_mode', 'color_primary', 'color_secondary', 'color_accent'];
+
+// Every setting but the picture: saves as it changes (Datastar), or with the no-JavaScript button
+router.post('/:id/settings', async (req, res, next) => {
+  try {
+    const found = await editableGame(req);
+    if ('error' in found) return next(found.error);
+    const { game } = found;
+    const parsed = parseSettings(req.body);
+
+    if (isDatastar(req)) {
+      // Which field changed, so only it flashes (the whole form is saved either way)
+      const changed = SETTINGS_FIELDS.includes(String(req.query.field)) ? String(req.query.field) : 'name';
+      return reply(req, res, async (sse) => {
+        if ('error' in parsed) return invalid(sse, `save-${parsed.field}`, parsed.error);
+        await gameService.updateSettings(String(game.id), parsed.fields);
+        for (const f of SETTINGS_FIELDS) clearError(sse, `save-${f}`);
+        saved(sse, `save-${changed}`, 'Saved');
+        if (changed === 'name') {
+          sse.patchElements(escapeText(`Edit: ${parsed.fields.name}`), { selector: '#game-edit-title', mode: 'inner' });
+        }
+      });
+    }
+    if ('error' in parsed) return await renderEdit(req, res, { ...game, ...req.body }, parsed.error, 400);
+    await gameService.updateSettings(String(game.id), parsed.fields);
+    flash(res, 'Game saved');
+    res.redirect(303, `/games/${game.id}`);
+  } catch (err) { next(err); }
+});
+
+// A new picture: its own save, so a field change never re-uploads it
+router.post('/:id/image', upload.single('image'), async (req, res, next) => {
+  try {
+    const found = await editableGame(req);
+    if ('error' in found) return next(found.error);
+    if (await gameService.updateImage(String(found.game.id), req.body as Record<string, unknown>, req.file)) {
+      flash(res, 'Picture saved');
+    }
+    res.redirect(303, `/games/${found.game.id}/edit`);
+  } catch (err) { next(err); }
+});
+
+// Remove one score category (asked first on the page)
+router.post('/:id/categories/:categoryId/delete', async (req, res, next) => {
+  try {
+    const found = await editableGame(req);
+    if ('error' in found) return next(found.error);
+    await gameService.removeCategory(String(found.game.id), req.params.categoryId);
+    if (isDatastar(req)) {
+      return reply(req, res, (sse) => {
+        sse.removeElements(`#category-${req.params.categoryId}`);
+        toast(sse, 'Category removed');
+      });
+    }
+    flash(res, 'Category removed');
+    res.redirect(303, `/games/${found.game.id}/edit`);
+  } catch (err) { next(err); }
+});
 
 router.post('/:id/delete', async (req, res, next) => {
   try {
