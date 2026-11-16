@@ -9,6 +9,8 @@
  *
  * data: { gameName, score, winners: [{ name, color }] }
  */
+import { icon } from '../icons.js';
+
 
 let audioCtx = null;
 
@@ -274,7 +276,7 @@ function addStyles() {
     .victory::backdrop { background: var(--color-chrome); }
     .victory__confetti { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; }
     .victory__card { position: relative; display: grid; gap: var(--space-2); justify-items: center; max-width: 32rem; margin-block: auto; }
-    .victory__trophy { font-size: clamp(4rem, 3rem + 8vw, 7rem); line-height: 1; animation: victory-pop 700ms cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+    .victory__trophy { font-size: clamp(4rem, 3rem + 8vw, 7rem); line-height: 1; color: var(--color-gold); animation: victory-pop 700ms cubic-bezier(0.34, 1.56, 0.64, 1) both; }
     .victory__eyebrow { font-size: var(--text-sm); letter-spacing: 0.12em; text-transform: uppercase; color: var(--color-gold); }
     .victory__title {
       font-family: var(--font-display); font-weight: 700;
@@ -290,7 +292,7 @@ function addStyles() {
       animation: victory-rise 600ms 425ms ease-out both;
     }
     .victory__actions { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--space-2); margin-top: var(--space-2); animation: victory-rise 600ms 500ms ease-out both; }
-    .victory__actions .btn--secondary { color: var(--color-chrome-text); border-color: color-mix(in oklab, var(--color-chrome-text) 50%, transparent); }
+    .victory__actions .btn--secondary { background: transparent; color: var(--color-chrome-text); border-color: color-mix(in oklab, var(--color-chrome-text) 50%, transparent); }
     .victory__actions .btn--secondary:active { background: var(--color-chrome-hover); }
     @media (hover: hover) and (pointer: fine) {
       .victory__actions .btn--secondary:hover { background: var(--color-chrome-hover); }
@@ -329,13 +331,13 @@ export function celebrateVictory(data) {
   dialog.innerHTML = `
     <canvas class="victory__confetti" aria-hidden="true"></canvas>
     <div class="victory__card">
-      <div class="victory__trophy" aria-hidden="true">🏆</div>
+      <div class="victory__trophy" aria-hidden="true">${icon('trophy', { strokeWidth: 1.5 })}</div>
       <p class="victory__eyebrow">${escapeHtml(data.gameName)}</p>
       <h2 class="victory__title" id="victory-title">${escapeHtml(title)}</h2>
       <p class="victory__detail" id="victory-detail">${escapeHtml(scoreLabel(data))}</p>
       ${facts.length ? `<ul class="victory__facts" id="victory-facts">${facts.map((f) => `<li>${escapeHtml(f)}</li>`).join('')}</ul>` : ''}
       <div class="victory__actions">
-        <button type="button" class="btn btn--gold" data-victory-sound>🔊 Play announcement</button>
+        <button type="button" class="btn btn--gold" data-victory-sound>${icon('volume')}Play announcement</button>
         <button type="button" class="btn btn--secondary" data-victory-close>Continue</button>
       </div>
     </div>`;
@@ -364,7 +366,7 @@ export function celebrateVictory(data) {
     // Sound plays on its own when the tap allowed it; otherwise the button is the way in
     if (soundAllowed()) {
       playAnnouncement(data);
-      soundBtn.textContent = '🔊 Hear it again';
+      soundBtn.innerHTML = `${icon('volume')}Hear it again`;
     }
     // Keep the trophy and title in view: showModal() scrolls its autofocused
     // button into view, and on a short screen the buttons may sit below the fold

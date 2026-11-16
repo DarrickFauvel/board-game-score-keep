@@ -15,7 +15,7 @@
 
 <% if (it.standings.length === 0) { %>
 <div class="empty-state">
-  <span class="empty-state__icon" aria-hidden="true">🏆</span>
+  <span class="empty-state__icon"><%~ it.icon('trophy') %></span>
   <h2 class="empty-state__title">No standings yet</h2>
   <p>Complete a session with two or more players<%= it.selectedGame ? ' of ' + it.selectedGame.name : '' %> and the rankings appear here.</p>
 </div>

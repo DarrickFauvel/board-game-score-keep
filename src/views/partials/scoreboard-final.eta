@@ -24,7 +24,7 @@ const isActive = it.session.status === 'active';
     %>
     <li id="participant-<%= p.id %>" class="round-row<%= isWinner ? ' score-winner' : '' %>">
       <%~ it.avatar(p.avatar_url, p.display_name, p.color || p.preferred_color, 'avatar--sm') %>
-      <span class="round-row__name"><%= p.display_name %><%= isWinner ? ' 🏆' : '' %></span>
+      <span class="round-row__name"><%= p.display_name %><%~ isWinner ? ' ' + it.icon('trophy', 'winner-icon') + '<span class="visually-hidden"> (winner)</span>' : '' %></span>
       <% if (isActive) { %>
       <score-input
         session-id="<%= it.session.id %>"

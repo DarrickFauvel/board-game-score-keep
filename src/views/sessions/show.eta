@@ -30,7 +30,7 @@ const hasWinner = it.winRule(it.game).winningTotal(Object.values(sessionTotals))
       <button type="submit" class="btn btn--gold">Complete session</button>
     </form>
     <% } else if (hasWinner) { %>
-    <button type="button" class="btn btn--gold" data-celebrate-url="/games/<%= it.game.id %>/sessions/<%= it.session.id %>/celebration">🎉 Celebrate again</button>
+    <button type="button" class="btn btn--gold" data-celebrate-url="/games/<%= it.game.id %>/sessions/<%= it.session.id %>/celebration">Celebrate again</button>
     <% } %>
     <% if (it.game.rules_url) { %>
     <a href="<%= it.game.rules_url %>" class="btn btn--secondary" target="_blank" rel="noopener noreferrer external">Rules<span aria-hidden="true"> ↗</span><span class="visually-hidden"> (opens in a new tab)</span></a>

@@ -32,7 +32,7 @@
 
 <% if (it.games.length === 0) { %>
 <div class="empty-state">
-  <span class="empty-state__icon" aria-hidden="true">🎲</span>
+  <span class="empty-state__icon"><%~ it.icon('dice') %></span>
   <h2 class="empty-state__title"><%= it.joined && it.joined.length ? 'No games of your own yet' : 'No games yet' %></h2>
   <p style="margin-bottom:var(--space-4)">Add your first game to start tracking sessions and scores.</p>
   <% if (it.canManageGames) { %>

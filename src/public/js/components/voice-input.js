@@ -1,3 +1,4 @@
+import { icon } from '../icons.js';
 class VoiceInput extends HTMLElement {
   #recognition = null;
   #btn = null;
@@ -44,7 +45,7 @@ class VoiceInput extends HTMLElement {
           button[data-active] { animation: none; }
         }
       </style>
-      <button type="button" aria-label="Start voice input" title="Click to speak">🎙</button>`;
+      <button type="button" aria-label="Start voice input" title="Click to speak">${icon('mic', { size: '1.25em' })}</button>`;
 
     this.#btn = this.shadowRoot.querySelector('button');
     this.#recognition = new SR();

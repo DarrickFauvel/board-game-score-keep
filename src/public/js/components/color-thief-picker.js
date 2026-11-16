@@ -1,3 +1,4 @@
+import { icon } from '../icons.js';
 class ColorThiefPicker extends HTMLElement {
   connectedCallback() {
     const targetSel = this.getAttribute('target-image');
@@ -7,7 +8,7 @@ class ColorThiefPicker extends HTMLElement {
 
     this.innerHTML = `
       <button type="button" class="btn btn--secondary btn--sm" style="margin-bottom:0.5rem" id="ctp-extract">
-        🎨 Extract colors from image
+        ${icon('palette')}Extract colors from image
       </button>`;
 
     this.querySelector('#ctp-extract').addEventListener('click', () => {
