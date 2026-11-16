@@ -85,8 +85,8 @@
       </form>
       <% } else { %>
       <qr-share></qr-share>
-      <a href="/auth/login">Sign In</a>
-      <a href="/auth/register" class="btn btn--gold">Create Account</a>
+      <a href="/auth/login<%= it.authQuery %>">Sign In</a>
+      <a href="/auth/register<%= it.authQuery %>" class="btn btn--gold">Create Account</a>
       <% } %>
     </nav>
 
@@ -123,8 +123,8 @@
         <button type="submit" class="site-header__mobile-link" style="width:100%;text-align:left;background:none;border:none;cursor:pointer;font:inherit;color:inherit">Sign Out</button>
       </form>
       <% } else { %>
-      <a href="/auth/login" class="site-header__mobile-link">Sign In</a>
-      <a href="/auth/register" class="site-header__mobile-link">Create Account</a>
+      <a href="/auth/login<%= it.authQuery %>" class="site-header__mobile-link">Sign In</a>
+      <a href="/auth/register<%= it.authQuery %>" class="site-header__mobile-link">Create Account</a>
       <qr-share label="QR code"></qr-share>
       <% } %>
     </div>
