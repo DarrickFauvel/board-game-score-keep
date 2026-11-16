@@ -1,9 +1,14 @@
 <% layout('../layouts/base') %>
 
 <div class="page-header">
-  <h1 class="page-header__title">Games</h1>
+  <div class="page-header__text">
+    <% if (it.group) { %><p class="page-header__eyebrow"><%= it.group.name %></p><% } %>
+    <h1 class="page-header__title">Games</h1>
+  </div>
   <% if (it.canManageGames) { %>
-  <a href="/games/new" class="btn btn--gold">+ Add a game</a>
+  <div class="page-header__actions">
+    <a href="/games/new" class="btn btn--gold">+ Add a game</a>
+  </div>
   <% } %>
 </div>
 

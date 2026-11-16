@@ -8,15 +8,29 @@ const hasWinner = it.winRule(it.game).winningTotal(Object.values(sessionTotals))
 %>
 
 <div class="page-header">
-  <div>
+  <div class="page-header__text">
+    <%/* Group members go back to the game; players invited to just this session, to their games */%>
+    <% if (it.groupRole) { %>
+    <a href="/games/<%= it.game.id %>" class="page-header__eyebrow"><span aria-hidden="true">←</span> All sessions</a>
+    <% } else { %>
+    <a href="/games" class="page-header__eyebrow"><span aria-hidden="true">←</span> Games</a>
+    <% } %>
     <h1 class="page-header__title"><%= it.game.name %></h1>
-    <div style="font-size:var(--text-xs);color:var(--color-text-muted)">
-      <%= new Date(it.session.started_at).toLocaleDateString('en-US', {weekday:'long', month:'long', day:'numeric', year:'numeric'}) %>
-      <% if (it.hostName) { %> · Hosted by <%= it.hostName %><% } %>
-    </div>
+    <p class="page-header__lede">
+      <span class="badge badge--<%= it.session.status === 'active' ? 'active' : 'complete' %>"><%= it.session.status %></span>
+      <span>
+        <%= new Date(it.session.started_at).toLocaleDateString('en-US', {weekday:'long', month:'long', day:'numeric', year:'numeric'}) %>
+        <% if (it.hostName) { %> · Hosted by <%= it.hostName %><% } %>
+      </span>
+      <% if (it.game.rules_url) { %>
+      <a href="<%= it.game.rules_url %>" target="_blank" rel="noopener noreferrer external">Rules<span aria-hidden="true"> ↗</span><span class="visually-hidden"> (opens in a new tab)</span></a>
+      <% } %>
+      <% if (it.game.rules_video_url) { %>
+      <a href="<%= it.game.rules_video_url %>" target="_blank" rel="noopener noreferrer external">Rules video<span aria-hidden="true"> ↗</span><span class="visually-hidden"> (opens in a new tab)</span></a>
+      <% } %>
+    </p>
   </div>
-  <div style="display:flex;gap:var(--space-2);align-items:center;flex-wrap:wrap">
-    <span class="badge badge--<%= it.session.status === 'active' ? 'active' : 'complete' %>"><%= it.session.status %></span>
+  <div class="page-header__actions">
     <% if (it.inviteUrl) { %>
     <qr-share url="<%= it.inviteUrl %>" label="Invite players" button-class="btn btn--secondary"
               heading="Join this game" hint="Scan with a phone camera to join <%= it.game.name %>. They sign in, then play along."></qr-share>
@@ -32,14 +46,6 @@ const hasWinner = it.winRule(it.game).winningTotal(Object.values(sessionTotals))
     <% } else if (hasWinner) { %>
     <button type="button" class="btn btn--gold" data-celebrate-url="/games/<%= it.game.id %>/sessions/<%= it.session.id %>/celebration">🎉 Celebrate again</button>
     <% } %>
-    <% if (it.game.rules_url) { %>
-    <a href="<%= it.game.rules_url %>" class="btn btn--secondary" target="_blank" rel="noopener noreferrer external">Rules<span aria-hidden="true"> ↗</span><span class="visually-hidden"> (opens in a new tab)</span></a>
-    <% } %>
-    <% if (it.game.rules_video_url) { %>
-    <a href="<%= it.game.rules_video_url %>" class="btn btn--secondary" target="_blank" rel="noopener noreferrer external">Rules video<span aria-hidden="true"> ↗</span><span class="visually-hidden"> (opens in a new tab)</span></a>
-    <% } %>
-    <%/* Group members go back to the game; players invited to just this session, to their games */%>
-    <a href="<%= it.groupRole ? '/games/' + it.game.id : '/games' %>" class="btn btn--secondary">Back</a>
   </div>
 </div>
 

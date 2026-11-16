@@ -1,7 +1,10 @@
 <% layout('../layouts/base') %>
 
 <div class="page-header">
-  <h1 class="page-header__title">Standings</h1>
+  <div class="page-header__text">
+    <% if (it.group) { %><p class="page-header__eyebrow"><%= it.group.name %></p><% } %>
+    <h1 class="page-header__title">Standings</h1>
+  </div>
 </div>
 
 <% if (it.games.length > 1) { %>

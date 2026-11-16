@@ -359,19 +359,78 @@ textarea:focus-visible {
 .flash--info    { background: var(--color-info-bg); border-color: var(--color-info);    color: var(--color-info);    }
 
 /* ─── Page header section ────────────────────────── */
+/* Every page opens the same way: an eyebrow (the group, or a link back to
+   the page above), the title, an optional one-line lede, and the page's
+   actions. Actions sit right of the title from tablets up, and stack
+   full-width under it on phones. */
 .page-header {
   margin-bottom: var(--space-4);
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
+  display: grid;
   gap: var(--space-2);
+}
+@media (min-width: 48rem) {
+  .page-header {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+    column-gap: var(--space-4);
+  }
+}
+
+.page-header__text {
+  display: grid;
+  justify-items: start;
+  gap: 0.25rem;
+  min-width: 0;
 }
 
 .page-header__title {
   font-size: var(--text-xl);
-  /* Takes the full row on phones, so actions drop below instead of squeezing it */
-  flex: 1 1 12rem;
   min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.page-header__eyebrow {
+  font-family: var(--font-text);
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-gold-text);
+}
+/* As a link back up: a taller hit area without moving the title */
+a.page-header__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  min-height: 2rem;
+  margin-block: -0.4rem -0.15rem;
+  text-decoration: none;
+}
+a.page-header__eyebrow:hover { text-decoration: underline; text-underline-offset: 0.25em; }
+
+.page-header__lede {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 0.75rem;
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  max-width: 60ch;
+}
+.page-header__lede a { color: var(--color-text); text-underline-offset: 0.2em; }
+
+.page-header__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+}
+@media (max-width: 47.99rem) {
+  .page-header__actions > * { flex: 1 1 10rem; }
+  .page-header__actions > form .btn,
+  .page-header__actions > .btn,
+  .page-header__actions > qr-share .btn { width: 100%; }
 }
 
 /* ─── Section spacing ────────────────────────────── */

@@ -3,10 +3,15 @@
 
 <div style="max-width:36rem;margin:0 auto">
   <div class="page-header">
-    <h1 class="page-header__title"><%= it.title %></h1>
-    <a href="/players/<%= it.player.id %>" class="btn btn--secondary">Done</a>
+    <div class="page-header__text">
+      <a href="/players/<%= it.player.id %>" class="page-header__eyebrow"><span aria-hidden="true">←</span> <%= it.player.display_name %></a>
+      <h1 class="page-header__title"><%= it.title %></h1>
+      <p class="page-header__lede">Name and color save automatically. A new picture saves with its own button.</p>
+    </div>
+    <div class="page-header__actions">
+      <a href="/players/<%= it.player.id %>" class="btn btn--secondary">Done</a>
+    </div>
   </div>
-  <p class="form-hint autosave-note">Name and color save automatically. A new picture saves with its own button.</p>
 
   <% if (it.error) { %>
   <div class="flash flash--error" role="alert"><%= it.error %></div>

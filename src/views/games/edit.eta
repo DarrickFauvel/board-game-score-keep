@@ -2,10 +2,15 @@
 
 <div style="max-width:48rem;margin:0 auto" data-signals="{scoringMode:'<%= it.game.scoring_mode %>'}">
   <div class="page-header">
-    <h1 class="page-header__title" id="game-edit-title">Edit: <%= it.game.name %></h1>
-    <a href="/games/<%= it.game.id %>" class="btn btn--secondary">Done</a>
+    <div class="page-header__text">
+      <a href="/games/<%= it.game.id %>" class="page-header__eyebrow"><span aria-hidden="true">←</span> <%= it.game.name %></a>
+      <h1 class="page-header__title" id="game-edit-title">Edit game</h1>
+      <p class="page-header__lede">Changes save automatically.</p>
+    </div>
+    <div class="page-header__actions">
+      <a href="/games/<%= it.game.id %>" class="btn btn--secondary">Done</a>
+    </div>
   </div>
-  <p class="form-hint autosave-note">Changes save automatically.</p>
 
   <% if (it.error) { %>
   <div class="flash flash--error" role="alert"><%= it.error %></div>
