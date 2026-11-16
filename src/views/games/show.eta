@@ -79,4 +79,26 @@
     <% } %>
   </section>
 
+  <%/* Only for people in another group where they can add games */%>
+  <% if (it.copyTargets.length) { %>
+  <section aria-labelledby="copy-heading" class="card" id="copy">
+    <div class="card__body">
+      <h2 id="copy-heading" style="font-size:var(--text-base);margin-bottom:var(--space-1)">Copy to another group</h2>
+      <p class="form-hint" id="copy-hint" style="margin-bottom:var(--space-2)">
+        Copies the game's settings: scoring, <%= it.units(it.game).rounds %>, categories, colors and links. Sessions and scores stay here.<% if (it.game.teams_mode === 'profiles') { %> Teams aren't copied, so set them up again in the other group.<% } %>
+      </p>
+      <% if (it.copyError) { %><div class="flash flash--error" role="alert" style="margin-bottom:var(--space-2)"><%= it.copyError %></div><% } %>
+      <form action="/games/<%= it.game.id %>/copy" method="POST" style="display:flex;flex-wrap:wrap;gap:var(--space-2);align-items:end">
+        <div style="flex:1 1 14rem">
+          <label class="form-label" for="copy-group">Group</label>
+          <select class="form-control" id="copy-group" name="group_id" aria-describedby="copy-hint">
+            <% it.copyTargets.forEach(function(g) { %><option value="<%= g.id %>"><%= g.name %></option><% }) %>
+          </select>
+        </div>
+        <button type="submit" class="btn btn--secondary">Copy game</button>
+      </form>
+    </div>
+  </section>
+  <% } %>
+
 </div>
