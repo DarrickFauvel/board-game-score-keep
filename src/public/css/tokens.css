@@ -7,13 +7,14 @@
   --space-6: 3rem;
   --space-8: 4rem;
 
-  /* ─── Typography — fluid, 20px min ───────────── */
-  --text-xs:   clamp(0.875rem, 0.8rem + 0.25vw, 1rem);
-  --text-sm:   clamp(1rem, 0.9rem + 0.5vw, 1.125rem);
-  --text-base: clamp(1.25rem, 1.1rem + 0.75vw, 1.5rem);
-  --text-lg:   clamp(1.5rem, 1.3rem + 1vw, 2rem);
-  --text-xl:   clamp(2rem, 1.6rem + 2vw, 3rem);
-  --text-2xl:  clamp(2.5rem, 2rem + 2.5vw, 4rem);
+  /* ─── Typography: on a 16px root ──────────────
+     Body text is 16px on phones, 17px from tablets up; headings stay fluid. */
+  --text-xs:   0.8125rem;
+  --text-sm:   0.875rem;
+  --text-base: 1rem;
+  --text-lg:   1.25rem;
+  --text-xl:   clamp(1.75rem, 1.4rem + 1.5vw, 2.5rem);
+  --text-2xl:  clamp(2.25rem, 1.8rem + 2vw, 3.5rem);
 
   /* ─── Type ───────────────────────────────────────
      Newsreader for headings, the wordmark and scores: its optical sizes keep
@@ -25,7 +26,7 @@
   --font-mono:    ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
 
   /* ─── Touch targets ──────────────────────────── */
-  --tap-min: 3rem; /* 48px — exceeds WCAG 2.1 AA */
+  --tap-min: 48px; /* in px so tap targets don't shrink with the type; exceeds WCAG 2.1 AA */
 
   /* ─── Line height ────────────────────────────── */
   --leading-tight:  1.2;
@@ -111,4 +112,8 @@
   --z-overlay: 100;
   --z-modal:   200;
   --z-toast:   300;
+}
+
+@media (min-width: 48rem) {
+  :root { --text-base: 1.0625rem; }
 }
