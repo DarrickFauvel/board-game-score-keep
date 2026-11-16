@@ -52,6 +52,24 @@ async function completeAndCelebrate(form) {
   }
 }
 
+/* Plain buttons (type="button") with data-confirm ask first, then fire a
+   "confirmed" event, so a Datastar action can follow:
+   data-on:confirmed="@post('/…/delete')" */
+document.addEventListener('click', async (e) => {
+  const btn = e.target.closest('button[type="button"][data-confirm]');
+  if (!btn) return;
+  e.preventDefault();
+  // "{name}" in the message is filled from a field's current value (data-confirm-name)
+  const field = btn.dataset.confirmName && document.querySelector(btn.dataset.confirmName);
+  const name = field?.value.trim();
+  const message = btn.dataset.confirm.replace('{name}', name ? `the ${name}` : 'this');
+  const ok = await window.confirmAction(message, {
+    title: btn.dataset.confirmTitle || 'Are you sure?',
+    confirmLabel: btn.dataset.confirmLabel || 'Confirm',
+  });
+  if (ok) btn.dispatchEvent(new CustomEvent('confirmed'));
+});
+
 /* "Celebrate again" on a completed session */
 document.addEventListener('click', async (e) => {
   const btn = e.target.closest('[data-celebrate-url]');

@@ -19,6 +19,22 @@ function lowestWins(body: Record<string, unknown>) {
   return isLowestWins(body.lowest_wins) ? 1 : 0;
 }
 
+export type CategoryRow = { id: string; name: string };
+
+const CATEGORY_ID = /^[0-9a-f]{32}$/;
+const list = (v: unknown) => (Array.isArray(v) ? v : v === undefined ? [] : [v]).map(String);
+
+/**
+ * The form's category rows: each has a hidden category_id beside its
+ * name. Blank names and malformed ids are dropped.
+ */
+export function categoryRows(body: Record<string, unknown>): CategoryRow[] {
+  const ids = list(body.category_id);
+  return list(body.categories)
+    .map((name, i) => ({ id: ids[i] ?? '', name: name.trim() }))
+    .filter((row) => row.name && CATEGORY_ID.test(row.id));
+}
+
 export const gameService = {
   /** The group's games, newest first. */
   async listForGroup(groupId: string) {
@@ -90,33 +106,66 @@ export const gameService = {
     return game;
   },
 
-  async update(id: string, body: Record<string, unknown>, file?: Express.Multer.File) {
-    const imageUrl = await resolveImageUrl(file, body.image_url as string | undefined, 'games');
+  /**
+   * Everything but the picture. Categories are saved in place (see
+   * saveCategories), so scores keep pointing at the categories they were
+   * recorded under.
+   */
+  async updateSettings(id: string, body: Record<string, unknown>) {
     await db.execute({
       sql: `UPDATE games SET
               name = ?, scoring_mode = ?, teams_mode = ?,
               color_primary = ?, color_secondary = ?, color_accent = ?, suggested_rounds = ?, target_score = ?, bgg_url = ?, rules_url = ?, rules_video_url = ?, round_name = ?, point_name = ?, lowest_wins = ?,
               updated_at = strftime('%Y-%m-%dT%H:%M:%fZ','now')
-              ${imageUrl !== undefined ? ', image_url = ?' : ''}
             WHERE id = ?`,
-      args: imageUrl !== undefined
-        ? [body.name as string, body.scoring_mode as string, (body.teams_mode as string) ?? 'none', (body.color_primary as string) || null, (body.color_secondary as string) || null, (body.color_accent as string) || null, suggestedRounds(body), parseTargetScore(body.target_score), (body.bgg_url as string) || null, (body.rules_url as string) || null, (body.rules_video_url as string) || null, roundName(body), (body.point_name as string) || null, lowestWins(body), imageUrl, id]
-        : [body.name as string, body.scoring_mode as string, (body.teams_mode as string) ?? 'none', (body.color_primary as string) || null, (body.color_secondary as string) || null, (body.color_accent as string) || null, suggestedRounds(body), parseTargetScore(body.target_score), (body.bgg_url as string) || null, (body.rules_url as string) || null, (body.rules_video_url as string) || null, roundName(body), (body.point_name as string) || null, lowestWins(body), id],
+      args: [body.name as string, body.scoring_mode as string, (body.teams_mode as string) ?? 'none', (body.color_primary as string) || null, (body.color_secondary as string) || null, (body.color_accent as string) || null, suggestedRounds(body), parseTargetScore(body.target_score), (body.bgg_url as string) || null, (body.rules_url as string) || null, (body.rules_video_url as string) || null, roundName(body), (body.point_name as string) || null, lowestWins(body), id],
     });
+    if (body.scoring_mode === 'categories') await this.saveCategories(id, categoryRows(body));
+  },
 
-    if (body.scoring_mode === 'categories') {
-      await db.execute({ sql: 'DELETE FROM score_categories WHERE game_id = ?', args: [id] });
-      const cats = Array.isArray(body.categories) ? body.categories : (body.categories ? [body.categories] : []);
-      for (let i = 0; i < cats.length; i++) {
-        const cat = cats[i] as string;
-        if (cat.trim()) {
-          await db.execute({
-            sql: 'INSERT INTO score_categories (game_id, name, sort_order) VALUES (?, ?, ?)',
-            args: [id, cat.trim(), i],
-          });
-        }
-      }
-    }
+  /** A new picture from a file, camera or link. False when none was given. */
+  async updateImage(id: string, body: Record<string, unknown>, file?: Express.Multer.File) {
+    const imageUrl = await resolveImageUrl(file, body.image_url as string | undefined, 'games');
+    if (imageUrl === undefined) return false;
+    await db.execute({
+      sql: `UPDATE games SET image_url = ?, updated_at = strftime('%Y-%m-%dT%H:%M:%fZ','now') WHERE id = ?`,
+      args: [imageUrl, id],
+    });
+    return true;
+  },
+
+  /**
+   * Adds and renames categories, in the order given, without deleting any:
+   * removing one is its own confirmed action (removeCategory). New rows
+   * arrive with an id made in the browser, so saving twice can't add one twice.
+   */
+  async saveCategories(gameId: string, rows: CategoryRow[]) {
+    if (!rows.length) return;
+    await db.batch(rows.map((row, i) => ({
+      sql: `INSERT INTO score_categories (id, game_id, name, sort_order) VALUES (?, ?, ?, ?)
+            ON CONFLICT(id) DO UPDATE SET name = excluded.name, sort_order = excluded.sort_order
+            WHERE score_categories.game_id = excluded.game_id`,
+      args: [row.id, gameId, row.name, i],
+    })), 'write');
+  },
+
+  /** How many recorded scores use each of the game's categories. */
+  async categoryScoreCounts(gameId: string): Promise<Record<string, number>> {
+    const r = await db.execute({
+      sql: `SELECT c.id, COUNT(e.id) AS n FROM score_categories c
+            LEFT JOIN score_entries e ON e.category_id = c.id
+            WHERE c.game_id = ? GROUP BY c.id`,
+      args: [gameId],
+    });
+    return Object.fromEntries(r.rows.map((row) => [String(row.id), Number(row.n)]));
+  },
+
+  /** Removes one category; scores recorded under it stay, without a category. */
+  async removeCategory(gameId: string, categoryId: string) {
+    await db.execute({
+      sql: 'DELETE FROM score_categories WHERE id = ? AND game_id = ?',
+      args: [categoryId, gameId],
+    });
   },
 
   /**

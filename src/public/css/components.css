@@ -1231,3 +1231,10 @@ a.leaderboard__name { text-decoration: underline; text-underline-offset: 0.2em; 
   .toast { animation: none; }
   /* The field flash only fades, with no movement, so it stays */
 }
+/* Narrow fields: the flash hugs the field, not the whole row */
+.autosave--fit { display: inline-block; max-width: 100%; }
+.autosave--fit > .form-control { width: auto; }
+
+/* A score category: its name, and a remove button */
+.category-row { display: flex; gap: var(--space-1); align-items: center; }
+.category-row .form-control { flex: 1; min-width: 0; }
