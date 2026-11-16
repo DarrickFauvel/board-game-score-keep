@@ -1,51 +1,36 @@
 <% layout('../layouts/base') %>
+<% const v = it.values || {} %>
+<% const nextQuery = it.next && it.next !== '/' ? '?next=' + encodeURIComponent(it.next) : '' %>
 
-<div class="page-narrow">
-  <div class="card">
-    <div class="card__body">
-      <h1 style="text-align:center; margin-bottom:var(--space-4);">Welcome back</h1>
-      <p style="text-align:center; color:var(--color-text-muted); margin-bottom:var(--space-4);">
-        Sign in to The Keep to pick up where you left off.
-      </p>
+<div class="auth">
+  <div class="auth__form">
+    <p class="page-header__eyebrow">Welcome back</p>
+    <h1 class="auth__title">Sign in to The Keep</h1>
+    <p class="auth__lede">Pick up where you left off: your games, your group and every score.</p>
 
-      <% if (it.error) { %>
-      <div class="flash flash--error" role="alert"><%~ it.error %></div>
-      <% } %>
+    <% if (it.error) { %>
+    <div class="flash flash--error" role="alert" id="signin-error"><%= it.error %></div>
+    <% } %>
 
-      <form action="/auth/login" method="POST" novalidate>
-        <% if (it.next && it.next !== '/') { %><input type="hidden" name="next" value="<%= it.next %>"><% } %>
-        <div class="form-group">
-          <label class="form-label" for="email">
-            Email address <span class="required" aria-hidden="true">*</span>
-          </label>
-          <input class="form-control"
-                 type="email"
-                 id="email"
-                 name="email"
-                 autocomplete="email"
-                 aria-required="true"
-                 required>
-        </div>
+    <form action="/auth/login" method="POST" novalidate<%~ it.error ? ' aria-describedby="signin-error"' : '' %>>
+      <% if (it.next && it.next !== '/') { %><input type="hidden" name="next" value="<%= it.next %>"><% } %>
+      <div class="form-group">
+        <label class="form-label" for="email">Email address</label>
+        <input class="form-control" type="email" id="email" name="email" value="<%= v.email || '' %>"
+               autocomplete="email" required<%~ it.error ? '' : ' autofocus' %>>
+      </div>
 
-        <div class="form-group">
-          <label class="form-label" for="password">
-            Password <span class="required" aria-hidden="true">*</span>
-          </label>
-          <input class="form-control"
-                 type="password"
-                 id="password"
-                 name="password"
-                 autocomplete="current-password"
-                 aria-required="true"
-                 required>
-        </div>
+      <div class="form-group">
+        <label class="form-label" for="password">Password</label>
+        <input class="form-control" type="password" id="password" name="password"
+               autocomplete="current-password" required<%~ it.error ? ' autofocus' : '' %>>
+      </div>
 
-        <button type="submit" class="btn btn--primary" style="width:100%">Sign in</button>
-      </form>
+      <button type="submit" class="btn btn--primary auth__submit">Sign in</button>
+    </form>
 
-      <p style="text-align:center; margin-top:var(--space-3); font-size:var(--text-sm);">
-        New to The Keep? <a href="/auth/register<%= it.next && it.next !== '/' ? '?next=' + encodeURIComponent(it.next) : '' %>" style="color:var(--color-border-focus); font-weight:600;">Create an account</a>
-      </p>
-    </div>
+    <p class="auth__switch">New to The Keep? <a href="/auth/register<%= nextQuery %>">Create an account</a></p>
   </div>
+
+  <%~ include('../partials/auth-panel') %>
 </div>
