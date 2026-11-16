@@ -468,8 +468,7 @@ html.theme-transition::view-transition-new(root) {
 
    Everything is scoped to the "page" type, so the theme switch's own view
    transition (html.theme-transition, above) is left alone. Pictures that
-   travel are marked data-vt with their name in --vt (e.g. game-<id>);
-   main.js names only the one that matters, during a page transition. */
+   travel are marked data-vt with their name in --vt (e.g. game-<id>). */
 @view-transition {
   navigation: auto;
   types: page;
@@ -477,6 +476,10 @@ html.theme-transition::view-transition-new(root) {
 
 html:active-view-transition-type(page) .site-header { view-transition-name: site-header; }
 html:active-view-transition-type(page) .context-bar { view-transition-name: context-bar; }
+/* A picture outside a link (a game page's thumbnail and title, a profile
+   picture) is the only one of its kind on its page, so CSS names it. One in
+   a list is named by script: only the one followed or returned to. */
+html:active-view-transition-type(page) [data-vt]:not(a [data-vt]) { view-transition-name: var(--vt); }
 
 html:active-view-transition-type(page)::view-transition-old(root) {
   animation: 90ms ease-out both page-out;
@@ -489,6 +492,17 @@ html:active-view-transition-type(page)::view-transition-group(*) {
   animation-duration: 260ms;
   animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
 }
+/* A game's name grows into the page title: both snapshots keep their own
+   proportions and stay pinned to the left, rather than stretching to the
+   box, so the text scales instead of distorting */
+html:active-view-transition-type(page)::view-transition-old(*.game-name),
+html:active-view-transition-type(page)::view-transition-new(*.game-name) {
+  height: 100%;
+  width: auto;
+  object-fit: contain;
+  object-position: left center;
+}
+
 /* The header and bar: no movement, just their contents settling */
 html:active-view-transition-type(page)::view-transition-group(site-header),
 html:active-view-transition-type(page)::view-transition-group(context-bar) {

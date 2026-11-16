@@ -14,6 +14,24 @@
   <%/* Newsreader for headings, the wordmark and scores (optical sizes, tabular figures); Funnel Sans for everything else */%>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Funnel+Sans:wght@400..700&family=Newsreader:opsz,wght@6..72,400..700&display=swap">
 
+  <%/* Page transitions: coming back to a list, name the picture in the link
+       to the page just left, so it travels back into place. Inline and
+       classic, so it's listening before the first frame ("pagereveal"),
+       which a module script may miss. See base.css and main.js. */%>
+  <script>
+    addEventListener('pagereveal', function (e) {
+      var from = e.viewTransition && window.navigation && navigation.activation && navigation.activation.from;
+      if (!from) return;
+      var path; try { path = new URL(from.url).pathname; } catch (_) { return; }
+      var named = [];
+      document.querySelectorAll('a[href] [data-vt]').forEach(function (el) {
+        if (new URL(el.closest('a').href).pathname !== path) return;
+        el.style.viewTransitionName = el.style.getPropertyValue('--vt').trim();
+        named.push(el);
+      });
+      e.viewTransition.finished.finally(function () { named.forEach(function (el) { el.style.viewTransitionName = ''; }); });
+    });
+  </script>
   <link rel="stylesheet" href="/css/tokens.css">
   <link rel="stylesheet" href="/css/reset.css">
   <link rel="stylesheet" href="/css/base.css">

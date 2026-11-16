@@ -379,6 +379,7 @@ textarea.form-control {
 }
 
 .game-row__name {
+  align-self: flex-start; /* as wide as the name, so it can travel to the game page's title */
   font-family: var(--font-display);
   font-weight: 600;
   letter-spacing: -0.015em;
