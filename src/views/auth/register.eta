@@ -1,70 +1,49 @@
 <% layout('../layouts/base') %>
+<% const v = it.values || {}, errs = it.fieldErrors || {} %>
+<% const nextQuery = it.next && it.next !== '/' ? '?next=' + encodeURIComponent(it.next) : '' %>
+<% const first = ['display_name', 'email', 'password'].find((f) => errs[f]) %>
+<%/* A field's error sits right under it; the first one with an error gets the focus */%>
+<% const field = (name, hintId) => {
+     const ids = [hintId, errs[name] ? name + '-error' : ''].filter(Boolean).join(' ');
+     return (errs[name] ? ' aria-invalid="true"' : '') + (ids ? ` aria-describedby="${ids}"` : '') + (first === name ? ' autofocus' : '');
+   } %>
 
-<div class="page-narrow">
-  <div class="card">
-    <div class="card__body">
-      <h1 style="text-align:center; margin-bottom:var(--space-4);">Join The Keep</h1>
-      <p style="text-align:center; color:var(--color-text-muted); margin-bottom:var(--space-4);">
-        Create an account to start tracking your board game victories.
-      </p>
+<div class="auth">
+  <div class="auth__form">
+    <p class="page-header__eyebrow">New here</p>
+    <h1 class="auth__title">Create an account</h1>
+    <p class="auth__lede">Keep score for your group's games, and every win goes on the record.</p>
 
-      <% if (it.error) { %>
-      <div class="flash flash--error" role="alert"><%~ it.error %></div>
-      <% } %>
+    <form action="/auth/register" method="POST" novalidate>
+      <% if (it.next && it.next !== '/') { %><input type="hidden" name="next" value="<%= it.next %>"><% } %>
+      <div class="form-group">
+        <label class="form-label" for="display_name">Your name</label>
+        <input class="form-control" type="text" id="display_name" name="display_name" value="<%= v.display_name || '' %>"
+               autocomplete="nickname" maxlength="60" required<%~ field('display_name', 'name-hint') %><%~ first ? '' : ' autofocus' %>>
+        <span class="form-hint" id="name-hint">It's the name on your player profile.</span>
+        <% if (errs.display_name) { %><p class="form-error" id="display_name-error"><%= errs.display_name %></p><% } %>
+      </div>
 
-      <form action="/auth/register" method="POST" novalidate>
-        <% if (it.next && it.next !== '/') { %><input type="hidden" name="next" value="<%= it.next %>"><% } %>
-        <div class="form-group">
-          <label class="form-label" for="display_name">
-            Your name <span class="required" aria-hidden="true">*</span>
-          </label>
-          <input class="form-control"
-                 type="text"
-                 id="display_name"
-                 name="display_name"
-                 autocomplete="nickname"
-                 aria-required="true"
-                 maxlength="60"
-                 required>
-          <span class="form-hint">This becomes your player profile name.</span>
-        </div>
+      <div class="form-group">
+        <label class="form-label" for="email">Email address</label>
+        <input class="form-control" type="email" id="email" name="email" value="<%= v.email || '' %>"
+               autocomplete="email" required<%~ field('email') %>>
+        <% if (errs.email) { %><p class="form-error" id="email-error"><%= errs.email %></p><% } %>
+      </div>
 
-        <div class="form-group">
-          <label class="form-label" for="email">
-            Email address <span class="required" aria-hidden="true">*</span>
-          </label>
-          <input class="form-control"
-                 type="email"
-                 id="email"
-                 name="email"
-                 autocomplete="email"
-                 aria-required="true"
-                 required>
-        </div>
+      <div class="form-group">
+        <label class="form-label" for="password">Password</label>
+        <input class="form-control" type="password" id="password" name="password"
+               autocomplete="new-password" minlength="10" maxlength="128" required<%~ field('password', 'password-hint') %>>
+        <span class="form-hint" id="password-hint">At least 10 characters, with a letter and a number.</span>
+        <% if (errs.password) { %><p class="form-error" id="password-error"><%= errs.password %></p><% } %>
+      </div>
 
-        <div class="form-group">
-          <label class="form-label" for="password">
-            Password <span class="required" aria-hidden="true">*</span>
-          </label>
-          <input class="form-control"
-                 type="password"
-                 id="password"
-                 name="password"
-                 autocomplete="new-password"
-                 aria-required="true"
-                 minlength="10"
-                 maxlength="128"
-                 required
-                 aria-describedby="password-hint">
-          <span class="form-hint" id="password-hint">At least 10 characters including one letter and one number.</span>
-        </div>
+      <button type="submit" class="btn btn--primary auth__submit">Create an account</button>
+    </form>
 
-        <button type="submit" class="btn btn--primary" style="width:100%">Create an account</button>
-      </form>
-
-      <p style="text-align:center; margin-top:var(--space-3); font-size:var(--text-sm);">
-        Already have an account? <a href="/auth/login<%= it.next && it.next !== '/' ? '?next=' + encodeURIComponent(it.next) : '' %>" style="color:var(--color-border-focus); font-weight:600;">Sign in</a>
-      </p>
-    </div>
+    <p class="auth__switch">Already have an account? <a href="/auth/login<%= nextQuery %>">Sign in</a></p>
   </div>
+
+  <%~ include('../partials/auth-panel') %>
 </div>
