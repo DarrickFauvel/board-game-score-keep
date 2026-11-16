@@ -1,7 +1,10 @@
-<%/* Compact game rows: the whole row opens the game; "+ Session" starts one.
-     Expects it.games and it.imgUrl. */%>
+<%/* The group's games: compact rows on phones, cover cards from tablets up.
+     The cover or name opens the game; "+ Session" starts one. Expects
+     it.games (with last_played_at and active_sessions) and it.imgUrl. */%>
+<% const scoring = { tally: 'Running tally', final: 'Final score', categories: 'Categories' } %>
 <ul class="game-list" role="list">
   <% it.games.forEach(function(game) { %>
+  <% const playing = Number(game.active_sessions) > 0 %>
   <li class="game-row">
     <a class="game-row__main" href="/games/<%= game.id %>">
       <% if (game.image_url) { %>
@@ -14,7 +17,14 @@
       <span class="game-row__text">
         <span class="game-row__name" data-vt style="--vt: game-name-<%= game.id %>; view-transition-class: game-name"><%= game.name %></span>
         <span class="game-row__meta">
-          <%= game.scoring_mode === 'tally' ? 'Running tally' : game.scoring_mode === 'final' ? 'Final score' : 'Custom categories' %><% if (game.teams_mode !== 'none') { %> &bull; Team play<% } %>
+          <% if (playing) { %>
+          <span class="badge badge--active">Playing now</span>
+          <% } else if (game.last_played_at) { %>
+          <span>Played <%= new Date(game.last_played_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) %></span>
+          <% } else { %>
+          <span>Not played yet</span>
+          <% } %>
+          <span class="game-row__mode"><%= scoring[game.scoring_mode] || '' %><% if (game.teams_mode !== 'none') { %> · Teams<% } %></span>
         </span>
       </span>
     </a>

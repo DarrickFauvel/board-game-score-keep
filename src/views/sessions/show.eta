@@ -17,7 +17,7 @@ const hasWinner = it.winRule(it.game).winningTotal(Object.values(sessionTotals))
     <% } %>
     <h1 class="page-header__title"><%= it.game.name %></h1>
     <p class="page-header__lede">
-      <span class="badge badge--<%= it.session.status === 'active' ? 'active' : 'complete' %>"><%= it.session.status %></span>
+      <span class="badge badge--<%= it.session.status === 'active' ? 'active' : 'complete' %>"><%= it.session.status === 'active' ? 'Active' : 'Completed' %></span>
       <span>
         <%= new Date(it.session.started_at).toLocaleDateString('en-US', {weekday:'long', month:'long', day:'numeric', year:'numeric'}) %>
         <% if (it.hostName) { %> · Hosted by <%= it.hostName %><% } %>
