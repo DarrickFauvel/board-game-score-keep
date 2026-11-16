@@ -369,6 +369,7 @@ textarea.form-control {
   display: grid;
   place-items: center;
   background: var(--color-surface);
+  color: var(--color-text-muted);
   font-size: var(--text-lg);
 }
 
@@ -776,6 +777,17 @@ a.leaderboard__name { text-decoration: underline; text-underline-offset: 0.2em; 
 }
 
 /* ─── Badge ───────────────────────────────────────── */
+/* Line icons (it.icon) take the text's size and colour */
+.icon {
+  display: inline-block; /* reset.css makes svg a block */
+  width: 1em;
+  height: 1em;
+  flex: none;
+  vertical-align: -0.125em;
+}
+/* The winner's trophy beside their name on a scoreboard */
+.winner-icon { color: var(--color-gold-text); }
+
 .badge {
   display: inline-flex;
   align-items: center;
@@ -1077,10 +1089,16 @@ a.leaderboard__name { text-decoration: underline; text-underline-offset: 0.2em; 
 }
 
 .empty-state__icon {
-  font-size: 3rem;
+  display: inline-grid;
+  place-items: center;
+  width: 3.5rem;
+  height: 3.5rem;
   margin-bottom: var(--space-3);
-  display: block;
+  border-radius: var(--radius-full);
+  background: var(--color-gold-bg);
+  color: var(--color-gold-text);
 }
+.empty-state__icon .icon { width: 1.5rem; height: 1.5rem; }
 
 .empty-state__title {
   font-family: var(--font-display);

@@ -14,7 +14,7 @@ import { config } from './config.js';
 import { resolveImageUrl, resolveOriginalUrl, cropOf } from './services/imageService.js';
 import { gameUnits } from './services/units.js';
 import { winRule } from './services/winRule.js';
-import { avatar } from './viewHelpers.js';
+import { avatar, icon } from './viewHelpers.js';
 import { playerService } from './services/playerService.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -76,7 +76,7 @@ export function createApp() {
             // The group being viewed and the person's groups, for the header switcher
             group: req.group ?? null, groups: req.groups ?? [],
             ...data, me, config, imgUrl: resolveImageUrl, imgOriginal: resolveOriginalUrl, imgCrop: cropOf,
-            avatar, units: gameUnits, winRule, currentPath: req.originalUrl.split('?')[0],
+            avatar, icon, units: gameUnits, winRule, currentPath: req.originalUrl.split('?')[0],
           });
           // Always current: going Back shouldn't show a copy from before an instant save
           res.set('Cache-Control', 'no-store');

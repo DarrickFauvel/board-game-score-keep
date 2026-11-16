@@ -17,7 +17,7 @@ const reached = target && it.session.status === 'active'
    const who = names.length > 1 ? names.slice(0, -1).join(', ') + ' and ' + names[names.length - 1] : names[0];
 %>
 <div class="round-done" role="status">
-  <p><strong>🏁 <%= who %> reached <%= u.pointCount(target) %>!</strong> Complete the session to lock the scores and crown the winner<%= lowestWins ? ' (the lowest total takes it)' : names.length > 1 ? ' (the highest total takes it)' : '' %>.</p>
+  <p><strong><%~ it.icon('flag', 'round-done__icon') %> <%= who %> reached <%= u.pointCount(target) %>!</strong> Complete the session to lock the scores and crown the winner<%= lowestWins ? ' (the lowest total takes it)' : names.length > 1 ? ' (the highest total takes it)' : '' %>.</p>
   <form action="/games/<%= it.game.id %>/sessions/<%= it.session.id %>/complete" method="POST"
         data-confirm="Mark this session as complete? Scores will be locked."
         data-confirm-title="Complete session"

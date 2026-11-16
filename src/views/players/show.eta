@@ -74,7 +74,7 @@
       <% if (entry.image_url) { %>
       <img src="<%= it.imgUrl(entry.image_url) %>" alt="" class="avatar" style="border-radius:var(--radius-sm)" aria-hidden="true">
       <% } else { %>
-      <div class="avatar" aria-hidden="true" style="border-radius:var(--radius-sm)">🎲</div>
+      <div class="avatar" aria-hidden="true" style="border-radius:var(--radius-sm)"><%~ it.icon('dice') %></div>
       <% } %>
       <div style="flex:1">
         <div style="font-weight:600"><%= entry.game_name %></div>
@@ -84,7 +84,7 @@
         </div>
       </div>
       <% if (Number(entry.won) === 1) { %>
-      <span class="badge badge--gold" aria-label="Winner">🏆 Winner</span>
+      <span class="badge badge--gold"><%~ it.icon('trophy') %>Winner</span>
       <% } else { %>
       <span style="font-size:var(--text-sm);color:var(--color-text-muted)">Rank #<%= entry.rank %></span>
       <% } %>

@@ -9,7 +9,7 @@
         <img class="game-cover__img" src="<%= it.imgUrl(game.image_url) %>" alt="" loading="lazy">
       </div>
       <% } else { %>
-      <div class="game-row__thumb game-row__thumb--empty" aria-hidden="true">🎲</div>
+      <div class="game-row__thumb game-row__thumb--empty" aria-hidden="true"><%~ it.icon('dice') %></div>
       <% } %>
       <span class="game-row__text">
         <span class="game-row__name" data-vt style="--vt: game-name-<%= game.id %>; view-transition-class: game-name"><%= game.name %></span>
