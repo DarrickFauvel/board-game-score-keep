@@ -14,7 +14,7 @@ const authLimiter = rateLimit({
 });
 
 router.get('/login', (_req, res) => {
-  res.renderEta('auth/login', { title: 'Sign In', error: null, next: safeNext(_req.query.next) });
+  res.renderEta('auth/login', { title: 'Sign in', error: null, next: safeNext(_req.query.next) });
 });
 
 router.post('/login', authLimiter,
@@ -24,12 +24,12 @@ router.post('/login', authLimiter,
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
-        return res.status(400).renderEta('auth/login', { title: 'Sign In', error: 'Invalid email or password.', next: safeNext(req.body.next) });
+        return res.status(400).renderEta('auth/login', { title: 'Sign in', error: 'Invalid email or password.', next: safeNext(req.body.next) });
       }
       const { email, password } = req.body as { email: string; password: string };
       const token = await authService.login(email, password);
       if (!token) {
-        return res.status(401).renderEta('auth/login', { title: 'Sign In', error: 'Invalid email or password.', next: safeNext(req.body.next) });
+        return res.status(401).renderEta('auth/login', { title: 'Sign in', error: 'Invalid email or password.', next: safeNext(req.body.next) });
       }
       res.cookie('token', token, cookieOptions());
       res.redirect(303, safeNext(req.body.next));
@@ -38,7 +38,7 @@ router.post('/login', authLimiter,
 );
 
 router.get('/register', (_req, res) => {
-  res.renderEta('auth/register', { title: 'Create Account', error: null, next: safeNext(_req.query.next) });
+  res.renderEta('auth/register', { title: 'Create an account', error: null, next: safeNext(_req.query.next) });
 });
 
 router.post('/register', authLimiter,
@@ -50,7 +50,7 @@ router.post('/register', authLimiter,
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
         return res.status(400).renderEta('auth/register', {
-          title: 'Create Account',
+          title: 'Create an account',
           error: 'Password must be 10–128 characters and include at least one letter and one number.',
           next: safeNext(req.body.next),
         });
@@ -58,7 +58,7 @@ router.post('/register', authLimiter,
       const { email, password, display_name } = req.body as { email: string; password: string; display_name: string };
       const result = await authService.register(email, password, display_name);
       if (!result.ok) {
-        return res.status(409).renderEta('auth/register', { title: 'Create Account', error: result.error, next: safeNext(req.body.next) });
+        return res.status(409).renderEta('auth/register', { title: 'Create an account', error: result.error, next: safeNext(req.body.next) });
       }
       res.cookie('token', result.token, cookieOptions());
       res.redirect(303, safeNext(req.body.next));

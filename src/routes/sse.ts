@@ -9,7 +9,7 @@ const router = Router();
 router.get('/sessions/:sessionId/scores', requireAuth, async (req, res, next) => {
   try {
     if (!await sessionAccess(req.params.sessionId, req.user.sub)) {
-      return next(Object.assign(new Error('Not Found'), { status: 404 }));
+      return next(Object.assign(new Error('Not found'), { status: 404 }));
     }
     sseRegistry.connect(req.params.sessionId, req.user.sub, req, res);
   } catch (err) { next(err); }

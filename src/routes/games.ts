@@ -42,14 +42,14 @@ router.get('/', async (req, res, next) => {
       sessionService.listJoined(req.user.sub),
     ]);
     res.renderEta('games/index', {
-      title: 'My Games', games, joined, user: req.user, canManageGames: can(req.group.role, 'manageGames'),
+      title: 'Games', games, joined, user: req.user, canManageGames: can(req.group.role, 'manageGames'),
     });
   } catch (err) { next(err); }
 });
 
 router.get('/new', (req, res, next) => {
   if (!can(req.group.role, 'manageGames')) return next(forbidden('add games'));
-  res.renderEta('games/new', { title: 'Add a Game', user: req.user, error: null });
+  res.renderEta('games/new', { title: 'Add a game', user: req.user, error: null });
 });
 
 router.post('/',
@@ -62,11 +62,11 @@ router.post('/',
       if (!can(req.group.role, 'manageGames')) return next(forbidden('add games'));
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
-        return res.status(400).renderEta('games/new', { title: 'Add a Game', user: req.user, error: 'Please fill in all required fields.' });
+        return res.status(400).renderEta('games/new', { title: 'Add a game', user: req.user, error: 'Please fill in all required fields.' });
       }
       const parsed = parseGameExtras(req.body);
       if ('error' in parsed) {
-        return res.status(400).renderEta('games/new', { title: 'Add a Game', user: req.user, error: parsed.error });
+        return res.status(400).renderEta('games/new', { title: 'Add a game', user: req.user, error: parsed.error });
       }
       const game = await gameService.create(req.user.sub, req.group.id, { ...req.body, ...parsed.fields } as Record<string, unknown>, req.file);
       res.redirect(`/games/${game.id}`);
@@ -77,7 +77,7 @@ router.post('/',
 router.get('/:id', async (req, res, next) => {
   try {
     const game = await gameService.findById(req.params.id, req.user.sub);
-    if (!game) return next(Object.assign(new Error('Not Found'), { status: 404 }));
+    if (!game) return next(Object.assign(new Error('Not found'), { status: 404 }));
     const { sessionService } = await import('../services/sessionService.js');
     const sessions = await sessionService.listByGame(req.params.id);
     const { scoreService } = await import('../services/scoreService.js');
@@ -91,7 +91,7 @@ router.get('/:id', async (req, res, next) => {
 router.get('/:id/edit', async (req, res, next) => {
   try {
     const game = await gameService.findById(req.params.id, req.user.sub);
-    if (!game) return next(Object.assign(new Error('Not Found'), { status: 404 }));
+    if (!game) return next(Object.assign(new Error('Not found'), { status: 404 }));
     if (!can(roleOf(game), 'manageGames')) return next(forbidden('edit games'));
     const { scoreService } = await import('../services/scoreService.js');
     const categories = await scoreService.listCategories(req.params.id);
@@ -107,7 +107,7 @@ router.post('/:id',
   async (req, res, next) => {
     try {
       const game = await gameService.findById(req.params.id, req.user.sub);
-      if (!game) return next(Object.assign(new Error('Not Found'), { status: 404 }));
+      if (!game) return next(Object.assign(new Error('Not found'), { status: 404 }));
       if (!can(roleOf(game), 'manageGames')) return next(forbidden('edit games'));
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -133,7 +133,7 @@ router.post('/:id',
 router.post('/:id/delete', async (req, res, next) => {
   try {
     const game = await gameService.findById(req.params.id, req.user.sub);
-    if (!game) return next(Object.assign(new Error('Not Found'), { status: 404 }));
+    if (!game) return next(Object.assign(new Error('Not found'), { status: 404 }));
     if (!can(roleOf(game), 'manageGames')) return next(forbidden('delete games'));
     await gameService.remove(req.params.id);
     res.redirect('/games');
@@ -144,7 +144,7 @@ router.get('/:gameId/sessions/new', async (req, res, next) => {
   try {
     // Any member of the game's group can start a session
     const game = await gameService.findById(req.params.gameId, req.user.sub);
-    if (!game) return next(Object.assign(new Error('Not Found'), { status: 404 }));
+    if (!game) return next(Object.assign(new Error('Not found'), { status: 404 }));
     const { playerService } = await import('../services/playerService.js');
     // Suggestions: the group's members and guests, and people you've played with
     const players = await playerService.listVisible(req.user.sub, String(game.group_id));
@@ -152,14 +152,14 @@ router.get('/:gameId/sessions/new', async (req, res, next) => {
     const teams = await teamService.listByGame(req.params.gameId);
     const { scoreService } = await import('../services/scoreService.js');
     const categories = await scoreService.listCategories(req.params.gameId);
-    res.renderEta('sessions/new', { title: `New Session – ${game.name}`, game, players, teams, categories, user: req.user });
+    res.renderEta('sessions/new', { title: `New session – ${game.name}`, game, players, teams, categories, user: req.user });
   } catch (err) { next(err); }
 });
 
 router.post('/:gameId/sessions', async (req, res, next) => {
   try {
     const game = await gameService.findById(req.params.gameId, req.user.sub);
-    if (!game) return next(Object.assign(new Error('Not Found'), { status: 404 }));
+    if (!game) return next(Object.assign(new Error('Not found'), { status: 404 }));
     const { sessionService } = await import('../services/sessionService.js');
     const { parseRoundCount, parseTargetScore } = await import('../services/rounds.js');
     const form = req.body as Record<string, unknown>;
@@ -277,7 +277,7 @@ router.post('/:gameId/sessions/:id/note',
   }
 );
 
-const notFound = () => Object.assign(new Error('Not Found'), { status: 404 });
+const notFound = () => Object.assign(new Error('Not found'), { status: 404 });
 
 // Accepts several photos per request (the uploader sends one at a time so each
 // shows up as soon as it lands); answers JSON to fetch, redirects a plain form.

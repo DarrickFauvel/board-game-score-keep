@@ -11,7 +11,7 @@ import { db } from '../db/client.js';
  */
 const router = Router();
 
-const notFound = () => Object.assign(new Error('Not Found'), { status: 404 });
+const notFound = () => Object.assign(new Error('Not found'), { status: 404 });
 const forbidden = () => Object.assign(new Error('Forbidden'), {
   status: 403, publicMessage: "Only the group's organizers and owners can change teams.",
 });

@@ -3,10 +3,10 @@
 <div class="page-header">
   <h1 class="page-header__title"><%= it.game.name %></h1>
   <div style="display:flex;gap:var(--space-2);flex-wrap:wrap">
-    <a href="/games/<%= it.game.id %>/sessions/new" class="btn btn--gold">+ New Session</a>
+    <a href="/games/<%= it.game.id %>/sessions/new" class="btn btn--gold">+ New session</a>
     <a href="/standings?game=<%= it.game.id %>" class="btn btn--secondary">Standings</a>
     <% if (it.canManageGames) { %>
-    <a href="/games/<%= it.game.id %>/edit" class="btn btn--secondary">Edit Game</a>
+    <a href="/games/<%= it.game.id %>/edit" class="btn btn--secondary">Edit game</a>
     <% } %>
   </div>
 </div>
@@ -19,7 +19,7 @@
 
   <section aria-labelledby="details-heading" class="card">
     <div class="card__body">
-      <h2 id="details-heading" style="font-size:var(--text-base);margin-bottom:var(--space-2)">Game Details</h2>
+      <h2 id="details-heading" style="font-size:var(--text-base);margin-bottom:var(--space-2)">Game details</h2>
       <dl style="display:grid;grid-template-columns:auto 1fr;gap:var(--space-1) var(--space-3)">
         <dt style="font-weight:600;color:var(--color-text-muted)">Scoring</dt>
         <dd><%= it.game.scoring_mode === 'tally' ? 'Running tally' : it.game.scoring_mode === 'final' ? 'Final score' : 'Custom categories' %></dd>
@@ -54,7 +54,7 @@
   </section>
 
   <section aria-labelledby="sessions-heading">
-    <h2 id="sessions-heading" style="margin-bottom:var(--space-3)">Session History</h2>
+    <h2 id="sessions-heading" style="margin-bottom:var(--space-3)">Session history</h2>
 
     <% if (it.sessions.length === 0) { %>
     <div class="empty-state" style="padding:var(--space-4)">

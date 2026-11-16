@@ -75,7 +75,7 @@ class AvatarPicker extends HTMLElement {
 
       ${allowed.size > 1 ? `
       <div class="ap-tabs" role="tablist" aria-label="Image source">
-        ${allowed.has('file')   ? `<button class="ap-tab" type="button" role="tab" aria-selected="${firstTab === 'file'}"   aria-controls="ap-panel-file-${name}"   id="ap-tab-file-${name}">Upload File</button>` : ''}
+        ${allowed.has('file')   ? `<button class="ap-tab" type="button" role="tab" aria-selected="${firstTab === 'file'}"   aria-controls="ap-panel-file-${name}"   id="ap-tab-file-${name}">Upload file</button>` : ''}
         ${allowed.has('url')    ? `<button class="ap-tab" type="button" role="tab" aria-selected="${firstTab === 'url'}"    aria-controls="ap-panel-url-${name}"    id="ap-tab-url-${name}">Enter URL</button>` : ''}
         ${allowed.has('camera') ? `<button class="ap-tab" type="button" role="tab" aria-selected="${firstTab === 'camera'}" aria-controls="ap-panel-camera-${name}" id="ap-tab-camera-${name}">Camera</button>` : ''}
       </div>` : ''}
@@ -97,8 +97,8 @@ class AvatarPicker extends HTMLElement {
         <video autoplay muted playsinline aria-label="Camera preview"></video>
         <canvas></canvas>
         <div>
-          <button type="button" class="ap-btn" id="ap-cam-start-${name}">Start Camera</button>
-          <button type="button" class="ap-btn" id="ap-cam-capture-${name}" style="display:none">Capture Photo</button>
+          <button type="button" class="ap-btn" id="ap-cam-start-${name}">Start camera</button>
+          <button type="button" class="ap-btn" id="ap-cam-capture-${name}" style="display:none">Capture photo</button>
         </div>
         <input type="hidden" name="${name}_camera_data">
         <img class="ap-preview" style="display:none" alt="Captured photo preview">

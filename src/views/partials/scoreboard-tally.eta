@@ -7,7 +7,7 @@ for (const entry of it.scores) {
   totals[entry.participant_id] = (totals[entry.participant_id] || 0) + (entry.value || 0);
 }
 const sortedRounds = Array.from(rounds).sort((a,b) => a-b);
-// Current round: the one after the last round finished with Next Round. Older
+// Current round: the one after the last round finished with Next round. Older
 // sessions (rounds_closed NULL) use the earlier rule: the latest round while
 // anyone still lacks a score in it, else the one after.
 // Must match scoreService.currentRound.
@@ -67,10 +67,10 @@ const roundLabel = (r) => planned && r <= planned ? u.Round + ' ' + r + ' of ' +
   <p><strong>All <%= planned %> <%= u.rounds %> are in.</strong> Complete the session to lock the scores and crown the winner, or keep playing an extra <%= u.round %> below.</p>
   <form action="/games/<%= it.game.id %>/sessions/<%= it.session.id %>/complete" method="POST"
         data-confirm="Mark this session as complete? Scores will be locked."
-        data-confirm-title="Complete Session"
+        data-confirm-title="Complete session"
         data-confirm-label="Complete"
         data-celebrate>
-    <button type="submit" class="btn btn--gold">Complete Session</button>
+    <button type="submit" class="btn btn--gold">Complete session</button>
   </form>
 </div>
 <% } %>
@@ -114,7 +114,7 @@ const roundLabel = (r) => planned && r <= planned ? u.Round + ' ' + r + ' of ' +
     <form class="round-card__next" method="POST"
           action="/games/<%= it.game.id %>/sessions/<%= it.session.id %>/rounds">
       <input type="hidden" name="round" value="<%= r %>">
-      <button type="submit" class="btn btn--secondary"><%= planned && r === planned ? 'Finish final ' + u.round : 'Next ' + u.Round + ' →' %></button>
+      <button type="submit" class="btn btn--secondary"><%= planned && r === planned ? 'Finish final ' + u.round : 'Next ' + u.round + ' →' %></button>
     </form>
     <% } %>
   </section>

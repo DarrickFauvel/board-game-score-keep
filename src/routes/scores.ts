@@ -5,7 +5,7 @@ import { sseRegistry } from '../services/sseRegistry.js';
 import { sessionAccess } from '../services/sessionAccess.js';
 import { db } from '../db/client.js';
 
-const notFound = () => Object.assign(new Error('Not Found'), { status: 404 });
+const notFound = () => Object.assign(new Error('Not found'), { status: 404 });
 
 /** True when the row with this id belongs to the session (a participant or a score entry). */
 async function belongsToSession(table: 'session_participants' | 'score_entries', id: unknown, sessionId: string) {

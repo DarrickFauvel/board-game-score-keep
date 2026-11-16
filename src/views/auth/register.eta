@@ -59,7 +59,7 @@
           <span class="form-hint" id="password-hint">At least 10 characters including one letter and one number.</span>
         </div>
 
-        <button type="submit" class="btn btn--primary" style="width:100%">Create Account</button>
+        <button type="submit" class="btn btn--primary" style="width:100%">Create an account</button>
       </form>
 
       <p style="text-align:center; margin-top:var(--space-3); font-size:var(--text-sm);">
