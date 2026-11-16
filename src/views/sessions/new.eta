@@ -1,6 +1,6 @@
 <% layout('../layouts/base') %>
 
-<div style="max-width:48rem;margin:0 auto">
+<div class="page-form">
   <div class="page-header">
     <div class="page-header__text">
       <a href="/games/<%= it.game.id %>" class="page-header__eyebrow"><span aria-hidden="true">←</span> <%= it.game.name %></a>
@@ -36,7 +36,7 @@
       </div>
 
       <div style="margin-top:var(--space-2)">
-        <p style="font-size:var(--text-sm);color:var(--color-text-muted)">Or add a guest player:</p>
+        <p class="meta">Or add a guest player:</p>
         <div class="input-row" style="margin-top:var(--space-1)">
           <input class="form-control" type="text" id="guest-name" placeholder="Guest name" maxlength="60"
                  onkeydown="if(event.key==='Enter'){event.preventDefault();addGuest();}">

@@ -1,11 +1,11 @@
 <% layout('../layouts/base') %>
 
-<div style="max-width:32rem;margin:var(--space-6) auto">
+<div class="page-narrow">
   <div class="card">
     <div class="card__body" style="display:grid;gap:var(--space-4);text-align:center">
       <div style="display:grid;gap:var(--space-2);justify-items:center">
         <h1 style="font-size:var(--text-xl);text-wrap:balance">Join <%= it.group.name %></h1>
-        <p style="color:var(--color-text-muted)">
+        <p class="text-muted">
           You'll see the group's games, scoreboards and Hall of Fame, and can start games and keep score with everyone.
         </p>
       </div>
@@ -21,7 +21,7 @@
       </ul>
       <% } %>
 
-      <form action="/groups/join/<%= it.code %>" method="POST" style="margin:0">
+      <form action="/groups/join/<%= it.code %>" method="POST">
         <button type="submit" class="btn btn--gold" style="width:100%">Join as <%= it.me ? it.me.display_name : 'a player' %></button>
       </form>
     </div>

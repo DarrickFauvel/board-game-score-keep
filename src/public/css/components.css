@@ -55,7 +55,6 @@
   background: var(--color-bg-raised);
   border-color: var(--color-border-strong);
   color: var(--color-text);
-  box-shadow: var(--shadow-sm);
 }
 .btn--secondary:active { background: var(--color-surface); border-color: var(--color-border-input); }
 @media (hover: hover) and (pointer: fine) {
@@ -335,16 +334,14 @@ textarea.form-control {
   transition: transform var(--transition-base), box-shadow var(--transition-base), border-color var(--transition-base);
 }
 
-/* Linked rows and cards lift 2px on hover */
+/* Game rows lift 2px on hover, like .link-card */
 @media (hover: hover) and (pointer: fine) {
-  .game-row:hover,
-  .session-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); border-color: var(--color-border-strong); }
+  .game-row:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); border-color: var(--color-border-strong); }
 }
 /* Touch: the border firms up under the finger */
-.game-row:active,
-.session-card:active { border-color: var(--color-border-strong); }
+.game-row:active { border-color: var(--color-border-strong); }
 @media (prefers-reduced-motion: reduce) {
-  .game-row:hover, .session-card:hover { transform: none; }
+  .game-row:hover { transform: none; }
 }
 
 .game-row__main {
@@ -866,33 +863,97 @@ a.leaderboard__name { text-decoration: underline; text-underline-offset: 0.2em; 
   border: 1px solid var(--color-border);
 }
 
-/* ─── Session card ────────────────────────────────── */
-.session-list {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-}
-
-.session-card {
+/* ─── Linked cards ──────────────────────────────────
+   Anything that opens another page when tapped (a session, a group, a
+   player, a joined game) is one of these: a row on the card surface that
+   lifts 2px under the pointer. Inside: an optional picture, the text
+   (title over a meta line), then badges at the end. */
+.link-card {
   display: flex;
   align-items: center;
   gap: var(--space-3);
+  min-height: var(--tap-min);
   padding: var(--space-2) var(--space-3);
   background: var(--color-bg-raised);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-sm);
-  text-decoration: none;
   color: inherit;
+  text-decoration: none;
   transition: transform var(--transition-base), box-shadow var(--transition-base), border-color var(--transition-base);
-  min-height: var(--tap-min);
 }
+@media (hover: hover) and (pointer: fine) {
+  .link-card:hover {
+    transform: translateY(-2px);
+    border-color: var(--color-border-strong);
+    box-shadow: var(--shadow-md);
+  }
+}
+.link-card:active { transform: translateY(0); box-shadow: var(--shadow-sm); border-color: var(--color-border-strong); }
+@media (prefers-reduced-motion: reduce) {
+  .link-card:hover, .link-card:active { transform: none; }
+}
+.link-card--muted { opacity: 0.6; }
+.link-card__text { flex: 1; min-width: 0; }
+.link-card__title { display: block; font-weight: 600; overflow-wrap: anywhere; }
+.link-card__meta { display: block; font-size: var(--text-xs); color: var(--color-text-muted); }
+.link-card__thumb { border-radius: var(--radius-sm); }
+
+/* A list of cards, one under another; .card-grid flows them into columns */
+.stack {
+  list-style: none;
+  display: grid;
+  gap: var(--space-2);
+}
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 14rem), 1fr));
+  gap: var(--space-2) var(--space-3);
+}
+
+/* A section's heading, with its action (if any) on the right */
+.section-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+
+/* ─── Danger zone: deleting something for good ─────── */
+.danger-zone {
+  margin-top: var(--space-6);
+  padding: var(--space-3);
+  border: 1px solid var(--color-danger);
+  border-radius: var(--radius-lg);
+}
+.danger-zone > legend {
+  padding-inline: var(--space-1);
+  font-weight: 600;
+  color: var(--color-danger);
+}
+.danger-zone > p {
+  margin-bottom: var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+/* ─── Small helpers ─────────────────────────────────── */
+/* One column for a single question (sign in, join, claim), set down from
+   the header; and a wider one for long forms (game settings, new session) */
+.page-narrow { max-width: 32rem; margin: var(--space-6) auto; }
+.page-form { max-width: 48rem; margin-inline: auto; }
+.text-muted { color: var(--color-text-muted); }
+.nowrap { white-space: nowrap; }
+.meta { font-size: var(--text-sm); color: var(--color-text-muted); }
 
 /* ─── Stats grid ──────────────────────────────────── */
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 8rem), 1fr));
-  gap: var(--space-3);
+  /* Three across even on a phone, so the last tile isn't left alone */
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 6.25rem), 1fr));
+  gap: var(--space-2);
 }
 
 .stat-card {
@@ -900,8 +961,12 @@ a.leaderboard__name { text-decoration: underline; text-underline-offset: 0.2em; 
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-sm);
-  padding: var(--space-3);
+  padding: var(--space-2);
   text-align: left;
+}
+
+@media (min-width: 48rem) {
+  .stat-card { padding: var(--space-3); }
 }
 
 .stat-card__value {

@@ -15,15 +15,14 @@
 <% if (it.joined && it.joined.length) { %>
 <%/* Sessions someone else hosts that you joined through an invite; first, so a game in progress is one tap away */%>
 <section aria-labelledby="joined-heading" class="section" style="margin-bottom:var(--space-6)">
-  <h2 id="joined-heading" style="margin-bottom:var(--space-3)">Games you've joined</h2>
-  <ul role="list" style="list-style:none;display:grid;gap:var(--space-2)">
+  <div class="section-head"><h2 id="joined-heading">Games you've joined</h2></div>
+  <ul role="list" class="stack">
     <% it.joined.forEach(function(j) { %>
     <li>
-      <a href="/games/<%= j.game_id %>/sessions/<%= j.id %>" class="card session-card"
-         style="display:flex;align-items:center;gap:var(--space-3);text-decoration:none;padding:var(--space-2) var(--space-3)">
-        <span style="flex:1;min-width:0">
-          <span style="display:block;font-weight:600"><%= j.game_name %></span>
-          <span style="font-size:var(--text-sm);color:var(--color-text-muted)">
+      <a href="/games/<%= j.game_id %>/sessions/<%= j.id %>" class="link-card">
+        <span class="link-card__text">
+          <span class="link-card__title"><%= j.game_name %></span>
+          <span class="link-card__meta">
             <%= j.host_name ? 'Hosted by ' + j.host_name + ' · ' : '' %><%= new Date(j.completed_at || j.started_at).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) %>
           </span>
         </span>

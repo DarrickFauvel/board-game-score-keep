@@ -39,7 +39,7 @@
 
     <div class="guest-row__actions">
       <a href="/players/<%= g.id %>/edit" class="btn btn--secondary btn--sm">Edit</a>
-      <form action="/players/<%= g.id %>/<%= g.hidden_at ? 'unhide' : 'hide' %>" method="POST" style="margin:0"
+      <form action="/players/<%= g.id %>/<%= g.hidden_at ? 'unhide' : 'hide' %>" method="POST"
             <% if (!g.hidden_at) { %>data-confirm="Hide <%= g.display_name %>? They won't be suggested when you start a game, but their games still count. You can unhide them here."
             data-confirm-title="Hide guest" data-confirm-label="Hide"<% } %>>
         <button type="submit" class="btn btn--secondary btn--sm"><%= g.hidden_at ? 'Unhide' : 'Hide' %></button>
