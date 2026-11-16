@@ -42,7 +42,7 @@ router.get('/', async (req, res, next) => {
       sessionService.listJoined(req.user.sub),
     ]);
     res.renderEta('games/index', {
-      title: 'My games', games, joined, user: req.user, canManageGames: can(req.group.role, 'manageGames'),
+      title: 'Games', games, joined, user: req.user, canManageGames: can(req.group.role, 'manageGames'),
     });
   } catch (err) { next(err); }
 });

@@ -72,7 +72,7 @@
       <% } %>
       <a href="/groups/<%= it.group.id %>" class="group-switch__link"<%~ here('/groups') %>><%= it.groups.length > 1 ? 'Group' : it.group.name %></a>
       <% } %>
-      <a href="/games"<%~ here('/games') %>>My games</a>
+      <a href="/games"<%~ here('/games') %>>Games</a>
       <a href="/players"<%~ here('/players') %>>Players</a>
       <a href="/standings"<%~ here('/standings') %>>Standings</a>
       <a href="/players/me" class="site-header__me"<%~ here('/players/' + (it.me ? it.me.id : 'me')) %>>
@@ -108,7 +108,7 @@
       <% } %>
       <a href="/groups/<%= it.group.id %>" class="group-switch__link site-header__mobile-link"><%= it.groups.length > 1 ? 'Group' : it.group.name %></a>
       <% } %>
-      <a href="/games" class="site-header__mobile-link">My games</a>
+      <a href="/games" class="site-header__mobile-link">Games</a>
       <a href="/players" class="site-header__mobile-link">Players</a>
       <a href="/standings" class="site-header__mobile-link">Standings</a>
       <a href="/players/me" class="site-header__mobile-link site-header__me">

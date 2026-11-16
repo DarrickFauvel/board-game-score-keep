@@ -1,7 +1,7 @@
 <% layout('../layouts/base') %>
 
 <div class="page-header">
-  <h1 class="page-header__title">My games</h1>
+  <h1 class="page-header__title">Games</h1>
   <% if (it.canManageGames) { %>
   <a href="/games/new" class="btn btn--gold">+ Add a game</a>
   <% } %>
