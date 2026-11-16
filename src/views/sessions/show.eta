@@ -91,16 +91,23 @@ for (const p of it.participants) {
   <h2 id="note-heading">Session notes</h2>
   <div class="card">
     <div class="card__body">
-      <form action="/games/<%= it.game.id %>/sessions/<%= it.session.id %>/note" method="POST">
+      <%/* Saves as you type (Datastar); the button is only for browsers without JavaScript */%>
+      <form action="/games/<%= it.game.id %>/sessions/<%= it.session.id %>/note" method="POST"
+            data-on:submit__prevent="@post('/games/<%= it.game.id %>/sessions/<%= it.session.id %>/note', {contentType: 'form'})">
         <div class="form-group">
           <label class="form-label" for="note">
             How did it go?
             <voice-input target="#note" aria-label="Use voice to dictate note"></voice-input>
           </label>
-          <textarea class="form-control" id="note" name="note" rows="4"
-                    placeholder="Memorable moments, house rules, who won dramatically…"><%= it.session.note || '' %></textarea>
+          <div class="autosave autosave--textarea">
+            <textarea class="form-control" id="note" name="note" rows="4" aria-describedby="note-hint"
+                      placeholder="Memorable moments, house rules, who won dramatically…"
+                      data-on:input__debounce.800ms="@post('/games/<%= it.game.id %>/sessions/<%= it.session.id %>/note', {contentType: 'form'})"><%= it.session.note || '' %></textarea>
+            <span id="save-note" class="autosave__mark" aria-hidden="true"></span>
+          </div>
+          <span class="form-hint" id="note-hint">Saves as you type.</span>
         </div>
-        <button type="submit" class="btn btn--primary">Save note</button>
+        <noscript><button type="submit" class="btn btn--primary">Save note</button></noscript>
       </form>
     </div>
   </div>
@@ -177,7 +184,7 @@ for (const p of it.participants) {
       </form>
       <% if (it.role === 'host') { %>
       <form method="POST" class="photo-dialog__delete" data-photo-delete
-            data-confirm="Remove this photo?"
+            data-confirm="Delete this photo for everyone in the session? This can't be undone."
             data-confirm-title="Delete photo"
             data-confirm-label="Delete">
         <button type="submit" class="btn btn--ghost">Delete photo</button>

@@ -31,6 +31,13 @@ const NEEDS: Record<GroupAction, GroupRole> = {
 
 export const ROLE_LABEL: Record<GroupRole, string> = { owner: 'Owner', organizer: 'Organizer', player: 'Player' };
 
+/** What each role can do, in a line, under each member on the group page. */
+export const ROLE_HELP: Record<GroupRole, string> = {
+  owner: 'Everything, including members, roles and deleting the group',
+  organizer: 'Add and edit games, manage guests, finish or delete any session, invite people',
+  player: 'Start sessions, enter scores, add photos and notes, finish games they started',
+};
+
 export function isRole(v: unknown): v is GroupRole {
   return v === 'owner' || v === 'organizer' || v === 'player';
 }

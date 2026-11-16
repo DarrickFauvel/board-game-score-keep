@@ -1,6 +1,7 @@
 import { Router, type Request, type Response } from 'express';
 import { groupService, GroupError } from '../services/groupService.js';
-import { can, groupRole, ROLE_LABEL } from '../services/groupAccess.js';
+import { can, groupRole, isRole, ROLE_LABEL, ROLE_HELP } from '../services/groupAccess.js';
+import { isDatastar, reply, saved, invalid, clearError, toast, flash, escapeText } from '../datastar.js';
 import { GROUP_COOKIE, groupCookieOptions } from '../middleware/group.js';
 import { safeNext } from '../middleware/auth.js';
 import { config } from '../config.js';
@@ -33,7 +34,7 @@ async function renderGroup(req: Request, res: Response, groupId: string, error: 
   const inviteUrl = can(role, 'invite') ? `${config.baseUrl}/groups/join/${await groupService.ensureInviteCode(groupId)}` : null;
   res.status(status).renderEta('groups/show', {
     title: String(group.name), user: req.user, group, role, members, inviteUrl, error,
-    roleLabel: ROLE_LABEL, canManageMembers: can(role, 'manageMembers'), canManageGroup: can(role, 'manageGroup'),
+    roleLabel: ROLE_LABEL, roleHelp: ROLE_HELP, canManageMembers: can(role, 'manageMembers'), canManageGroup: can(role, 'manageGroup'),
     isCurrent: req.group.id === groupId,
   });
 }
@@ -101,7 +102,20 @@ router.post('/:id/rename', async (req, res, next) => {
     if (!role) return next(notFound());
     if (!can(role, 'manageGroup')) return next(forbidden("Only the group's owners can rename it."));
     const name = cleanName(req.body.name);
-    if (!name || name.length > 60) return renderGroup(req, res, req.params.id, 'Give the group a name, up to 60 characters.', 400);
+    const error = !name || name.length > 60 ? 'Give the group a name, up to 60 characters.' : null;
+    if (isDatastar(req)) {
+      return reply(req, res, async (sse) => {
+        if (error) return invalid(sse, 'save-rename', error);
+        await groupService.rename(req.params.id, name);
+        clearError(sse, 'save-rename');
+        saved(sse, 'save-rename', 'Group name saved');
+        // The page title and the header's group name show it too
+        for (const selector of ['#group-title', `#context-group-${req.params.id}`]) {
+          sse.patchElements(escapeText(name), { selector, mode: 'inner' });
+        }
+      });
+    }
+    if (error) return renderGroup(req, res, req.params.id, error, 400);
     await groupService.rename(req.params.id, name);
     res.redirect(303, `/groups/${req.params.id}`);
   } catch (err) { next(err); }
@@ -112,6 +126,28 @@ router.post('/:id/members/:userId/role', async (req, res, next) => {
     const role = await groupRole(req.params.id, req.user.sub);
     if (!role) return next(notFound());
     if (!can(role, 'manageMembers')) return next(forbidden("Only the group's owners can change roles."));
+    const mark = `save-role-${req.params.userId}`;
+    if (isDatastar(req)) {
+      return reply(req, res, async (sse) => {
+        try {
+          await groupService.setRole(req.params.id, req.params.userId, req.body.role);
+        } catch (err) {
+          if (!(err instanceof GroupError)) throw err;
+          toast(sse, err.message, 'error');
+          // Put the menu back to the role they still have
+          const still = await groupRole(req.params.id, req.params.userId);
+          if (still) sse.executeScript(`document.getElementById(${JSON.stringify(`role-${req.params.userId}`)}).value = ${JSON.stringify(still)}`);
+          return;
+        }
+        // Changing your own role changes what this page lets you do
+        if (req.params.userId === req.user.sub) { sse.executeScript('location.reload()'); return; }
+        saved(sse, mark, 'Role saved');
+        const newRole: unknown = req.body.role;
+        if (isRole(newRole)) {
+          sse.patchElements(ROLE_HELP[newRole], { selector: `#role-help-${req.params.userId}`, mode: 'inner' });
+        }
+      });
+    }
     try {
       await groupService.setRole(req.params.id, req.params.userId, req.body.role);
     } catch (err) {
@@ -135,6 +171,7 @@ router.post('/:id/members/:userId/remove', async (req, res, next) => {
       if (err instanceof GroupError) return renderGroup(req, res, req.params.id, err.message, 409);
       throw err;
     }
+    flash(res, leaving ? 'You left the group' : 'Removed from the group');
     res.redirect(303, leaving ? '/groups' : `/groups/${req.params.id}`);
   } catch (err) { next(err); }
 });
@@ -145,6 +182,7 @@ router.post('/:id/invite/reset', async (req, res, next) => {
     if (!role) return next(notFound());
     if (!can(role, 'invite')) return next(forbidden("Only the group's organizers and owners can manage invites."));
     await groupService.resetInviteCode(req.params.id);
+    flash(res, 'New invite link made. The old one no longer works.');
     res.redirect(303, `/groups/${req.params.id}#invite`);
   } catch (err) { next(err); }
 });
@@ -160,6 +198,7 @@ router.post('/:id/delete', async (req, res, next) => {
       return renderGroup(req, res, req.params.id, `Type "${group.name}" exactly to delete the group.`, 400);
     }
     await groupService.remove(req.params.id);
+    flash(res, `${group.name} deleted`);
     res.redirect(303, '/groups');
   } catch (err) { next(err); }
 });

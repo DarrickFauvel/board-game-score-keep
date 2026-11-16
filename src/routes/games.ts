@@ -1,4 +1,5 @@
 import { Router, type Request, type Response } from 'express';
+import { isDatastar, reply, saved, flash } from '../datastar.js';
 import { GROUP_COOKIE, groupCookieOptions } from '../middleware/group.js';
 import { body, validationResult } from 'express-validator';
 import { gameService } from '../services/gameService.js';
@@ -166,7 +167,8 @@ router.post('/:id/delete', async (req, res, next) => {
     if (!game) return next(Object.assign(new Error('Not found'), { status: 404 }));
     if (!can(roleOf(game), 'manageGames')) return next(forbidden('delete games'));
     await gameService.remove(req.params.id);
-    res.redirect('/games');
+    flash(res, `${game.name} deleted`);
+    res.redirect(303, '/games');
   } catch (err) { next(err); }
 });
 
@@ -302,6 +304,7 @@ router.post('/:gameId/sessions/:id/note',
         req.params.id,
         (req.body as Record<string, unknown>).note as string | undefined,
       );
+      if (isDatastar(req)) return reply(req, res, (sse) => saved(sse, 'save-note', 'Note saved'));
       res.redirect(`/games/${req.params.gameId}/sessions/${req.params.id}`);
     } catch (err) { next(err); }
   }
@@ -360,7 +363,8 @@ router.post('/:gameId/sessions/:id/photos/:photoId/delete', async (req, res, nex
     if (!await hostAccess(req.params.id, req.user.sub, req.params.gameId)) return next(notFound());
     const { sessionService } = await import('../services/sessionService.js');
     await sessionService.removePhoto(req.params.id, req.params.photoId);
-    res.redirect(`/games/${req.params.gameId}/sessions/${req.params.id}#photos-heading`);
+    flash(res, 'Photo removed');
+    res.redirect(303, `/games/${req.params.gameId}/sessions/${req.params.id}#photos-heading`);
   } catch (err) { next(err); }
 });
 
@@ -369,7 +373,8 @@ router.post('/:gameId/sessions/:id/delete', async (req, res, next) => {
     if (!await hostAccess(req.params.id, req.user.sub, req.params.gameId)) return next(notFound());
     const { sessionService } = await import('../services/sessionService.js');
     await sessionService.remove(req.params.id);
-    res.redirect(`/games/${req.params.gameId}`);
+    flash(res, 'Session deleted');
+    res.redirect(303, `/games/${req.params.gameId}`);
   } catch (err) { next(err); }
 });
 

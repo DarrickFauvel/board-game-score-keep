@@ -117,19 +117,19 @@
       <form action="/groups/switch" method="POST" class="group-switch">
         <input type="hidden" name="next" value="<%= it.currentPath || '/' %>">
         <select name="group_id" aria-labelledby="context-group-label" onchange="this.form.requestSubmit()">
-          <% it.groups.forEach(function(g) { %><option value="<%= g.id %>"<%= g.id === it.group.id ? ' selected' : '' %>><%= g.name %></option><% }) %>
+          <% it.groups.forEach(function(g) { %><option id="context-group-<%= g.id %>" value="<%= g.id %>"<%= g.id === it.group.id ? ' selected' : '' %>><%= g.name %></option><% }) %>
         </select>
         <noscript><button type="submit">Go</button></noscript>
       </form>
       <% } else { %>
-      <a href="/groups/<%= it.group.id %>" class="context-bar__value"><%= it.group.name %></a>
+      <a href="/groups/<%= it.group.id %>" class="context-bar__value" id="context-group-<%= it.group.id %>"><%= it.group.name %></a>
       <% } %>
     </div>
     <% if (it.me) { %>
     <a href="/players/me" class="context-bar__me">
       <span class="context-bar__label">Signed in as</span>
       <%~ it.avatar(it.me.avatar_url, it.me.display_name, it.me.preferred_color, 'avatar--xs') %>
-      <span class="context-bar__value"><%= it.me.display_name %></span>
+      <span class="context-bar__value" id="context-me-name"><%= it.me.display_name %></span>
     </a>
     <% } %>
   </div>
@@ -147,6 +147,9 @@
     <p>The Keep · board game score keeper</p>
     <p class="site-footer__credit">Developed by <a href="https://darrickdevelops.com" rel="author">darrickdevelops.com</a></p>
   </footer>
+
+  <%/* Toasts: the server appends them here (Datastar) or the page brings one from a redirect */%>
+  <div id="toasts" class="toasts"><%~ it.flashToast || '' %></div>
 
   <div id="status-announcer"
        role="status"

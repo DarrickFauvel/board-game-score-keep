@@ -9,6 +9,7 @@ import { fileURLToPath } from 'node:url';
 import { router } from './routes/index.js';
 import { errorHandler, notFound } from './middleware/error.js';
 import { safeNext } from './middleware/auth.js';
+import { takeFlash, toastHtml } from './datastar.js';
 import { config } from './config.js';
 import { resolveImageUrl, resolveOriginalUrl, cropOf } from './services/imageService.js';
 import { gameUnits } from './services/units.js';
@@ -68,8 +69,10 @@ export function createApp() {
             ? safeNext(data.next)
             : req.method === 'GET' ? safeNext(req.originalUrl) : '/';
           const authQuery = authNext === '/' ? '' : `?next=${encodeURIComponent(authNext)}`;
+          // A toast left by the action that redirected here (e.g. a deleted game)
+          const flashed = template.startsWith('partials/') ? null : takeFlash(req, res);
           const html = eta.render(template, {
-            authQuery,
+            authQuery, flashToast: flashed ? toastHtml(flashed) : '',
             // The group being viewed and the person's groups, for the header switcher
             group: req.group ?? null, groups: req.groups ?? [],
             ...data, me, config, imgUrl: resolveImageUrl, imgOriginal: resolveOriginalUrl, imgCrop: cropOf,
