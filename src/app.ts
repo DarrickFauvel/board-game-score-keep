@@ -8,6 +8,7 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { router } from './routes/index.js';
 import { errorHandler, notFound } from './middleware/error.js';
+import { safeNext } from './middleware/auth.js';
 import { config } from './config.js';
 import { resolveImageUrl, resolveOriginalUrl, cropOf } from './services/imageService.js';
 import { gameUnits } from './services/units.js';
@@ -60,7 +61,15 @@ export function createApp() {
             ? await playerService.findByUserId(user.sub)
             : null;
           // currentPath lets the layout mark the nav link for the section you're in
+          // Where the header's Sign In / Create Account links should return to: on the
+          // auth pages it's the page they were sent from (?next=), elsewhere this page
+          const path = req.originalUrl.split('?')[0];
+          const authNext = path.startsWith('/auth/')
+            ? safeNext(data.next)
+            : req.method === 'GET' ? safeNext(req.originalUrl) : '/';
+          const authQuery = authNext === '/' ? '' : `?next=${encodeURIComponent(authNext)}`;
           const html = eta.render(template, {
+            authQuery,
             // The group being viewed and the person's groups, for the header switcher
             group: req.group ?? null, groups: req.groups ?? [],
             ...data, me, config, imgUrl: resolveImageUrl, imgOriginal: resolveOriginalUrl, imgCrop: cropOf,

@@ -11,6 +11,7 @@ import joinRouter from './join.js';
 import { requireAuth, optionalAuth } from '../middleware/auth.js';
 import { currentGroup } from '../middleware/group.js';
 import groupsRouter from './groups.js';
+import claimRouter from './claim.js';
 
 const router = Router();
 
@@ -25,6 +26,8 @@ router.use('/teams', requireAuth, currentGroup, teamsRouter);
 router.use('/standings', requireAuth, currentGroup, standingsRouter);
 router.use('/join', requireAuth, currentGroup, joinRouter);
 router.use('/groups', requireAuth, currentGroup, groupsRouter);
+// Signed-out visitors sign in or register first, then come back to the claim
+router.use('/claim', requireAuth, currentGroup, claimRouter);
 
 // Signed-out visitors get the public landing page; signed-in users get The Keep.
 router.get('/', optionalAuth, (req, res, next) => (req.user ? currentGroup(req, res, next) : next()), async (req, res, next) => {

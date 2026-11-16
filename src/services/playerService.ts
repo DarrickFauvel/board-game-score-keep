@@ -1,3 +1,4 @@
+import { randomBytes } from 'node:crypto';
 import { db } from '../db/client.js';
 import { processUploadedImage, parseCrop, splitImageRef, withCrop } from './imageService.js';
 import { can, groupRole } from './groupAccess.js';
@@ -153,26 +154,68 @@ export const playerService = {
       return { ok: false, reason: `${source.display_name} and ${target.display_name} played in the same game, so they can't be the same person.` };
     }
 
-    const moved = await db.execute({
-      sql: 'SELECT COUNT(DISTINCT session_id) AS n FROM session_participants WHERE player_id = ?',
-      args: [sourceId],
+    const sessions = await sessionCount(sourceId);
+    await db.batch(moveHistory(source, target), 'write');
+    return { ok: true, source: String(source.display_name), target: String(target.display_name), sessions };
+  },
+
+  /* ─── Claim links: a friend takes a guest's games as their own ─── */
+
+  /** The guest's claim code, made if there isn't one yet. */
+  async ensureClaimCode(guestId: string) {
+    await db.execute({
+      sql: 'UPDATE players SET claim_code = ? WHERE id = ? AND user_id IS NULL AND claim_code IS NULL',
+      args: [randomBytes(16).toString('base64url'), guestId],
     });
+    return (await this.findById(guestId))?.claim_code as string | undefined;
+  },
+
+  /** A new claim code, so a link already shared stops working. */
+  async resetClaimCode(guestId: string) {
+    await db.execute({
+      sql: 'UPDATE players SET claim_code = ? WHERE id = ? AND user_id IS NULL',
+      args: [randomBytes(16).toString('base64url'), guestId],
+    });
+  },
+
+  /** The guest a claim link is for, with their group's name and game count. */
+  async findByClaimCode(code: string) {
+    if (!/^[A-Za-z0-9_-]{16,64}$/.test(code)) return null;
+    const r = await db.execute({
+      sql: `SELECT p.*, g.name AS group_name,
+                   (SELECT COUNT(DISTINCT sp.session_id) FROM session_participants sp WHERE sp.player_id = p.id) AS sessions
+            FROM players p JOIN groups g ON g.id = p.group_id
+            WHERE p.claim_code = ? AND p.user_id IS NULL`,
+      args: [code],
+    });
+    return r.rows[0] ?? null;
+  },
+
+  /**
+   * Move a guest's games onto the signed-in person's own player, add them
+   * to the guest's group as a Player if they aren't in it, and delete the
+   * guest, which also ends the link. Refused when they and the guest played
+   * in the same game.
+   */
+  async claimGuest(code: string, userId: string): Promise<ClaimResult> {
+    const guest = await this.findByClaimCode(code);
+    if (!guest) return { ok: false, reason: 'gone' };
+    const me = await this.findByUserId(userId);
+    if (!me) return { ok: false, reason: "Your account has no player profile yet. Open My Profile once, then try the link again." };
+    const shared = await db.execute({
+      sql: `SELECT COUNT(*) AS n FROM session_participants a JOIN session_participants b ON a.session_id = b.session_id
+            WHERE a.player_id = ? AND b.player_id = ?`,
+      args: [guest.id as string, me.id as string],
+    });
+    if (Number(shared.rows[0].n) > 0) {
+      return { ok: false, reason: `You and ${guest.display_name} played in the same game, so those games can't both be yours. Ask the organizer to check the guest.` };
+    }
+    const sessions = await sessionCount(String(guest.id));
     await db.batch([
-      { sql: 'UPDATE session_participants SET player_id = ?, display_name = ? WHERE player_id = ?',
-        args: [targetId, target.display_name, sourceId] },
-      { sql: 'INSERT OR IGNORE INTO team_members (team_id, player_id) SELECT team_id, ? FROM team_members WHERE player_id = ?',
-        args: [targetId, sourceId] },
-      { sql: `UPDATE players SET
-                preferred_color = COALESCE(preferred_color, ?),
-                avatar_url = COALESCE(avatar_url, ?),
-                updated_at = strftime('%Y-%m-%dT%H:%M:%fZ','now')
-              WHERE id = ?`,
-        args: [source.preferred_color ?? null, source.avatar_url ?? null, targetId] },
-      // Explicit, rather than trusting ON DELETE CASCADE with foreign keys possibly off
-      { sql: 'DELETE FROM team_members WHERE player_id = ?', args: [sourceId] },
-      { sql: 'DELETE FROM players WHERE id = ?', args: [sourceId] },
+      ...moveHistory(guest, me),
+      { sql: "INSERT OR IGNORE INTO group_members (group_id, user_id, role) VALUES (?, ?, 'player')", args: [guest.group_id as string, userId] },
     ], 'write');
-    return { ok: true, source: String(source.display_name), target: String(target.display_name), sessions: Number(moved.rows[0].n) };
+    return { ok: true, guestName: String(guest.display_name), groupId: String(guest.group_id), playerId: String(me.id), sessions };
   },
 
   async findById(id: string) {
@@ -300,6 +343,45 @@ async function resolveAvatar(body: Record<string, unknown>, file: Express.Multer
   }
   return undefined;
 }
+
+type Row = Record<string, unknown>;
+
+async function sessionCount(playerId: string) {
+  const r = await db.execute({
+    sql: 'SELECT COUNT(DISTINCT session_id) AS n FROM session_participants WHERE player_id = ?',
+    args: [playerId],
+  });
+  return Number(r.rows[0].n);
+}
+
+/**
+ * The statements that move one player's history onto another: session rows
+ * (renamed to the target's name) and team memberships move, the target fills
+ * in a colour or picture it lacks, and the source is deleted. Run them in one
+ * db.batch so it all happens or none of it does.
+ */
+function moveHistory(source: Row, target: Row) {
+  const [from, to] = [String(source.id), String(target.id)];
+  return [
+    { sql: 'UPDATE session_participants SET player_id = ?, display_name = ? WHERE player_id = ?',
+      args: [to, String(target.display_name), from] },
+    { sql: 'INSERT OR IGNORE INTO team_members (team_id, player_id) SELECT team_id, ? FROM team_members WHERE player_id = ?',
+      args: [to, from] },
+    { sql: `UPDATE players SET
+              preferred_color = COALESCE(preferred_color, ?),
+              avatar_url = COALESCE(avatar_url, ?),
+              updated_at = strftime('%Y-%m-%dT%H:%M:%fZ','now')
+            WHERE id = ?`,
+      args: [(source.preferred_color as string | null) ?? null, (source.avatar_url as string | null) ?? null, to] },
+    // Explicit, rather than trusting ON DELETE CASCADE with foreign keys possibly off
+    { sql: 'DELETE FROM team_members WHERE player_id = ?', args: [from] },
+    { sql: 'DELETE FROM players WHERE id = ?', args: [from] },
+  ];
+}
+
+export type ClaimResult =
+  | { ok: true; guestName: string; groupId: string; playerId: string; sessions: number }
+  | { ok: false; reason: string };
 
 export type MergeResult =
   | { ok: true; source: string; target: string; sessions: number }

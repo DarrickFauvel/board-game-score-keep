@@ -99,9 +99,27 @@ router.get('/:id', async (req, res, next) => {
       playerService.getGameHistory(req.params.id),
       playerService.canEdit(player, req.user.sub),
     ]);
-    res.renderEta('players/show', { title: player.display_name, player, stats, history, user: req.user, canEdit });
+    // Organizers see the guest's claim link once they've made one
+    const claimUrl = canEdit && !player.user_id && player.claim_code ? `${config.baseUrl}/claim/${player.claim_code}` : null;
+    // Shown once after claiming someone's games (fixed text, so a crafted link adds nothing)
+    const claimed = req.query.claimed === '1' && player.user_id === req.user.sub;
+    res.renderEta('players/show', { title: player.display_name, player, stats, history, user: req.user, canEdit, claimUrl, claimed });
   } catch (err) { next(err); }
 });
+
+// Make (or replace) the link a friend opens to claim this guest's games
+for (const [path, reset] of [['/:id/claim-link', false], ['/:id/claim-link/reset', true]] as const) {
+  router.post(path, async (req, res, next) => {
+    try {
+      const player = await playerService.findById(req.params.id);
+      if (!player || player.user_id || !await playerService.canView(String(player.id), req.user.sub)) return next(notFound());
+      if (!await playerService.canEdit(player, req.user.sub)) return next(forbidden());
+      if (reset) await playerService.resetClaimCode(req.params.id);
+      else await playerService.ensureClaimCode(req.params.id);
+      res.redirect(303, `/players/${req.params.id}#claim`);
+    } catch (err) { next(err); }
+  });
+}
 
 router.get('/:id/edit', async (req, res, next) => {
   try {
