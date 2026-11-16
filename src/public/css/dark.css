@@ -110,7 +110,8 @@
   .scoreboard-wrap,
   .standings,
   .round-card,
-  .session-card {
+  .link-card,
+  .danger-zone {
     border-width: 2px;
   }
 

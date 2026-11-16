@@ -12,7 +12,7 @@ const roleHelp = it.roleHelp;
   </div>
   <div class="page-header__actions">
     <% if (!it.isCurrent) { %>
-    <form action="/groups/switch" method="POST" style="margin:0">
+    <form action="/groups/switch" method="POST">
       <input type="hidden" name="group_id" value="<%= it.group.id %>">
       <input type="hidden" name="next" value="/games">
       <button type="submit" class="btn btn--gold">View this group's games</button>
@@ -57,7 +57,7 @@ const roleHelp = it.roleHelp;
         <noscript><button type="submit" class="btn btn--secondary btn--sm">Save</button></noscript>
       </form>
       <% if (!isMe) { %>
-      <form action="/groups/<%= it.group.id %>/members/<%= m.user_id %>/remove" method="POST" style="margin:0"
+      <form action="/groups/<%= it.group.id %>/members/<%= m.user_id %>/remove" method="POST"
             data-confirm="Remove <%= m.display_name %> from <%= it.group.name %>? Their past games stay in the group's history."
             data-confirm-title="Remove member" data-confirm-label="Remove">
         <button type="submit" class="btn btn--ghost btn--sm" aria-label="Remove <%= m.display_name %>">Remove</button>
@@ -77,7 +77,7 @@ const roleHelp = it.roleHelp;
   <p style="color:var(--color-text-muted);font-size:var(--text-sm);margin-bottom:var(--space-2);max-width:60ch">
     Anyone with this link can join as a Player once they sign in. Make a new one if it got shared too widely; the old link stops working.
   </p>
-  <form action="/groups/<%= it.group.id %>/invite/reset" method="POST" style="margin:0"
+  <form action="/groups/<%= it.group.id %>/invite/reset" method="POST"
         data-confirm="Make a new invite link? The current one will stop working." data-confirm-title="New invite link" data-confirm-label="Make new link">
     <button type="submit" class="btn btn--secondary btn--sm">Make a new link</button>
   </form>
@@ -105,7 +105,7 @@ const roleHelp = it.roleHelp;
 
 <section aria-labelledby="leave-heading" class="section" style="margin-top:var(--space-6)">
   <h2 id="leave-heading" class="visually-hidden">Leave or delete</h2>
-  <form action="/groups/<%= it.group.id %>/members/<%= it.user.sub %>/remove" method="POST" style="margin:0"
+  <form action="/groups/<%= it.group.id %>/members/<%= it.user.sub %>/remove" method="POST"
         data-confirm="Leave <%= it.group.name %>? You'll lose access to its games until someone invites you back."
         data-confirm-title="Leave group" data-confirm-label="Leave">
     <button type="submit" class="btn btn--ghost">Leave this group</button>
@@ -113,9 +113,9 @@ const roleHelp = it.roleHelp;
 </section>
 
 <% if (it.canManageGroup) { %>
-<fieldset style="border:1px solid var(--color-danger);border-radius:var(--radius-md);padding:var(--space-3);margin-top:var(--space-4)">
-  <legend style="color:var(--color-danger);font-weight:600;padding:0 var(--space-1)">Delete this group</legend>
-  <p style="font-size:var(--text-sm);color:var(--color-text-muted);margin-bottom:var(--space-2)">
+<fieldset class="danger-zone">
+  <legend>Delete this group</legend>
+  <p>
     Deleting <%= it.group.name %> permanently removes its games, sessions, scores and photos for everyone.
   </p>
   <form action="/groups/<%= it.group.id %>/delete" method="POST" style="display:grid;gap:var(--space-2);max-width:28rem">

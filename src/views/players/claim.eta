@@ -1,13 +1,13 @@
 <% layout('../layouts/base') %>
 <% const games = Number(it.guest.sessions); const gamesText = games + ' ' + (games === 1 ? 'game' : 'games'); %>
 
-<div style="max-width:32rem;margin:var(--space-6) auto">
+<div class="page-narrow">
   <div class="card">
     <div class="card__body" style="display:grid;gap:var(--space-4);text-align:center">
       <div style="display:grid;gap:var(--space-2);justify-items:center">
         <%~ it.avatar(it.guest.avatar_url, it.guest.display_name, it.guest.preferred_color, 'avatar--lg') %>
         <h1 style="font-size:var(--text-xl);text-wrap:balance">Add <%= it.guest.display_name %>'s <%= gamesText %> to your record?</h1>
-        <p style="color:var(--color-text-muted)">
+        <p class="text-muted">
           In the group <%= it.guest.group_name %>, you've been playing as the guest <%= it.guest.display_name %>.
           Claim those games and they count as yours: wins, history and Standings.
           <% if (!it.isMember) { %>You'll also join <%= it.guest.group_name %> as a Player.<% } %>

@@ -36,7 +36,7 @@ const hasWinner = it.winRule(it.game).winningTotal(Object.values(sessionTotals))
               heading="Join this game" hint="Scan with a phone camera to join <%= it.game.name %>. They sign in, then play along."></qr-share>
     <% } %>
     <% if (it.session.status === 'active' && it.canComplete) { %>
-    <form action="/games/<%= it.game.id %>/sessions/<%= it.session.id %>/complete" method="POST" style="margin:0"
+    <form action="/games/<%= it.game.id %>/sessions/<%= it.session.id %>/complete" method="POST"
           data-confirm="Mark this session as complete? Scores will be locked."
           data-confirm-title="Complete session"
           data-confirm-label="Complete"
@@ -201,10 +201,10 @@ for (const p of it.participants) {
 </section>
 
 <% if (it.role === 'host') { %>
-<fieldset style="border:1px solid var(--color-danger);border-radius:var(--radius-md);padding:var(--space-3);margin-top:var(--space-4)">
-  <legend style="color:var(--color-danger);font-weight:600;padding:0 var(--space-1)">Delete this session</legend>
-  <p style="font-size:var(--text-sm);color:var(--color-text-muted);margin-bottom:var(--space-2)">Deleting this session will permanently remove all its scores.</p>
-  <form action="/games/<%= it.game.id %>/sessions/<%= it.session.id %>/delete" method="POST" style="margin:0"
+<fieldset class="danger-zone">
+  <legend>Delete this session</legend>
+  <p>Deleting this session will permanently remove all its scores.</p>
+  <form action="/games/<%= it.game.id %>/sessions/<%= it.session.id %>/delete" method="POST"
         data-confirm="Delete this session and all its scores? This cannot be undone."
         data-confirm-title="Delete session"
         data-confirm-label="Delete">

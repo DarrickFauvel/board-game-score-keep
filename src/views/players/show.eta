@@ -7,7 +7,7 @@
     <span class="vt-box" data-vt style="--vt: player-<%= it.player.id %>"><%~ it.avatar(it.player.avatar_url, it.player.display_name, it.player.preferred_color, 'avatar--lg') %></span>
     <div>
       <h1 class="page-header__title"><%= it.player.display_name %></h1>
-      <% if (!it.player.user_id) { %><div style="font-size:var(--text-sm);color:var(--color-text-muted)"><span class="badge">Guest</span></div><% } %>
+      <% if (!it.player.user_id) { %><div class="meta"><span class="badge">Guest</span></div><% } %>
     </div>
   </div>
   </div>
@@ -34,12 +34,12 @@
       <% if (it.claimUrl) { %>
       <qr-share url="<%= it.claimUrl %>" label="Show claim link" button-class="btn btn--secondary"
                 heading="Claim <%= it.player.display_name %>'s games" hint="Scan with a phone camera, sign in or register, and these games become yours."></qr-share>
-      <form action="/players/<%= it.player.id %>/claim-link/reset" method="POST" style="margin:0"
+      <form action="/players/<%= it.player.id %>/claim-link/reset" method="POST"
             data-confirm="Make a new link? The one you shared will stop working." data-confirm-title="New claim link" data-confirm-label="Make new link">
         <button type="submit" class="btn btn--ghost btn--sm">New link</button>
       </form>
       <% } else { %>
-      <form action="/players/<%= it.player.id %>/claim-link" method="POST" style="margin:0">
+      <form action="/players/<%= it.player.id %>/claim-link" method="POST">
         <button type="submit" class="btn btn--secondary">Invite <%= it.player.display_name %> to claim these games</button>
       </form>
       <% } %>
@@ -64,34 +64,34 @@
 </div>
 
 <section aria-labelledby="history-heading">
-  <h2 id="history-heading" style="margin-bottom:var(--space-3)">Game history</h2>
+  <div class="section-head"><h2 id="history-heading">Game history</h2></div>
 
   <% if (it.history.length === 0) { %>
   <div class="empty-state" style="padding:var(--space-4)">
     <p>No completed sessions yet.</p>
   </div>
   <% } else { %>
-  <div class="session-list" role="list">
+  <div class="stack" role="list">
     <% it.history.forEach(function(entry) { %>
-    <a class="session-card" role="listitem"
+    <a class="link-card" role="listitem"
        href="/games/<%= entry.game_id %>/sessions/<%= entry.session_id %>"
        aria-label="<%= entry.game_name %> — <%= new Date(entry.started_at).toLocaleDateString() %>, rank <%= entry.rank %>">
       <% if (entry.image_url) { %>
-      <img src="<%= it.imgUrl(entry.image_url) %>" alt="" class="avatar" style="border-radius:var(--radius-sm)" aria-hidden="true">
+      <img src="<%= it.imgUrl(entry.image_url) %>" alt="" class="avatar link-card__thumb" aria-hidden="true">
       <% } else { %>
-      <div class="avatar" aria-hidden="true" style="border-radius:var(--radius-sm)"><%~ it.icon('dice') %></div>
+      <div class="avatar link-card__thumb" aria-hidden="true"><%~ it.icon('dice') %></div>
       <% } %>
-      <div style="flex:1">
-        <div style="font-weight:600"><%= entry.game_name %></div>
-        <div style="font-size:var(--text-xs);color:var(--color-text-muted)">
-          <%= new Date(entry.started_at).toLocaleDateString() %>
-          &bull; Score: <%= entry.total_score || 0 %>
-        </div>
-      </div>
+      <span class="link-card__text">
+        <span class="link-card__title"><%= entry.game_name %></span>
+        <span class="link-card__meta">
+          <span class="nowrap"><%= new Date(entry.started_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) %></span>
+          · <span class="nowrap">Score: <%= entry.total_score || 0 %></span>
+        </span>
+      </span>
       <% if (Number(entry.won) === 1) { %>
       <span class="badge badge--gold"><%~ it.icon('trophy') %>Winner</span>
       <% } else { %>
-      <span style="font-size:var(--text-sm);color:var(--color-text-muted)">Rank #<%= entry.rank %></span>
+      <span class="meta">Rank #<%= entry.rank %></span>
       <% } %>
     </a>
     <% }) %>

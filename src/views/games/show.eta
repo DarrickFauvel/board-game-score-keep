@@ -67,22 +67,22 @@
   </section>
 
   <section aria-labelledby="sessions-heading">
-    <h2 id="sessions-heading" style="margin-bottom:var(--space-3)">Session history</h2>
+    <div class="section-head"><h2 id="sessions-heading">Session history</h2></div>
 
     <% if (it.sessions.length === 0) { %>
     <div class="empty-state" style="padding:var(--space-4)">
       <p>No sessions recorded yet. <a href="/games/<%= it.game.id %>/sessions/new" style="color:var(--color-border-focus)">Start the first session!</a></p>
     </div>
     <% } else { %>
-    <div class="session-list" role="list">
+    <div class="stack" role="list">
       <% it.sessions.forEach(function(session) { %>
-      <a class="session-card" role="listitem"
+      <a class="link-card" role="listitem"
          href="/games/<%= it.game.id %>/sessions/<%= session.id %>"
          aria-label="Session from <%= new Date(session.started_at).toLocaleDateString() %>, <%= session.status %>">
-        <div style="flex:1">
-          <div style="font-weight:600"><%= new Date(session.started_at).toLocaleDateString('en-US', {weekday:'short', month:'short', day:'numeric', year:'numeric'}) %></div>
-          <div style="font-size:var(--text-xs);color:var(--color-text-muted)"><%= session.participant_count %> player<%= session.participant_count !== 1 ? 's' : '' %></div>
-        </div>
+        <span class="link-card__text">
+          <span class="link-card__title"><%= new Date(session.started_at).toLocaleDateString('en-US', {weekday:'short', month:'short', day:'numeric', year:'numeric'}) %></span>
+          <span class="link-card__meta"><%= session.participant_count %> player<%= session.participant_count !== 1 ? 's' : '' %></span>
+        </span>
         <span class="badge badge--<%= session.status === 'active' ? 'active' : 'complete' %>">
           <%= session.status %>
         </span>

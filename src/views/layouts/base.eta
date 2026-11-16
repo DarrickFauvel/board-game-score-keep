@@ -95,7 +95,7 @@
       </a>
       <qr-share></qr-share>
       <theme-toggle></theme-toggle>
-      <form action="/auth/logout" method="POST" style="margin:0">
+      <form action="/auth/logout" method="POST">
         <button type="submit" class="btn btn--ghost" style="color:inherit">Sign out</button>
       </form>
       <% } else { %>
@@ -123,7 +123,7 @@
         <theme-toggle></theme-toggle>
       </div>
       <qr-share label="QR code"></qr-share>
-      <form action="/auth/logout" method="POST" style="margin:0">
+      <form action="/auth/logout" method="POST">
         <button type="submit" class="site-header__mobile-link" style="width:100%;text-align:left;background:none;border:none;cursor:pointer;font:inherit;color:inherit">Sign out</button>
       </form>
       <% } else { %>

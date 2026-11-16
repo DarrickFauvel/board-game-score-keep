@@ -1,6 +1,6 @@
 <% layout('../layouts/base') %>
 
-<div style="max-width:48rem;margin:0 auto" data-signals="{scoringMode:'<%= it.game.scoring_mode %>'}">
+<div class="page-form" data-signals="{scoringMode:'<%= it.game.scoring_mode %>'}">
   <div class="page-header">
     <div class="page-header__text">
       <a href="/games/<%= it.game.id %>" class="page-header__eyebrow"><span aria-hidden="true">←</span> <%= it.game.name %></a>
@@ -250,10 +250,10 @@
     <a href="/games/<%= it.game.id %>" class="btn btn--primary">Done</a>
   </div>
 
-  <fieldset style="border:1px solid var(--color-danger);border-radius:var(--radius-md);padding:var(--space-3);margin-top:var(--space-4)">
-    <legend style="color:var(--color-danger);font-weight:600;padding:0 var(--space-1)">Delete this game</legend>
-    <p style="font-size:var(--text-sm);color:var(--color-text-muted);margin-bottom:var(--space-2)">Deleting this game will permanently remove all its sessions and scores.</p>
-    <form action="/games/<%= it.game.id %>/delete" method="POST" style="margin:0"
+  <fieldset class="danger-zone">
+    <legend>Delete this game</legend>
+    <p>Deleting this game will permanently remove all its sessions and scores.</p>
+    <form action="/games/<%= it.game.id %>/delete" method="POST"
           data-confirm="Delete this game and all its sessions? This cannot be undone."
           data-confirm-title="Delete game"
           data-confirm-label="Delete">
