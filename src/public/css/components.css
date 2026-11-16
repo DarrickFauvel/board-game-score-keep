@@ -1241,3 +1241,10 @@ a.leaderboard__name { text-decoration: underline; text-underline-offset: 0.2em; 
 
 /* "Changes save automatically", under the title of a page that saves as you go */
 .autosave-note { margin: calc(-1 * var(--space-2)) 0 var(--space-4); }
+
+/* Profile color: put back the color the page opened with */
+.color-restore { margin-top: var(--space-1); gap: 0.5rem; align-self: flex-start; padding-inline: 0; }
+.color-restore__swatch {
+  width: 1rem; height: 1rem; border-radius: var(--radius-full);
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.15);
+}
