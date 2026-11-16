@@ -1,0 +1,13 @@
+<%/* The picture side of the sign-in and create-account pages: a group at
+     the table, on the espresso ground. Hidden on phones, where the form
+     is the whole page. */%>
+<figure class="auth__panel">
+  <img class="auth__photo"
+       src="/assets/img/photo-catan-floor-960.jpg"
+       srcset="/assets/img/photo-catan-floor-500.jpg 500w, /assets/img/photo-catan-floor-960.jpg 960w, /assets/img/photo-catan-floor-1280.jpg 1280w"
+       sizes="(min-width: 64rem) 34rem, 1px" alt="" decoding="async">
+  <figcaption class="auth__caption">
+    <p class="auth__quote">Every round, every winner, game after game.</p>
+    <small class="auth__credit">Photo: <a href="https://commons.wikimedia.org/wiki/File:Playing_Settlers_of_Catan.jpg">Valentin Gorbunov</a>, <a href="https://creativecommons.org/licenses/by-sa/3.0/">CC BY-SA 3.0</a>, cropped</small>
+  </figcaption>
+</figure>

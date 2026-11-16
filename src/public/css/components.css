@@ -1387,3 +1387,98 @@ a.leaderboard__name { text-decoration: underline; text-underline-offset: 0.2em; 
 @media (min-width: 48rem) {
   .game-title__thumb { width: 4.5rem; height: 4.5rem; border-radius: var(--radius-md); }
 }
+
+/* ─── Sign in / create account ────────────────────────
+   The form on the page's own paper (no card), and from laptops up a
+   picture panel beside it on the espresso ground. Phones get the form
+   alone. */
+.auth {
+  display: grid;
+  gap: var(--space-8);
+  align-items: stretch;
+  max-width: 28rem;
+  margin-inline: auto;
+}
+@media (min-width: 64rem) {
+  .auth {
+    max-width: none;
+    grid-template-columns: minmax(0, 26rem) minmax(0, 1fr);
+    justify-content: space-between;
+    min-height: min(40rem, calc(100dvh - 14rem));
+  }
+}
+
+.auth__form {
+  align-self: center;
+  padding-block: var(--space-2) var(--space-4);
+}
+@media (min-width: 64rem) {
+  .auth__form { padding-block: var(--space-6); }
+}
+
+.auth__title {
+  font-size: var(--text-xl);
+  margin-block: 0.25rem var(--space-1);
+}
+.auth__lede {
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-4);
+  max-width: 36ch;
+}
+.auth__submit { width: 100%; margin-top: var(--space-1); }
+.auth__switch {
+  margin-top: var(--space-3);
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+.auth__switch a { color: var(--color-text); font-weight: 600; text-underline-offset: 0.2em; }
+
+.auth__panel { display: none; }
+@media (min-width: 64rem) {
+  .auth__panel {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    margin: 0;
+    overflow: hidden;
+    border-radius: var(--radius-lg);
+    background: var(--color-chrome);
+    color: var(--color-chrome-text);
+    isolation: isolate;
+  }
+}
+.auth__photo {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 45%;
+}
+/* Espresso rising from the bottom, so the line and credit read on the photo */
+.auth__panel::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(to top, var(--color-chrome) 0%, color-mix(in oklab, var(--color-chrome) 70%, transparent) 30%, transparent 62%);
+}
+.auth__caption { padding: var(--space-4); }
+.auth__quote {
+  max-width: 18ch;
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: 600;
+  line-height: 1.08;
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+}
+.auth__credit {
+  display: block;
+  margin-top: var(--space-2);
+  font-size: var(--text-xs);
+  color: var(--color-chrome-muted);
+}
+.auth__credit a { color: inherit; }
