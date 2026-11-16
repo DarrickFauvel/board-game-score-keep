@@ -7,6 +7,14 @@
   <meta name="description" content="The Keep, a board game score keeper: track every round and every winner, game after game.">
   <title><%= it.title ? it.title + ' · The Keep' : 'The Keep · board game score keeper' %></title>
 
+  <%/* Page transitions: the opt-in lives here, inline, so the page counts as
+       opted in the moment Chrome checks, not only once base.css arrives
+       (through a slow connection Chrome checked first and cancelled the
+       transition: "ViewTransition opt-in disabled"). See base.css. */%>
+  <style>
+    @view-transition { navigation: auto; types: page; }
+    @media (prefers-reduced-motion: reduce) { @view-transition { navigation: none; } }
+  </style>
   <script>try{var t=localStorage.getItem('theme');if(t==='light'||t==='dark')document.documentElement.dataset.theme=t}catch(e){}</script>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
