@@ -17,9 +17,11 @@
   <% } %>
 
   <%/* The picture has its own save, so changing a field never re-uploads it */%>
-  <form action="/games/<%= it.game.id %>/image" method="POST" enctype="multipart/form-data" novalidate style="margin-bottom:var(--space-4)">
+  <form action="/games/<%= it.game.id %>/image" method="POST" enctype="multipart/form-data" novalidate>
+  <fieldset class="form-section">
+    <legend class="form-section__title">Picture</legend>
+    <p class="form-section__hint">Saves with its own button, so changing a setting never uploads it again.</p>
     <div class="form-group">
-      <label class="form-label">Game image</label>
       <% if (it.game.image_url) { %>
       <game-image src="<%= it.imgUrl(it.game.image_url) %>" alt="<%= it.game.name %>" img-id="game-preview-img"
                   max-height="12rem" style="border-radius:var(--radius-lg);overflow:hidden;margin-bottom:var(--space-2)"></game-image>
@@ -27,6 +29,7 @@
       <avatar-picker name="image" folder="game" aria-label="Replace game image"></avatar-picker>
     </div>
     <button type="submit" class="btn btn--secondary btn--sm">Save picture</button>
+  </fieldset>
   </form>
 
   <%/* Every setting saves as it changes: one listener on the form posts the whole
@@ -36,6 +39,9 @@
   <form action="<%= settingsUrl %>" method="POST" novalidate id="game-settings" data-autosave
         data-on:submit__prevent="@post('<%= settingsUrl %>?field=name', {contentType: 'form'})"
         data-on:input__debounce.700ms="@post('<%= settingsUrl %>?field=' + (evt.target.dataset.field || evt.target.id), {contentType: 'form'})">
+
+    <fieldset class="form-section">
+      <legend class="form-section__title">The game</legend>
 
     <div class="form-group">
       <label class="form-label" for="name">Game name <span class="required" aria-hidden="true">*</span></label>
@@ -80,6 +86,12 @@
       <span id="save-rules_video_url-error" class="form-error"></span>
       <span class="form-hint" id="rules_video_url-hint">Optional. A how-to-play video, such as one on YouTube. It shows as a Rules video button during sessions.</span>
     </div>
+
+    </fieldset>
+
+    <fieldset class="form-section">
+      <legend class="form-section__title">Scoring</legend>
+      <p class="form-section__hint">How a session is scored and who wins.</p>
 
     <div class="form-group">
       <label class="form-label" for="scoring_mode">Scoring mode <span class="required" aria-hidden="true">*</span></label>
@@ -182,6 +194,11 @@
       </div>
     </div>
 
+    </fieldset>
+
+    <fieldset class="form-section">
+      <legend class="form-section__title">Players</legend>
+
     <div class="form-group">
       <label class="form-label" for="teams_mode">Team play</label>
       <div class="autosave autosave--select">
@@ -195,8 +212,10 @@
       <span id="save-teams_mode-error" class="form-error"></span>
     </div>
 
-    <fieldset style="border:1px solid var(--color-border);border-radius:var(--radius-md);padding:var(--space-3);margin-bottom:var(--space-3)">
-      <legend class="form-label">Color theme</legend>
+    </fieldset>
+
+    <fieldset class="form-section">
+      <legend class="form-section__title">Colors</legend>
       <div style="display:flex;gap:var(--space-2);flex-wrap:wrap;margin-bottom:var(--space-2)">
         <color-thief-picker target-image="#game-preview-img"
                             primary-input="#color_primary"

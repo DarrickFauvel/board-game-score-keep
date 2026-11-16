@@ -17,6 +17,9 @@
 
   <form action="/games" method="POST" enctype="multipart/form-data" novalidate>
 
+    <fieldset class="form-section">
+      <legend class="form-section__title">The game</legend>
+
     <div class="form-group">
       <label class="form-label" for="name">Game name <span class="required" aria-hidden="true">*</span></label>
       <input class="form-control" type="text" id="name" name="name" required aria-required="true" maxlength="120" autofocus>
@@ -47,6 +50,12 @@
              placeholder="https://www.youtube.com/watch?v=…" value="" aria-describedby="rules_video_url-hint">
       <span class="form-hint" id="rules_video_url-hint">Optional. A how-to-play video, such as one on YouTube. It shows as a Rules video button during sessions.</span>
     </div>
+
+    </fieldset>
+
+    <fieldset class="form-section">
+      <legend class="form-section__title">Scoring</legend>
+      <p class="form-section__hint">How a session is scored and who wins.</p>
 
     <div class="form-group">
       <label class="form-label" for="scoring_mode">Scoring mode <span class="required" aria-hidden="true">*</span></label>
@@ -110,6 +119,11 @@
       </div>
     </div>
 
+    </fieldset>
+
+    <fieldset class="form-section">
+      <legend class="form-section__title">Players</legend>
+
     <div class="form-group">
       <label class="form-label" for="teams_mode">Team play</label>
       <select class="form-control" id="teams_mode" name="teams_mode">
@@ -119,8 +133,10 @@
       </select>
     </div>
 
-    <fieldset style="border:1px solid var(--color-border);border-radius:var(--radius-md);padding:var(--space-3);margin-bottom:var(--space-3)">
-      <legend class="form-label">Color theme</legend>
+    </fieldset>
+
+    <fieldset class="form-section">
+      <legend class="form-section__title">Colors</legend>
       <p class="form-hint" style="margin-bottom:var(--space-2)">Choose colors or pick from the game image automatically.</p>
       <color-thief-picker target-image="#game-preview-img"
                           primary-input="#color_primary"
