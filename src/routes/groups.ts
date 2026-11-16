@@ -12,7 +12,7 @@ import { config } from '../config.js';
  */
 const router = Router();
 
-const notFound = () => Object.assign(new Error('Not Found'), { status: 404 });
+const notFound = () => Object.assign(new Error('Not found'), { status: 404 });
 const forbidden = (msg: string) => Object.assign(new Error('Forbidden'), { status: 403, publicMessage: msg });
 const badInvite = () => Object.assign(new Error('Unknown group invite'), {
   status: 404,

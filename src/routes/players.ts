@@ -6,11 +6,11 @@ import { upload } from '../middleware/upload.js';
 import { config } from '../config.js';
 import { can } from '../services/groupAccess.js';
 
-const editTitle = (player: Record<string, unknown>) => (player.user_id ? 'Edit Profile' : `Edit ${player.display_name}`);
+const editTitle = (player: Record<string, unknown>) => (player.user_id ? 'Edit profile' : `Edit ${player.display_name}`);
 
 const router = Router();
 
-const notFound = () => Object.assign(new Error('Not Found'), { status: 404 });
+const notFound = () => Object.assign(new Error('Not found'), { status: 404 });
 const forbidden = () => Object.assign(new Error('Forbidden'), {
   status: 403, publicMessage: "You can edit your own profile, and the group's organizers can edit its guests.",
 });
@@ -85,7 +85,7 @@ router.post('/:id/merge', requireManager, body('target_id').trim().notEmpty(), a
 router.get('/me', async (req, res, next) => {
   try {
     const player = await playerService.findByUserId(req.user.sub);
-    if (!player) return next(Object.assign(new Error('Not Found'), { status: 404 }));
+    if (!player) return next(Object.assign(new Error('Not found'), { status: 404 }));
     res.redirect(`/players/${player.id}`);
   } catch (err) { next(err); }
 });

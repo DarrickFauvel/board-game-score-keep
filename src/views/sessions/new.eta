@@ -2,7 +2,7 @@
 
 <div style="max-width:48rem;margin:0 auto">
   <div class="page-header">
-    <h1 class="page-header__title">New Session: <%= it.game.name %></h1>
+    <h1 class="page-header__title">New session: <%= it.game.name %></h1>
     <a href="/games/<%= it.game.id %>" class="btn btn--secondary">Cancel</a>
   </div>
 
@@ -35,7 +35,7 @@
         <div class="input-row" style="margin-top:var(--space-1)">
           <input class="form-control" type="text" id="guest-name" placeholder="Guest name" maxlength="60"
                  onkeydown="if(event.key==='Enter'){event.preventDefault();addGuest();}">
-          <button type="button" class="btn btn--secondary" onclick="addGuest()">Add Guest</button>
+          <button type="button" class="btn btn--secondary" onclick="addGuest()">Add guest</button>
         </div>
         <%/* Shown when a typed name is close to someone already known ("Lindsey" vs "Lindsay") */%>
         <div id="name-check" class="name-check" role="status" hidden></div>
@@ -48,18 +48,18 @@
       <h2 id="teams-heading" style="margin-bottom:var(--space-3)">Teams</h2>
       <div id="team-list" style="display:flex;flex-direction:column;gap:var(--space-2)">
         <div class="card" style="padding:var(--space-2)">
-          <input class="form-control" type="text" name="display_name" placeholder="Team name (e.g. Red Team)" required>
+          <input class="form-control" type="text" name="display_name" placeholder="Team name (e.g. Red team)" required>
           <input type="hidden" name="player_id" value="">
           <input type="hidden" name="color" value="">
         </div>
         <div class="card" style="padding:var(--space-2)">
-          <input class="form-control" type="text" name="display_name" placeholder="Team name (e.g. Blue Team)" required>
+          <input class="form-control" type="text" name="display_name" placeholder="Team name (e.g. Blue team)" required>
           <input type="hidden" name="player_id" value="">
           <input type="hidden" name="color" value="">
         </div>
       </div>
       <button type="button" class="btn btn--secondary btn--sm" style="margin-top:var(--space-2)"
-              onclick="addTeam()">+ Add Team</button>
+              onclick="addTeam()">+ Add team</button>
     </section>
     <% } %>
 
@@ -86,7 +86,7 @@
 
     <div class="form-actions" style="margin-top:var(--space-6)">
       <a href="/games/<%= it.game.id %>" class="btn btn--secondary">Cancel</a>
-      <button type="submit" class="btn btn--primary">Start Session</button>
+      <button type="submit" class="btn btn--primary">Start session</button>
     </div>
 
   </form>

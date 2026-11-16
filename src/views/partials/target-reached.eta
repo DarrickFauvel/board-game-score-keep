@@ -20,10 +20,10 @@ const reached = target && it.session.status === 'active'
   <p><strong>🏁 <%= who %> reached <%= u.pointCount(target) %>!</strong> Complete the session to lock the scores and crown the winner<%= lowestWins ? ' (the lowest total takes it)' : names.length > 1 ? ' (the highest total takes it)' : '' %>.</p>
   <form action="/games/<%= it.game.id %>/sessions/<%= it.session.id %>/complete" method="POST"
         data-confirm="Mark this session as complete? Scores will be locked."
-        data-confirm-title="Complete Session"
+        data-confirm-title="Complete session"
         data-confirm-label="Complete"
         data-celebrate>
-    <button type="submit" class="btn btn--gold">Complete Session</button>
+    <button type="submit" class="btn btn--gold">Complete session</button>
   </form>
 </div>
 <% } else if (target && it.showGoal) { %>

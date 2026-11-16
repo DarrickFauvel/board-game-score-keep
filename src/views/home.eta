@@ -18,7 +18,7 @@
   </div>
   <% } else if (it.hall.podium.length === 0) { %>
   <p class="hall__empty">No champions yet. Finish a game with two or more players and the first name goes up on the wall.</p>
-  <p class="hall__more hall__more--center"><a href="/games">Start a session from My Games →</a></p>
+  <p class="hall__more hall__more--center"><a href="/games">Start a session from My games →</a></p>
   <% } else { %>
   <%/* DOM order is 1st, 2nd, 3rd for screen readers; CSS lays it out 2–1–3 */%>
   <ol class="podium" role="list" aria-label="Top players">

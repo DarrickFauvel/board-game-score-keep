@@ -72,21 +72,21 @@
       <% } %>
       <a href="/groups/<%= it.group.id %>" class="group-switch__link"<%~ here('/groups') %>><%= it.groups.length > 1 ? 'Group' : it.group.name %></a>
       <% } %>
-      <a href="/games"<%~ here('/games') %>>My Games</a>
+      <a href="/games"<%~ here('/games') %>>My games</a>
       <a href="/players"<%~ here('/players') %>>Players</a>
       <a href="/standings"<%~ here('/standings') %>>Standings</a>
       <a href="/players/me" class="site-header__me"<%~ here('/players/' + (it.me ? it.me.id : 'me')) %>>
-        <% if (it.me) { %><%~ it.avatar(it.me.avatar_url, it.me.display_name, it.me.preferred_color, 'avatar--xs') %><% } %>My Profile
+        <% if (it.me) { %><%~ it.avatar(it.me.avatar_url, it.me.display_name, it.me.preferred_color, 'avatar--xs') %><% } %>My profile
       </a>
       <qr-share></qr-share>
       <theme-toggle></theme-toggle>
       <form action="/auth/logout" method="POST" style="margin:0">
-        <button type="submit" class="btn btn--ghost" style="color:inherit">Sign Out</button>
+        <button type="submit" class="btn btn--ghost" style="color:inherit">Sign out</button>
       </form>
       <% } else { %>
       <qr-share></qr-share>
-      <a href="/auth/login<%= it.authQuery %>">Sign In</a>
-      <a href="/auth/register<%= it.authQuery %>" class="btn btn--gold">Create Account</a>
+      <a href="/auth/login<%= it.authQuery %>">Sign in</a>
+      <a href="/auth/register<%= it.authQuery %>" class="btn btn--gold">Create an account</a>
       <% } %>
     </nav>
 
@@ -108,11 +108,11 @@
       <% } %>
       <a href="/groups/<%= it.group.id %>" class="group-switch__link site-header__mobile-link"><%= it.groups.length > 1 ? 'Group' : it.group.name %></a>
       <% } %>
-      <a href="/games" class="site-header__mobile-link">My Games</a>
+      <a href="/games" class="site-header__mobile-link">My games</a>
       <a href="/players" class="site-header__mobile-link">Players</a>
       <a href="/standings" class="site-header__mobile-link">Standings</a>
       <a href="/players/me" class="site-header__mobile-link site-header__me">
-        <% if (it.me) { %><%~ it.avatar(it.me.avatar_url, it.me.display_name, it.me.preferred_color, 'avatar--xs') %><% } %>My Profile
+        <% if (it.me) { %><%~ it.avatar(it.me.avatar_url, it.me.display_name, it.me.preferred_color, 'avatar--xs') %><% } %>My profile
       </a>
       <%/* Close the menu only once the theme change has played out, so it is seen */%>
       <div style="padding-inline:0.5rem" data-on:theme-settled="$menuOpen = false">
@@ -120,11 +120,11 @@
       </div>
       <qr-share label="QR code"></qr-share>
       <form action="/auth/logout" method="POST" style="margin:0">
-        <button type="submit" class="site-header__mobile-link" style="width:100%;text-align:left;background:none;border:none;cursor:pointer;font:inherit;color:inherit">Sign Out</button>
+        <button type="submit" class="site-header__mobile-link" style="width:100%;text-align:left;background:none;border:none;cursor:pointer;font:inherit;color:inherit">Sign out</button>
       </form>
       <% } else { %>
-      <a href="/auth/login<%= it.authQuery %>" class="site-header__mobile-link">Sign In</a>
-      <a href="/auth/register<%= it.authQuery %>" class="site-header__mobile-link">Create Account</a>
+      <a href="/auth/login<%= it.authQuery %>" class="site-header__mobile-link">Sign in</a>
+      <a href="/auth/register<%= it.authQuery %>" class="site-header__mobile-link">Create an account</a>
       <qr-share label="QR code"></qr-share>
       <% } %>
     </div>
