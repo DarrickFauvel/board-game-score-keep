@@ -58,19 +58,8 @@
     <nav class="site-header__nav" aria-label="Main navigation">
       <% if (it.user) { %>
       <% const here = (href) => (it.currentPath || '').startsWith(href) ? ' aria-current="page"' : '' %>
-      <%/* Which group you're looking at; a menu to switch when you're in more than one */%>
       <% if (it.group) { %>
-      <% if (it.groups.length > 1) { %>
-      <form action="/groups/switch" method="POST" class="group-switch">
-        <input type="hidden" name="next" value="<%= it.currentPath || '/' %>">
-        <label class="visually-hidden" for="group-switch-nav">Group</label>
-        <select id="group-switch-nav" name="group_id" onchange="this.form.requestSubmit()">
-          <% it.groups.forEach(function(g) { %><option value="<%= g.id %>"<%= g.id === it.group.id ? ' selected' : '' %>><%= g.name %></option><% }) %>
-        </select>
-        <noscript><button type="submit">Go</button></noscript>
-      </form>
-      <% } %>
-      <a href="/groups/<%= it.group.id %>" class="group-switch__link"<%~ here('/groups') %>><%= it.groups.length > 1 ? 'Group' : it.group.name %></a>
+      <a href="/groups/<%= it.group.id %>" class="group-switch__link"<%~ here('/groups') %>>Group</a>
       <% } %>
       <a href="/games"<%~ here('/games') %>>Games</a>
       <a href="/players"<%~ here('/players') %>>Players</a>
@@ -94,19 +83,8 @@
          data-class:is-open="$menuOpen"
          aria-label="Navigation menu">
       <% if (it.user) { %>
-      <%/* Which group you're looking at; a menu to switch when you're in more than one */%>
       <% if (it.group) { %>
-      <% if (it.groups.length > 1) { %>
-      <form action="/groups/switch" method="POST" class="group-switch">
-        <input type="hidden" name="next" value="<%= it.currentPath || '/' %>">
-        <label class="visually-hidden" for="group-switch-menu">Group</label>
-        <select id="group-switch-menu" name="group_id" onchange="this.form.requestSubmit()">
-          <% it.groups.forEach(function(g) { %><option value="<%= g.id %>"<%= g.id === it.group.id ? ' selected' : '' %>><%= g.name %></option><% }) %>
-        </select>
-        <noscript><button type="submit">Go</button></noscript>
-      </form>
-      <% } %>
-      <a href="/groups/<%= it.group.id %>" class="group-switch__link site-header__mobile-link"><%= it.groups.length > 1 ? 'Group' : it.group.name %></a>
+      <a href="/groups/<%= it.group.id %>" class="group-switch__link site-header__mobile-link">Group</a>
       <% } %>
       <a href="/games" class="site-header__mobile-link">Games</a>
       <a href="/players" class="site-header__mobile-link">Players</a>
@@ -129,6 +107,33 @@
       <% } %>
     </div>
   </header>
+
+  <%/* Who's signed in and which group they're looking at, on every signed-in page */%>
+  <% if (it.user && it.group) { %>
+  <div class="context-bar">
+    <div class="context-bar__group">
+      <span class="context-bar__label" id="context-group-label">Group</span>
+      <% if (it.groups.length > 1) { %>
+      <form action="/groups/switch" method="POST" class="group-switch">
+        <input type="hidden" name="next" value="<%= it.currentPath || '/' %>">
+        <select name="group_id" aria-labelledby="context-group-label" onchange="this.form.requestSubmit()">
+          <% it.groups.forEach(function(g) { %><option value="<%= g.id %>"<%= g.id === it.group.id ? ' selected' : '' %>><%= g.name %></option><% }) %>
+        </select>
+        <noscript><button type="submit">Go</button></noscript>
+      </form>
+      <% } else { %>
+      <a href="/groups/<%= it.group.id %>" class="context-bar__value"><%= it.group.name %></a>
+      <% } %>
+    </div>
+    <% if (it.me) { %>
+    <a href="/players/me" class="context-bar__me">
+      <span class="context-bar__label">Signed in as</span>
+      <%~ it.avatar(it.me.avatar_url, it.me.display_name, it.me.preferred_color, 'avatar--xs') %>
+      <span class="context-bar__value"><%= it.me.display_name %></span>
+    </a>
+    <% } %>
+  </div>
+  <% } %>
 
   <% if (it.game) { %>
   <div class="game-accent-bar" role="presentation"></div>
