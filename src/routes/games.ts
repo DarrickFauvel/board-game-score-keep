@@ -1,4 +1,5 @@
-import { Router } from 'express';
+import { Router, type Request, type Response } from 'express';
+import { GROUP_COOKIE, groupCookieOptions } from '../middleware/group.js';
 import { body, validationResult } from 'express-validator';
 import { gameService } from '../services/gameService.js';
 import { upload } from '../middleware/upload.js';
@@ -74,17 +75,46 @@ router.post('/',
   }
 );
 
+/** Your other groups where you may add games: where this game can be copied to. */
+const copyTargets = (req: Request, game: Record<string, unknown>) =>
+  req.groups.filter((g) => g.id !== game.group_id && can(g.role, 'manageGames'));
+
+/** The game page, optionally with a message about a copy that didn't happen. */
+async function renderGame(req: Request, res: Response, game: Record<string, unknown>, copyError: string | null = null, status = 200) {
+  const id = String(game.id);
+  const { sessionService } = await import('../services/sessionService.js');
+  const { scoreService } = await import('../services/scoreService.js');
+  const [sessions, categories] = await Promise.all([sessionService.listByGame(id), scoreService.listCategories(id)]);
+  res.status(status).renderEta('games/show', {
+    title: game.name, game, sessions, categories, user: req.user, canManageGames: can(roleOf(game), 'manageGames'),
+    copyTargets: copyTargets(req, game), copyError,
+  });
+}
+
 router.get('/:id', async (req, res, next) => {
   try {
     const game = await gameService.findById(req.params.id, req.user.sub);
     if (!game) return next(Object.assign(new Error('Not found'), { status: 404 }));
-    const { sessionService } = await import('../services/sessionService.js');
-    const sessions = await sessionService.listByGame(req.params.id);
-    const { scoreService } = await import('../services/scoreService.js');
-    const categories = await scoreService.listCategories(req.params.id);
-    res.renderEta('games/show', {
-      title: game.name, game, sessions, categories, user: req.user, canManageGames: can(roleOf(game), 'manageGames'),
-    });
+    await renderGame(req, res, game);
+  } catch (err) { next(err); }
+});
+
+// Copy the game's setup (not its history) into another of your groups
+router.post('/:id/copy', async (req, res, next) => {
+  try {
+    const game = await gameService.findById(req.params.id, req.user.sub);
+    if (!game) return next(Object.assign(new Error('Not found'), { status: 404 }));
+    const target = copyTargets(req, game).find((g) => g.id === String(req.body.group_id ?? ''));
+    if (!target) {
+      return await renderGame(req, res, game, 'Pick a group where you can add games.', 400);
+    }
+    const newId = await gameService.copyToGroup(String(game.id), req.user.sub, target.id);
+    if (!newId) {
+      return await renderGame(req, res, game, `${target.name} already has a game called ${game.name}.`, 409);
+    }
+    // Look at the group the copy went to, so the header matches the page
+    res.cookie(GROUP_COOKIE, target.id, groupCookieOptions());
+    res.redirect(303, `/games/${newId}`);
   } catch (err) { next(err); }
 });
 

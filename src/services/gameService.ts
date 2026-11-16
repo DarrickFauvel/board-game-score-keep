@@ -1,3 +1,4 @@
+import { randomBytes } from 'node:crypto';
 import { db } from '../db/client.js';
 import { processUploadedImage } from './imageService.js';
 import { parseRoundCount, parseTargetScore } from './rounds.js';
@@ -116,6 +117,38 @@ export const gameService = {
         }
       }
     }
+  },
+
+  /**
+   * A copy of the game's setup in another group: name, picture, scoring,
+   * rounds, win rule, unit names, colors, links and score categories.
+   * Sessions, scores and the group's saved teams stay behind. One
+   * transaction, so a failure leaves no half-made game. Returns the new
+   * game's id, or null when the group already has a game by that name.
+   */
+  async copyToGroup(gameId: string, userId: string, groupId: string): Promise<string | null> {
+    const clash = await db.execute({
+      sql: `SELECT 1 FROM games
+            WHERE group_id = ? AND lower(name) = (SELECT lower(name) FROM games WHERE id = ?)`,
+      args: [groupId, gameId],
+    });
+    if (clash.rows.length) return null;
+
+    const newId = randomBytes(16).toString('hex');
+    const settings = 'name, image_url, scoring_mode, teams_mode, color_primary, color_secondary, color_accent, suggested_rounds, target_score, bgg_url, rules_url, rules_video_url, round_name, point_name, lowest_wins';
+    await db.batch([
+      {
+        sql: `INSERT INTO games (id, owner_id, group_id, ${settings})
+              SELECT ?, ?, ?, ${settings} FROM games WHERE id = ?`,
+        args: [newId, userId, groupId, gameId],
+      },
+      {
+        sql: `INSERT INTO score_categories (game_id, name, sort_order)
+              SELECT ?, name, sort_order FROM score_categories WHERE game_id = ?`,
+        args: [newId, gameId],
+      },
+    ], 'write');
+    return newId;
   },
 
   async remove(id: string) {
