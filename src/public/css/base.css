@@ -47,7 +47,9 @@ body {
   font-weight: 700;
   font-size: var(--text-base);
   z-index: var(--z-toast);
-  transform: translateY(-100%);
+  /* A few pixels past its own height: at exactly -100% a fractional
+     height left a 1px gold sliver along the top of every page */
+  transform: translateY(calc(-100% - 4px));
   transition: transform var(--transition-fast);
   border-radius: 0 0 var(--radius-md) 0;
 }
