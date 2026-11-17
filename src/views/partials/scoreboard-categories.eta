@@ -7,10 +7,75 @@ for (const entry of it.scores) {
 // The winning total by the game rule (highest, or lowest); null while undecided
 const rule = it.winRule(it.game);
 const winTotal = rule.winningTotal(Object.values(totals));
+const isActive = it.session.status === 'active';
+const standings = it.participants.slice().sort((a, b) => rule.compare(totals[a.id] || 0, totals[b.id] || 0));
+// Who is ahead while playing (everyone on the best total, once anyone has scored)
+const bestTotal = standings.length ? (totals[standings[0].id] || 0) : 0;
+const anyScored = it.scores.some((s) => (s.value || 0) !== 0);
+const leaders = isActive && anyScored ? standings.filter((p) => (totals[p.id] || 0) === bestTotal) : [];
+const scoreOf = (p, cat) => {
+  const entry = it.scores.find((s) => s.participant_id === p.id && s.category_id === cat.id);
+  return entry ? entry.value : null;
+};
 %>
 
 <%~ include('../partials/target-reached', { ...it, totals, showGoal: true }) %>
 
+<% if (isActive) { %>
+<%/* While playing: the same layout as a running tally. A card per category
+     (each player and their buttons), the standings beside them, and on
+     phones a bar that keeps the leader in view. */%>
+<div class="leader-bar" aria-hidden="true">
+  <span class="leader-bar__round"><%= it.categories.length %> categories</span>
+  <% if (leaders.length === 1) { %>
+  <span class="leader-bar__lead"><%~ it.avatar(leaders[0].avatar_url, leaders[0].display_name, leaders[0].color || leaders[0].preferred_color, 'avatar--xs') %><span class="leader-bar__name"><%= leaders[0].display_name %></span> leads <strong class="leader-bar__total"><%= bestTotal %></strong></span>
+  <% } else if (leaders.length > 1) { %>
+  <span class="leader-bar__lead"><span class="leader-bar__name"><%= leaders.length === 2 ? leaders.map((p) => p.display_name).join(' & ') : leaders.length + ' players' %></span> tied at <strong class="leader-bar__total"><%= bestTotal %></strong></span>
+  <% } %>
+</div>
+
+<div class="tally tally--live">
+  <section class="standings" aria-labelledby="standings-heading">
+    <h2 id="standings-heading" class="standings__title">
+      Standings
+      <span class="standings__meta">Totals of every category<% if (rule.lowestWins) { %> · lowest wins<% } %></span>
+    </h2>
+    <ol class="standings__list" role="list">
+      <% standings.forEach(function(p, i) { %>
+      <li id="participant-<%= p.id %>" class="standings__row<%= leaders.includes(p) ? ' standings__row--leader' : '' %>">
+        <span class="standings__rank"><%= i + 1 %></span>
+        <%~ it.avatar(p.avatar_url, p.display_name, p.color || p.preferred_color, 'avatar--sm') %>
+        <span class="standings__name"><%= p.display_name %></span>
+        <strong class="standings__total"><%= totals[p.id] || 0 %></strong>
+      </li>
+      <% }) %>
+    </ol>
+  </section>
+
+  <div class="tally__current category-list">
+    <% it.categories.forEach(function(cat) { %>
+    <section class="round-card round-card--entry" aria-labelledby="category-<%= cat.id %>-heading">
+      <div class="round-card__header">
+        <h3 id="category-<%= cat.id %>-heading" class="round-card__title"><%= cat.name %></h3>
+      </div>
+      <ul class="round-card__rows" role="list">
+        <% it.participants.forEach(function(p) { const v = scoreOf(p, cat); %>
+        <li class="round-row">
+          <span class="round-row__dot" style="background:<%= p.color || p.preferred_color || 'var(--color-border)' %>" aria-hidden="true"></span>
+          <span class="round-row__name"><%= p.display_name %></span>
+          <score-input session-id="<%= it.session.id %>" participant-id="<%= p.id %>"
+                       category-id="<%= cat.id %>" value="<%= v ?? 0 %>"
+                       aria-label="<%= cat.name %> score for <%= p.display_name %>"></score-input>
+        </li>
+        <% }) %>
+      </ul>
+    </section>
+    <% }) %>
+  </div>
+</div>
+
+<% } else { %>
+<%/* A finished game reads as a score sheet: players down, categories across */%>
 <div class="scoreboard-wrap">
 <table class="scoreboard" aria-label="Category scores">
   <thead>
@@ -23,36 +88,22 @@ const winTotal = rule.winningTotal(Object.values(totals));
   <tbody>
     <% it.participants.forEach(function(p) {
        const total = totals[p.id] || 0;
-       const isWinner = it.session.status === 'completed' && total === winTotal;
+       const isWinner = total === winTotal;
     %>
     <tr id="participant-<%= p.id %>" class="<%= isWinner ? 'score-winner' : '' %>">
       <td>
-        <div style="display:flex;align-items:center;gap:var(--space-2)">
+        <div class="scoreboard__player">
           <%~ it.avatar(p.avatar_url, p.display_name, p.color || p.preferred_color, 'avatar--sm') %>
           <span><%= p.display_name %><%~ isWinner ? ' ' + it.icon('trophy', 'winner-icon') + '<span class="visually-hidden"> (winner)</span>' : '' %></span>
         </div>
       </td>
-      <% it.categories.forEach(function(cat) {
-         const entry = it.scores.find(s => s.participant_id === p.id && s.category_id === cat.id);
-      %>
-      <td class="score-input-cell">
-        <% if (it.session.status === 'active') { %>
-        <score-input session-id="<%= it.session.id %>" participant-id="<%= p.id %>"
-                     category-id="<%= cat.id %>" value="<%= entry ? entry.value : 0 %>"
-                     aria-label="<%= cat.name %> score for <%= p.display_name %>"></score-input>
-        <% } else { %><%= entry ? entry.value : '—' %><% } %>
-      </td>
+      <% it.categories.forEach(function(cat) { const v = scoreOf(p, cat); %>
+      <td><%= v ?? '—' %></td>
       <% }) %>
       <td><strong><%= total %></strong></td>
     </tr>
     <% }) %>
   </tbody>
-  <tfoot>
-    <tr>
-      <td>Total</td>
-      <% it.categories.forEach(function() { %><td></td><% }) %>
-      <td><strong><%= rule.best(Object.values(totals)) %></strong></td>
-    </tr>
-  </tfoot>
 </table>
 </div>
+<% } %>

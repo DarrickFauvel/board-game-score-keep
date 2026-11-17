@@ -7,13 +7,17 @@ for (const p of it.participants) {
 const rule = it.winRule(it.game);
 const winTotal = rule.winningTotal(Object.values(totals));
 const isActive = it.session.status === 'active';
+// Who is ahead while playing (everyone on the best total, once anyone has scored)
+const best = rule.best(Object.values(totals));
+const anyScored = Object.values(totals).some((t) => t !== 0);
+const isLeader = (p) => isActive && anyScored && (totals[p.id] || 0) === best;
 %>
 
 <%~ include('../partials/target-reached', { ...it, totals, showGoal: true }) %>
 
 <%/* One score per player, so a list rather than a table: on phones the stepper
      drops below a long name instead of forcing a sideways scroll. */%>
-<section class="round-card" aria-labelledby="final-scores-heading">
+<section class="round-card round-card--entry" aria-labelledby="final-scores-heading">
   <div class="round-card__header">
     <h3 id="final-scores-heading" class="round-card__title">Final scores</h3>
   </div>
@@ -22,9 +26,9 @@ const isActive = it.session.status === 'active';
        const total = totals[p.id] || 0;
        const isWinner = it.session.status === 'completed' && total === winTotal;
     %>
-    <li id="participant-<%= p.id %>" class="round-row<%= isWinner ? ' score-winner' : '' %>">
+    <li id="participant-<%= p.id %>" class="round-row<%= isWinner ? ' score-winner' : '' %><%= isLeader(p) ? ' round-row--leader' : '' %>">
       <%~ it.avatar(p.avatar_url, p.display_name, p.color || p.preferred_color, 'avatar--sm') %>
-      <span class="round-row__name"><%= p.display_name %><%~ isWinner ? ' ' + it.icon('trophy', 'winner-icon') + '<span class="visually-hidden"> (winner)</span>' : '' %></span>
+      <span class="round-row__name"><%= p.display_name %><% if (isLeader(p)) { %> <span class="round-row__sofar">Leads</span><% } %><%~ isWinner ? ' ' + it.icon('trophy', 'winner-icon') + '<span class="visually-hidden"> (winner)</span>' : '' %></span>
       <% if (isActive) { %>
       <score-input
         session-id="<%= it.session.id %>"

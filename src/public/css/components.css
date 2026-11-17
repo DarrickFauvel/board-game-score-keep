@@ -804,12 +804,30 @@ textarea.form-control {
   color: var(--color-text-muted);
   font-variant-numeric: tabular-nums;
 }
-.round-card--current { container-type: inline-size; }
+.round-card--current,
+.round-card--entry { container-type: inline-size; }
 @container (min-width: 34rem) {
-  .round-card--current .round-row { flex-wrap: nowrap; align-items: center; }
-  .round-card--current .round-row__name { flex: 1 1 auto; }
-  .round-card--current .round-row__dot { align-self: center; }
+  :is(.round-card--current, .round-card--entry) .round-row { flex-wrap: nowrap; align-items: center; }
+  :is(.round-card--current, .round-card--entry) .round-row__name { flex: 1 1 auto; }
+  :is(.round-card--current, .round-card--entry) .round-row__dot,
+  :is(.round-card--current, .round-card--entry) .round-row > .avatar { align-self: center; }
 }
+
+/* Scoring by category while playing: a card per category, one under
+   another in the main column */
+.category-list { display: grid; gap: var(--space-2); }
+
+/* The final-score list: whoever is ahead, while the game is on */
+.round-row--leader {
+  margin-inline: calc(-1 * var(--space-1));
+  padding-inline: var(--space-1);
+  border-radius: var(--radius-md);
+  background: var(--color-gold-bg);
+}
+.round-row--leader + .round-row { border-top-color: transparent; }
+
+/* A finished category game: the player cell of the score sheet */
+.scoreboard__player { display: flex; align-items: center; gap: var(--space-2); }
 
 /* ─── Data table ──────────────────────────────────────
    Numbers people compare: tabular figures right-aligned, a hairline under
