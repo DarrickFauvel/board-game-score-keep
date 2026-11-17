@@ -596,7 +596,8 @@ textarea.form-control {
 .standings__total {
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: var(--text-lg);
+  font-size: var(--text-xl);
+  line-height: 1;
   letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
 }
@@ -719,7 +720,95 @@ textarea.form-control {
 
 @media (min-width: 48rem) {
   .round-card { padding: 0 var(--space-2) var(--space-1); }
-  .round-list { grid-template-columns: repeat(auto-fill, minmax(min(100%, 22rem), 1fr)); }
+  .round-list { grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr)); align-items: start; }
+}
+
+/* ─── Live session layout ─────────────────────────────
+   Phones: the leader bar, standings, then the round being scored.
+   Laptops up: the round being scored on the left at full width, the
+   standings beside it and staying in view; finished rounds below. */
+.tally { display: grid; gap: 0 var(--space-3); }
+.tally > .standings { grid-area: standings; }
+.tally > .round-done,
+.tally > .target-reached { grid-area: note; }
+.tally > .tally__current { grid-area: current; margin-bottom: var(--space-3); }
+.tally--live { grid-template-areas: "note" "current" "standings"; }
+.tally:not(.tally--live) { grid-template-areas: "standings" "note" "current"; }
+@media (min-width: 64rem) {
+  .tally--live {
+    grid-template-columns: minmax(0, 1fr) 22rem;
+    grid-template-areas: "note note" "current standings";
+    align-items: start;
+  }
+  .tally--live > .standings { position: sticky; top: var(--space-2); }
+}
+
+/* The leader, while you scroll to the buttons (phones and tablets) */
+.leader-bar {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  margin: 0 calc(-1 * var(--page-gutter)) var(--space-2);
+  padding: 0.5rem var(--page-gutter);
+  background: color-mix(in oklab, var(--color-bg) 88%, transparent);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--color-border);
+  font-size: var(--text-sm);
+}
+@media (min-width: 64rem) {
+  .leader-bar { display: none; }
+}
+.leader-bar__round { font-weight: 600; white-space: nowrap; }
+.leader-bar__lead {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  min-width: 0;
+  color: var(--color-text-muted);
+}
+.leader-bar__name {
+  color: var(--color-text);
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.leader-bar__total {
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  line-height: 1;
+  color: var(--color-text);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Whoever's ahead, while the game is on */
+.standings__row--leader {
+  margin-inline: calc(-1 * var(--space-2));
+  padding-inline: var(--space-2);
+  border-radius: var(--radius-md);
+  background: var(--color-gold-bg);
+}
+.standings__row--leader + .standings__row { border-top-color: transparent; }
+
+/* The round being scored: each player's running total under their name,
+   and from wide cards up the name and buttons share a row */
+.round-row__sofar {
+  display: block;
+  font-size: var(--text-xs);
+  font-weight: 400;
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+.round-card--current { container-type: inline-size; }
+@container (min-width: 34rem) {
+  .round-card--current .round-row { flex-wrap: nowrap; align-items: center; }
+  .round-card--current .round-row__name { flex: 1 1 auto; }
+  .round-card--current .round-row__dot { align-self: center; }
 }
 
 /* ─── Leaderboard (standings page) ─────────────────── */
