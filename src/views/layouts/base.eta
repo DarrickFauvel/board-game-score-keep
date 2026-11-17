@@ -84,13 +84,16 @@
     <nav class="site-header__nav" aria-label="Main navigation">
       <% if (it.user) { %>
       <% const here = (href) => (it.currentPath || '').startsWith(href) ? ' aria-current="page"' : '' %>
+      <%/* Your own profile lights up My profile, not Players as well */%>
+      <% const myPaths = ['/players/me', it.me ? '/players/' + it.me.id : null].filter(Boolean) %>
+      <% const onMine = myPaths.some((m) => (it.currentPath || '').startsWith(m)) %>
       <% if (it.group) { %>
       <a href="/groups/<%= it.group.id %>" class="group-switch__link"<%~ here('/groups') %>>Group</a>
       <% } %>
       <a href="/games"<%~ here('/games') %>>Games</a>
-      <a href="/players"<%~ here('/players') %>>Players</a>
+      <a href="/players"<%~ onMine ? '' : here('/players') %>>Players</a>
       <a href="/standings"<%~ here('/standings') %>>Standings</a>
-      <a href="/players/me" class="site-header__me"<%~ here('/players/' + (it.me ? it.me.id : 'me')) %>>
+      <a href="/players/me" class="site-header__me"<%~ onMine ? ' aria-current="page"' : '' %>>
         <% if (it.me) { %><%~ it.avatar(it.me.avatar_url, it.me.display_name, it.me.preferred_color, 'avatar--xs') %><% } %>My profile
       </a>
       <qr-share></qr-share>
