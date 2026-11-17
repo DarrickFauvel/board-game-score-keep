@@ -35,7 +35,27 @@ const allPlanned = isActive && planned && played >= planned && !targetReached;
 // The game's own word for a round ("Race 2 of 5") and for points
 const u = it.units(it.game);
 const roundLabel = (r) => planned && r <= planned ? u.Round + ' ' + r + ' of ' + planned : u.Round + ' ' + r;
+// Who is ahead while playing (everyone on the best total, once a round is in)
+const bestTotal = standings.length ? (totals[standings[0].id] || 0) : 0;
+const leaders = isActive && played > 0 ? standings.filter(p => (totals[p.id] || 0) === bestTotal) : [];
+const currentRound = isActive ? nextRound : null;
 %>
+
+<%/* Phones: the round and the leader stay in view while scrolling down to
+     the score buttons. The standings below say the same, so screen readers
+     skip this. */%>
+<% if (isActive) { %>
+<div class="leader-bar" aria-hidden="true">
+  <span class="leader-bar__round"><%= roundLabel(currentRound) %></span>
+  <% if (leaders.length === 1) { %>
+  <span class="leader-bar__lead"><%~ it.avatar(leaders[0].avatar_url, leaders[0].display_name, leaders[0].color || leaders[0].preferred_color, 'avatar--xs') %><span class="leader-bar__name"><%= leaders[0].display_name %></span> leads <strong class="leader-bar__total"><%= bestTotal %></strong></span>
+  <% } else if (leaders.length > 1) { %>
+  <span class="leader-bar__lead"><span class="leader-bar__name"><%= leaders.length === 2 ? leaders.map(p => p.display_name).join(' & ') : leaders.length + ' players' %></span> tied at <strong class="leader-bar__total"><%= bestTotal %></strong></span>
+  <% } %>
+</div>
+<% } %>
+
+<div class="tally<%= isActive ? ' tally--live' : '' %>">
 
 <section class="standings" aria-labelledby="standings-heading">
   <h2 id="standings-heading" class="standings__title">
@@ -50,7 +70,7 @@ const roundLabel = (r) => planned && r <= planned ? u.Round + ' ' + r + ' of ' +
        const total = totals[p.id] || 0;
        const isWinner = it.session.status === 'completed' && total === winTotal;
     %>
-    <li id="participant-<%= p.id %>" class="standings__row <%= isWinner ? 'score-winner' : '' %>">
+    <li id="participant-<%= p.id %>" class="standings__row<%= isWinner ? ' score-winner' : '' %><%= leaders.includes(p) ? ' standings__row--leader' : '' %>">
       <span class="standings__rank"><%= i + 1 %></span>
       <%~ it.avatar(p.avatar_url, p.display_name, p.color || p.preferred_color, 'avatar--sm') %>
       <span class="standings__name"><%= p.display_name %><%~ isWinner ? ' ' + it.icon('trophy', 'winner-icon') + '<span class="visually-hidden"> (winner)</span>' : '' %></span>
@@ -75,8 +95,7 @@ const roundLabel = (r) => planned && r <= planned ? u.Round + ' ' + r + ' of ' +
 </div>
 <% } %>
 
-<div class="round-list">
-  <% displayRounds.forEach(function(r) {
+<% const roundCard = function(r) {
      const isCurrent = isActive && r === nextRound;
      // Finished rounds show plain numbers; Edit reveals the inputs for corrections
      const isCorrectable = isActive && !isCurrent;
@@ -98,7 +117,7 @@ const roundLabel = (r) => planned && r <= planned ? u.Round + ' ' + r + ' of ' +
       %>
       <li class="round-row">
         <span class="round-row__dot" style="background:<%= p.color || p.preferred_color || 'var(--color-border)' %>" aria-hidden="true"></span>
-        <span class="round-row__name"><%= p.display_name %></span>
+        <span class="round-row__name"><%= p.display_name %><% if (isCurrent) { %> <span class="round-row__sofar"><%= totals[p.id] || 0 %> so far</span><% } %></span>
         <% if (!isCurrent) { %>
         <span class="round-row__value"><%= entry ? entry.value : '—' %></span>
         <% } %>
@@ -114,12 +133,23 @@ const roundLabel = (r) => planned && r <= planned ? u.Round + ' ' + r + ' of ' +
     <form class="round-card__next" method="POST"
           action="/games/<%= it.game.id %>/sessions/<%= it.session.id %>/rounds">
       <input type="hidden" name="round" value="<%= r %>">
-      <button type="submit" class="btn btn--secondary"><%= planned && r === planned ? 'Finish final ' + u.round : 'Next ' + u.round + ' →' %></button>
+      <button type="submit" class="btn btn--primary"><%= planned && r === planned ? 'Finish final ' + u.round : 'Next ' + u.round + ' →' %></button>
     </form>
     <% } %>
   </section>
-  <% }) %>
+<% } %>
+
+<% if (isActive) { %>
+<div class="tally__current"><% roundCard(nextRound) %></div>
+<% } %>
 </div>
+
+<% const pastRounds = displayRounds.filter(r => r !== currentRound) %>
+<% if (pastRounds.length) { %>
+<div class="round-list">
+  <% pastRounds.forEach(function(r) { roundCard(r) }) %>
+</div>
+<% } %>
 
 <script>
 // Scores save as they change; leaving edit mode reloads so standings recompute
