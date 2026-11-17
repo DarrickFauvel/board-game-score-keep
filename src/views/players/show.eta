@@ -48,20 +48,29 @@
 </section>
 <% } %>
 
-<div class="stats-grid" style="margin-bottom:var(--space-6)" aria-label="Player statistics">
-  <div class="stat-card">
-    <div class="stat-card__value"><%= it.stats.games_played || 0 %></div>
-    <div class="stat-card__label">Games played</div>
+<%/* Average finish from the finished games below (1 is a win) */%>
+<% const ranks = it.history.filter((h) => h.status === 'completed').map((h) => Number(h.rank)).filter((r) => r > 0) %>
+<% const avgFinish = ranks.length ? (ranks.reduce((a, r) => a + r, 0) / ranks.length).toFixed(1) : null %>
+<dl class="stat-strip" aria-label="Player statistics">
+  <div class="stat-strip__item">
+    <dt class="stat-strip__label">Games played</dt>
+    <dd class="stat-strip__value"><%= it.stats.games_played || 0 %></dd>
   </div>
-  <div class="stat-card">
-    <div class="stat-card__value"><%= it.stats.wins || 0 %></div>
-    <div class="stat-card__label">Wins</div>
+  <div class="stat-strip__item">
+    <dt class="stat-strip__label">Wins</dt>
+    <dd class="stat-strip__value"><%= it.stats.wins || 0 %></dd>
   </div>
-  <div class="stat-card">
-    <div class="stat-card__value"><%= it.stats.win_rate || 0 %>%</div>
-    <div class="stat-card__label">Win rate</div>
+  <div class="stat-strip__item">
+    <dt class="stat-strip__label">Win rate</dt>
+    <dd class="stat-strip__value"><%= it.stats.win_rate || 0 %>%</dd>
   </div>
-</div>
+  <% if (avgFinish) { %>
+  <div class="stat-strip__item">
+    <dt class="stat-strip__label">Avg finish</dt>
+    <dd class="stat-strip__value"><%= avgFinish %></dd>
+  </div>
+  <% } %>
+</dl>
 
 <section aria-labelledby="history-heading">
   <div class="section-head"><h2 id="history-heading">Game history</h2></div>
@@ -88,7 +97,9 @@
           · <span class="nowrap">Score: <%= entry.total_score || 0 %></span>
         </span>
       </span>
-      <% if (Number(entry.won) === 1) { %>
+      <% if (entry.status === 'active') { %>
+      <span class="badge badge--active">Playing now</span>
+      <% } else if (Number(entry.won) === 1) { %>
       <span class="badge badge--gold"><%~ it.icon('trophy') %>Winner</span>
       <% } else { %>
       <span class="meta">Rank #<%= entry.rank %></span>

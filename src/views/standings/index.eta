@@ -28,30 +28,48 @@
   Ranked by wins, then win rate; ties share a rank.
 </p>
 
-<ol class="leaderboard" role="list">
-  <% it.standings.forEach(function(s) { %>
-  <li class="leaderboard__row<%= s.rank <= 3 ? ' leaderboard__row--top' : '' %>">
-    <span class="leaderboard__rank leaderboard__rank--<%= s.rank %>"><span class="visually-hidden">Rank </span><%= s.rank %></span>
-    <%~ it.avatar(s.avatarUrl, s.name, s.color) %>
-    <div class="leaderboard__who">
-      <% if (s.playerId) { %>
-      <a class="leaderboard__name" href="/players/<%= s.playerId %>"><%= s.name %></a>
-      <% } else { %>
-      <span class="leaderboard__name"><%= s.name %></span>
-      <% } %>
-      <%/* Each stat stays on one line; the list wraps between stats */%>
-      <span class="leaderboard__meta">
-        <span><%= s.played %> played</span> <span><%= s.winRate %>% wins</span> <span>avg finish <%= s.avgFinish %></span>
-        <% if (it.selectedGame) { %><span>avg score <%= s.avgScore %></span> <span>best <%= s.bestScore %></span><% } %>
-      </span>
-    </div>
-    <div class="leaderboard__wins">
-      <strong><%= s.wins %></strong>
-      <span><%= s.wins === 1 ? 'win' : 'wins' %></span>
-    </div>
-  </li>
-  <% }) %>
-</ol>
+<%/* A table from tablets up; on phones each row folds into a card (rank,
+     player and wins on top, the other numbers under). The leader's row has
+     the gold wash. */%>
+<% const g = it.selectedGame %>
+<div class="data-table-wrap">
+  <table class="data-table standings-table">
+    <caption class="visually-hidden">Standings<%= g ? ' for ' + g.name : '' %>, ranked by wins</caption>
+    <thead>
+      <tr>
+        <th scope="col" class="data-table__rank">Rank</th>
+        <th scope="col">Player</th>
+        <th scope="col" class="data-table__num">Wins</th>
+        <th scope="col" class="data-table__num">Played</th>
+        <th scope="col" class="data-table__num">Win rate</th>
+        <th scope="col" class="data-table__num">Avg finish</th>
+        <% if (g) { %>
+        <th scope="col" class="data-table__num">Avg score</th>
+        <th scope="col" class="data-table__num">Best</th>
+        <% } %>
+      </tr>
+    </thead>
+    <tbody>
+      <% it.standings.forEach(function(s) { %>
+      <tr class="<%= s.rank === 1 ? 'data-table__row--lead' : '' %>">
+        <td class="data-table__rank"><span class="standings-table__rank standings-table__rank--<%= s.rank %>"><%= s.rank %></span></td>
+        <th scope="row" class="standings-table__player">
+          <%~ it.avatar(s.avatarUrl, s.name, s.color, 'avatar--sm') %>
+          <% if (s.playerId) { %><a href="/players/<%= s.playerId %>"><%= s.name %></a><% } else { %><span><%= s.name %></span><% } %>
+        </th>
+        <td class="data-table__num standings-table__wins" data-label="<%= s.wins === 1 ? 'win' : 'wins' %>"><strong><%= s.wins %></strong></td>
+        <td class="data-table__num" data-label="played"><%= s.played %></td>
+        <td class="data-table__num" data-label="wins"><%= s.winRate %>%</td>
+        <td class="data-table__num" data-label="avg finish"><%= s.avgFinish %></td>
+        <% if (g) { %>
+        <td class="data-table__num" data-label="avg score"><%= s.avgScore %></td>
+        <td class="data-table__num" data-label="best"><%= s.bestScore %></td>
+        <% } %>
+      </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</div>
 <% } %>
 
 <script>
