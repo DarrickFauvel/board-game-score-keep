@@ -29,7 +29,8 @@
 <link rel="stylesheet" href="/assets/icons/icon.css">
 <style>
 :root {
-  --p-bg: #0c0a08; --p-surface: #181512; --p-ink: #ffffff; --p-muted: #8f8a84;
+  /* --p-muted lifted from the dealt #8f8a84 (5.8:1 on the bg) to reach 7:1 for body text */
+  --p-bg: #0c0a08; --p-surface: #181512; --p-ink: #ffffff; --p-muted: #a6a19a;
   --p-accent: #c9a45a; --p-accent-ink: #0c0a08; --p-action: #c9a45a; --p-action-ink: #0c0a08;
   --p-inv-bg: #ffffff; --p-inv-surface: #ebebeb; --p-inv-ink: #0c0a08; --p-inv-muted: #5c5b59;
   --p-inv-accent: #0c0a08; --p-inv-accent-ink: #ffffff; --p-inv-action: #0c0a08; --p-inv-action-ink: #ffffff;
@@ -60,7 +61,7 @@
   .sk-bar__dots { display: flex; gap: 6px; } .sk-bar__dots i { width: 10px; height: 10px; border-radius: 50%; background: #dedad3; }
   /* The descriptor stacked under the wordmark; the wordmark alone on phones */
   .brand__name { display: flex; flex-direction: column; line-height: 1.05; }
-  .brand__desc { margin-top: 3px; font: 400 12px/1.2 var(--font-text); letter-spacing: 0; opacity: .62; white-space: nowrap; }
+  .brand__desc { margin-top: 3px; font: 400 12px/1.2 var(--font-text); letter-spacing: 0; color: var(--muted); white-space: nowrap; }
   @media (max-width: 639px) { .nav .brand__desc { display: none; } }
   .footer__legal .credits a { color: inherit; }
   /* #record: the hall of fame as the app shows it, under the headline */
